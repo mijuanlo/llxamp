@@ -90,14 +90,14 @@ make_change_bin(){
 
 write_httpd_conf(){
     [ ! -e "$rptarget" ] && error_menu "invalid target"
-    sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" -e "s|@@LLXAMP_PORT@@|$DEFAULT_PORT|g" -e "s|@@LLXAMP_USER@@|$(whoami)|g" -e "s|@@LLXAMP_SERVERNAME@@|$(hostname)|g" templates/httpd.conf > $rptarget/httpd/conf/httpd.conf
+    sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" -e "s|@@LLXAMP_PORT@@|$DEFAULT_PORT|g" -e "s|@@LLXAMP_USER@@|$(whoami)|g" -e "s|@@LLXAMP_SERVERNAME@@|$(hostname)|g" "$TEMPLATES_DIR"/httpd.conf > $rptarget/httpd/conf/httpd.conf
 }
 
 include_php_samples(){
     [ ! -e "$rptarget" ] && error_menu "invalid target"
     echo Including PHP sample pages
-    cp templates/db.php $rptarget/httpd/htdocs/
-    cp templates/info.php $rptarget/httpd/htdocs/
+    cp "$TEMPLATES_DIR"/db.php $rptarget/httpd/htdocs/
+    cp "$TEMPLATES_DIR"/info.php $rptarget/httpd/htdocs/
 }
 
 configure_mysql(){
@@ -107,7 +107,7 @@ configure_mysql(){
     mkdir -p $rptarget/mysql/temp
     mkdir -p $rptarget/mysql/var/mysql
     mkdir -p $rptarget/mysql/var/log
-    sed -r "s|@@LLXAMP_BASEPATH@@|$rptarget/mysql|g" templates/my.cnf > $rptarget/mysql/conf/my.cnf
+    sed -r "s|@@LLXAMP_BASEPATH@@|$rptarget/mysql|g" "$TEMPLATES_DIR"/my.cnf > $rptarget/mysql/conf/my.cnf
 }
 
 configure_mysql2(){
@@ -118,9 +118,9 @@ configure_mysql2(){
     execute_silent bash $rptarget/start_mysql.sh
     sleep 5
     echo Creating test table
-    execute_silent $rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root < templates/create_table.sql
+    execute_silent $rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root < "$TEMPLATES_DIR"/create_table.sql
     echo Securing Mysql installation
-    execute_silent $rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root < templates/secure_installation.sql
+    execute_silent $rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root < "$TEMPLATES_DIR"/secure_installation.sql
     echo Stopping database
     execute bash $rptarget/stop_mysql.sh
 }
@@ -192,7 +192,7 @@ script_dir=$( cd -- "$( dirname -- $(realpath -e "${BASH_SOURCE[0]}") )" &> /dev
 program=$(basename "${BASH_SOURCE[0]}")
 args=$@
 nargs=$#
-
+TEMPLATES_DIR=${TEMPLATES_DIR:=$script_dir/templates}
 if [ $nargs -lt 2 ]; then
     help_menu
 fi
