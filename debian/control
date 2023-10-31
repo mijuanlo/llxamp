@@ -9,7 +9,7 @@ Vcs-Git: https://github.com/lliurex/llxamp/
 
 Package: llxamp-cmdline
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, llxamp-install-pack, bash, grep, sed, chrpath, lynx, python3, tar, gzip
+Depends: ${shlibs:Depends}, ${misc:Depends}, llxamp-install-pack, bash, grep, sed, chrpath, lynx, tar, gzip
 Description: LLXAMP install Apache+PHP+MariaDB+PHPMyAdmin instances in user's homedir
  This package contains cmdline scripts
 
@@ -21,6 +21,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
   tar,
   gzip,
   sudo,
+  python3,
   autoconf,
   automake,
   bison,
