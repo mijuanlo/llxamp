@@ -161,7 +161,7 @@ create_target_dir(){
 }
 
 test_install_pack(){
-    [ ! -e "$rpfile_pack" ] && llxamp-download-install-pack || error_menu "invalid install-pack"
+    [ ! -e "$rpfile_pack" ] && error_menu "invalid install-pack"
     echo Testing archive "$rpfile_pack"
     contents=$(execute tar -ztf "$rpfile_pack")
     contents=($(echo $contents|xargs -n1|cut -d'/' -f2|uniq|xargs))
@@ -213,17 +213,11 @@ target=${target:=$TARGET_DIR}
 target=${target:=$HOME/llxamp}
 rptarget=$(execute realpath "$target")
 
-if [ $nargs -lt 2 ]; then
-    if [ -z "$rptarget" -o ! -e "$rpfile_pack" ]; then
-        help_menu
-    fi
-fi
-
 if [ -e "$rptarget" ]; then
     error_menu "'$rptarget' exists, must be non-existent directory"
 fi
 if [ ! -e "$rpfile_pack" ]; then
-    error_menu "Invalid pack file"
+    llxamp-download-install-pack || error_menu "Invalid pack file"
 fi
 
 
