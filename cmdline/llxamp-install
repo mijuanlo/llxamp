@@ -189,7 +189,7 @@ read_tag(){
 configure_user_path(){
     echo "Configuring user path"
     exists=$(grep -s 'LLXAMP_PATH' $HOME/.bashrc)
-    if [ $exits -ne 0 ];then
+    if [ $exits != 0 ];then
         echo 'LLXAMP_PATH="$HOME/llxamp"' >> $HOME/.bashrc
         echo 'export PATH="$LLXAMP_PATH:$PATH"' >> $HOME/.bashrc
     fi
