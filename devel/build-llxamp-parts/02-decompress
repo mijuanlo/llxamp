@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+source ENVIRON
+
+echo;echo Decompressing archive files;echo;
+
+mkdir -p $DECOMPRESSED_DIR
+for archive in $SOURCE_FILES; do 
+    tar xfz $SOURCE_DIR/$archive -C $DECOMPRESSED_DIR
+    linkname=$(echo $archive|sed -nr 's|([a-zA-Z-]+)-.*|\1|p')
+    dirname=$(basename $archive .tar.gz)
+    ln -s $dirname $DECOMPRESSED_DIR/$linkname
+done

@@ -1,0 +1,35 @@
+#!/bin/bash
+set -eE
+trap 'printf "\e[31m%s: %s\e[m\n" "Error downloading llxamp-packages!" $?' ERR
+
+script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+script_name="$(basename ${BASH_SOURCE[0]})"
+REPO=https://svnlliurexnet.gva.es/focal/llxamp-packages
+TMPDIR=$(realpath "$1")
+TMPDIR=${TMPDIR:=/tmp/llxamp-packages}
+MD5=${MD5:=sources.md5}
+CURL=$(which curl)
+SED=$(which sed)
+MD5SUM=$(which md5sum)
+
+mkdir -p "$TMPDIR"
+$CURL -s "$REPO/$MD5" -o "$TMPDIR/$MD5"
+FILES=$($SED -nr 's|\s+|,|gp' "$TMPDIR/$MD5"|cut -d',' -f2)
+for file in $FILES; do
+    if [ -e "$TMPDIR/$file" ]; then
+        true_md5=$(egrep "$file\$" "$TMPDIR/$MD5" |cut -d' ' -f1)
+        md5=$($MD5SUM "$TMPDIR/$file"|cut -d' ' -f1)
+        if [ "x$true_md5" == "x$md5" ]; then
+            echo "Found $file"
+        else
+            echo Downloading "$file" into "$TMPDIR" ...
+            $CURL --progress-bar "$REPO/$file" -o "$TMPDIR/$file"
+        fi
+    else
+        echo Downloading "$file" into "$TMPDIR" ...
+        $CURL --progress-bar "$REPO/$file" -o "$TMPDIR/$file"
+    fi
+done
+pushd "$TMPDIR" > /dev/null 2>&1
+$MD5SUM -c "$TMPDIR/$MD5" >/dev/null 2>&1 && echo Download into $TMPDIR successful || echo Download failed
+popd > /dev/null 2>&1

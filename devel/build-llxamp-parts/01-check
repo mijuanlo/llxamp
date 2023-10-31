@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+echo;echo "Checking files integrity";echo;
+
+source ENVIRON
+
+SOURCES_DIR=${SOURCES_DIR:=sources}
+MD5FILE=${MD5FILE:=md5}
+
+md5sum -c $SOURCES_DIR/$MD5FILE > /dev/null

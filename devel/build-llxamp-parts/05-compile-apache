@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+source ENVIRON
+
+BUILDDIR=${BUILDDIR:=/LLXXAMP}
+DEFAULT_PORT=${DEFAULT_PORT:=8080}
+TAG=${TAG:=$BUILDDIR/123456789123456789123456789123456789123456789}
+PREFIX=$TAG/httpd
+PROCS=$(nproc)
+
+echo;echo Compiling Apache2;echo;
+
+cd $DECOMPRESSED_DIR/httpd
+./configure --prefix=$PREFIX --enable-mods-shared=all --enable-so --with-included-apr --with-port=$DEFAULT_PORT > /dev/null 2>&1
+make clean > /dev/null 2>&1
+make -j$PROCS > /dev/null 2>&1
+make install > /dev/null 2>&1
+

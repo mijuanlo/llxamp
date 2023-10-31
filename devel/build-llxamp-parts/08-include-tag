@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+source ENVIRON
+
+BUILDDIR=${BUILDDIR:=/LLXXAMP}
+TAG=${TAG:=$BUILDDIR/123456789123456789123456789123456789123456789}
+
+echo;echo Writting tagfile;echo;
+
+echo $TAG > $TAG/build-tag
+

@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+source ENVIRON
+
+BUILDDIR=${BUILDDIR:=/LLXXAMP}
+OWNER=$(whoami)
+
+echo;echo "Creating build dir '$BUILDDIR' as '$OWNER' (needs sudo)";echo;
+
+sudo mkdir -p $BUILDDIR
+sudo chown $OWNER.$OWNER $BUILDDIR

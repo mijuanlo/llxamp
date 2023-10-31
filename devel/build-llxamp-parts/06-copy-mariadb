@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+source ENVIRON
+
+BUILDDIR=${BUILDDIR:=/LLXXAMP}
+TAG=${TAG:=$BUILDDIR/123456789123456789123456789123456789123456789}
+PREFIX=$TAG/mysql
+
+echo;echo Copying MariaDB files;echo;
+
+cp -LR $DECOMPRESSED_DIR/mariadb $PREFIX

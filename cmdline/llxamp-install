@@ -1,0 +1,209 @@
+#!/bin/bash
+
+source ENVIRON
+
+help_menu(){
+    echo
+    echo "Usage:"
+    echo
+    echo "$program <file_pack> <target>"
+    echo
+}
+
+error_menu(){
+    echo
+    echo Error $1
+    help_menu
+    exit 1
+}
+
+execute(){
+    $@
+    if [ $? -ne 0 ]; then
+        echo "Error executing '$@', aborting operation"
+        exit 1
+    fi
+}
+
+execute_silent(){
+    $@ >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Error executing '$@', aborting operation"
+        exit 1
+    fi
+}
+
+make_change_text(){
+    echo Patching text files
+    export LC_ALL=C
+    components="httpd php mysql"
+    pushd $rptarget >/dev/null
+
+    for component in $components; do
+        found=$(execute egrep -Ilor "$TAG" $component)
+        if [ $? -eq 0 -a -n "$found" ];then
+            found=($(echo $found |xargs -n1 |sort|uniq))
+            for file in ${found[@]}; do
+                execute sed -r -i'.pre-change' "s|$TAG|$rptarget|g" "$file"
+            done
+        fi
+    done
+    find $rppath -name '*.pre-change' -exec rm {} \;
+    popd > /dev/null
+}
+
+make_change_bin(){
+    echo Patching binary files
+    export LC_ALL=C
+    components="httpd php mysql"
+    pushd $rptarget >/dev/null
+    declare -a found_bins_with_tag
+    for component in $components; do
+        found_bins=$(execute find $component -type f -exec grep . -IL "{}" \;)
+        if [ $? -eq 0 -a -n "$found_bins" ];then
+            found_bins=($(echo $found_bins |xargs -n1 |sort|uniq))
+            for file in ${found_bins[@]}; do
+                found_tag=$(grep -ol "$TAG" "$file" || true)
+                found_bins_with_tag+=($found_tag)
+                if [ -n "$found_tag" ];then
+                    execute python3 $script_dir/patch.py $rptarget/$file $TAG $rptarget
+                fi
+            done
+        fi
+    done
+ 
+    for file in ${found_bins_with_tag[@]}; do
+        path=""
+        path=$((chrpath -l "$file" 2>/dev/null || true)|grep "$TAG"|sed -nr "s|.*RUNPATH=$TAG(.*)|\1|p")
+        if [ -n "$path" ]; then
+            execute chrpath -r "$rptarget$path" $file >/dev/null
+        fi
+    done
+    
+    popd > /dev/null
+}
+
+write_httpd_conf(){
+    sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" -e "s|@@LLXAMP_PORT@@|$DEFAULT_PORT|g" -e "s|@@LLXAMP_USER@@|$(whoami)|g" -e "s|@@LLXAMP_SERVERNAME@@|$(hostname)|g" templates/httpd.conf > $rptarget/httpd/conf/httpd.conf
+}
+
+include_php_samples(){
+    echo Including PHP sample pages
+    cp templates/db.php $rptarget/httpd/htdocs/
+    cp templates/info.php $rptarget/httpd/htdocs/
+}
+
+configure_mysql(){
+    echo "Configuring MariaDB 5.5"
+    mkdir -p $rptarget/mysql/conf
+    mkdir -p $rptarget/mysql/temp
+    mkdir -p $rptarget/mysql/var/mysql
+    mkdir -p $rptarget/mysql/var/log
+    sed -r "s|@@LLXAMP_BASEPATH@@|$rptarget/mysql|g" templates/my.cnf > $rptarget/mysql/conf/my.cnf
+}
+
+configure_mysql2(){
+    echo Installing initial database
+    execute_silent $rptarget/mysql/scripts/mysql_install_db --basedir=$rptarget/mysql --datadir=$rptarget/mysql/data --no-defaults --user=$(whoami)
+    echo Starting database
+    execute_silent bash $rptarget/start_mysql.sh
+    sleep 5
+    echo Creating test table
+    execute_silent $rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root < templates/create_table.sql
+    echo Securing Mysql installation
+    execute_silent $rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root < templates/secure_installation.sql
+    echo Stopping database
+    execute bash $rptarget/stop_mysql.sh
+}
+
+write_start_scripts(){
+    echo Writting start/stop scripts into "$rptarget"
+    
+    echo '#!/bin/bash -e' > $rptarget/start_mysql.sh
+    echo "$rptarget/mysql/bin/mysqld_safe --defaults-file=$rptarget/mysql/conf/my.cnf > /dev/null 2>&1 &" >> $rptarget/start_mysql.sh
+    chmod +x $rptarget/start_mysql.sh
+
+    echo '#!/bin/bash -e' > $rptarget/stop_mysql.sh
+    echo "kill \$(cat $rptarget/mysql/temp/mysql.pid)" >> $rptarget/stop_mysql.sh
+    chmod +x $rptarget/stop_mysql.sh
+
+    echo '#!/bin/bash -e' > $rptarget/reset_mysql_password.sh
+    echo 'pass=$1' >> $rptarget/reset_mysql_password.sh
+    echo "$rptarget/mysql/bin/mysqld_safe --defaults-file=$rptarget/mysql/conf/my.cnf --skip-grant-tables > /dev/null 2>&1 &" >> $rptarget/reset_mysql_password.sh
+    echo 'sleep 10' >> $rptarget/reset_mysql_password.sh
+    echo "$rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root -e \"UPDATE mysql.user SET Password = PASSWORD('\$pass') WHERE User = 'root';FLUSH PRIVILEGES;\"" >> $rptarget/reset_mysql_password.sh
+    echo "kill \$(cat $rptarget/mysql/temp/mysql.pid)" >> $rptarget/reset_mysql_password.sh
+    chmod +x $rptarget/reset_mysql_password.sh
+
+    echo '#!/bin/bash -e' > $rptarget/start_apache.sh
+    echo "LD_PRELOAD=\"$rptarget/httpd/lib/libapr-1.so.0 $rptarget/httpd/lib/libaprutil-1.so.0\" $rptarget/httpd/bin/httpd -k start" >> $rptarget/start_apache.sh
+    chmod +x $rptarget/start_apache.sh
+    
+    echo '#!/bin/bash -e' > $rptarget/stop_apache.sh
+    echo "LD_PRELOAD=\"$rptarget/httpd/lib/libapr-1.so.0 $rptarget/httpd/lib/libaprutil-1.so.0\" $rptarget/httpd/bin/httpd -k stop" >> $rptarget/stop_apache.sh
+    chmod +x $rptarget/stop_apache.sh
+}
+
+create_target_dir(){
+    if [ ! -e "$rptarget" ]; then
+        mkdir -p "$rptarget" ||  error_menu "Invalid parameter '$target'"
+    fi
+}
+
+test_install_pack(){
+    echo Testing archive "$rpfile_pack"
+    contents=$(execute tar -ztf "$rpfile_pack")
+    contents=($(echo $contents|xargs -n1|cut -d'/' -f2|uniq|xargs))
+    need="build-tag httpd php mysql"
+    [ ${#contents[@]} -ne 4 ] && error_menu "Invalid contents into $rpfile_pack"
+    for n in $need; do
+        [[ " ${contents[*]} " =~ " $n " ]] && echo "$n found!" || error_menu "$n not found!" 
+    done
+}
+
+decompress_pack(){
+    echo "Decompressing archive into '$rptarget'"
+    execute tar -zxf "$rpfile_pack" -C "$rptarget"
+}
+
+read_tag(){
+    echo "Reading tag"
+    TAG=$(cat "$rptarget/build-tag")
+    [ -z "$TAG" ] && error_menu "Empty tag"
+    rm "$rptarget/build-tag"
+}
+
+# MAIN EXECUTION
+
+script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+program=$0
+args=$@
+nargs=$#
+
+if [ $nargs -lt 2 ]; then
+    help_menu
+    exit 1
+fi
+
+file_pack="$1"
+rpfile_pack=$(execute realpath "$file_pack")
+
+target="$2"
+rptarget=$(execute realpath "$target")
+
+if [ ! -e "$rpfile_pack" ]; then
+    error_menu "Invalid pack file"
+fi
+
+
+test_install_pack
+create_target_dir
+decompress_pack
+read_tag
+make_change_text 
+make_change_bin
+write_httpd_conf
+include_php_samples
+configure_mysql
+write_start_scripts
+configure_mysql2

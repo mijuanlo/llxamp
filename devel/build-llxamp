@@ -1,0 +1,4 @@
+#!/bin/bash
+set -e
+
+run-parts --exit-on-error build-llxamp-parts

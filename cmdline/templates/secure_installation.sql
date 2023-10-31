@@ -1,0 +1,14 @@
+\! echo " - Setting root password to 'root'...";
+UPDATE mysql.user SET Password=PASSWORD('root') WHERE User='root';
+\! echo " - Flushing privileges...";
+FLUSH PRIVILEGES;
+\! echo " - Removing anonymous users...";
+DELETE FROM mysql.user WHERE User='';
+\! echo " - Removing root user access...";
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+\! echo " - Dropping test database...";
+DROP DATABASE IF EXISTS test;
+\! echo " - Removing privileges on test database...";
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+\! echo " - Flushing privileges...";
+FLUSH PRIVILEGES;
