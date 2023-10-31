@@ -129,29 +129,29 @@ write_start_scripts(){
     [ ! -e "$rptarget" ] && error_menu "invalid target"
     echo Writting start/stop scripts into "$rptarget"
     
-    echo '#!/bin/bash -e' > $rptarget/start_mysql.sh
-    echo "$rptarget/mysql/bin/mysqld_safe --defaults-file=$rptarget/mysql/conf/my.cnf > /dev/null 2>&1 &" >> $rptarget/start_mysql.sh
-    chmod +x $rptarget/start_mysql.sh
+    echo '#!/bin/bash -e' > $rptarget/llxamp-start-mysql
+    echo "$rptarget/mysql/bin/mysqld_safe --defaults-file=$rptarget/mysql/conf/my.cnf > /dev/null 2>&1 &" >> $rptarget/llxamp-start-mysql
+    chmod +x $rptarget/llxamp-start-mysql
 
-    echo '#!/bin/bash -e' > $rptarget/stop_mysql.sh
-    echo "kill \$(cat $rptarget/mysql/temp/mysql.pid)" >> $rptarget/stop_mysql.sh
-    chmod +x $rptarget/stop_mysql.sh
+    echo '#!/bin/bash -e' > $rptarget/llxamp-stop-mysql
+    echo "kill \$(cat $rptarget/mysql/temp/mysql.pid)" >> $rptarget/llxamp-stop-mysql
+    chmod +x $rptarget/llxamp-stop-mysql
 
-    echo '#!/bin/bash -e' > $rptarget/reset_mysql_password.sh
-    echo 'pass=$1' >> $rptarget/reset_mysql_password.sh
-    echo "$rptarget/mysql/bin/mysqld_safe --defaults-file=$rptarget/mysql/conf/my.cnf --skip-grant-tables > /dev/null 2>&1 &" >> $rptarget/reset_mysql_password.sh
-    echo 'sleep 10' >> $rptarget/reset_mysql_password.sh
-    echo "$rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root -e \"UPDATE mysql.user SET Password = PASSWORD('\$pass') WHERE User = 'root';FLUSH PRIVILEGES;\"" >> $rptarget/reset_mysql_password.sh
-    echo "kill \$(cat $rptarget/mysql/temp/mysql.pid)" >> $rptarget/reset_mysql_password.sh
-    chmod +x $rptarget/reset_mysql_password.sh
+    echo '#!/bin/bash -e' > $rptarget/llxamp-reset-mysql-password
+    echo 'pass=$1' >> $rptarget/llxamp-reset-mysql-password
+    echo "$rptarget/mysql/bin/mysqld_safe --defaults-file=$rptarget/mysql/conf/my.cnf --skip-grant-tables > /dev/null 2>&1 &" >> $rptarget/llxamp-reset-mysql-password
+    echo 'sleep 10' >> $rptarget/llxamp-reset-mysql-password
+    echo "$rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root -e \"UPDATE mysql.user SET Password = PASSWORD('\$pass') WHERE User = 'root';FLUSH PRIVILEGES;\"" >> $rptarget/llxamp-reset-mysql-password
+    echo "kill \$(cat $rptarget/mysql/temp/mysql.pid)" >> $rptarget/llxamp-reset-mysql-password
+    chmod +x $rptarget/llxamp-reset-mysql-password
 
-    echo '#!/bin/bash -e' > $rptarget/start_apache.sh
-    echo "LD_PRELOAD=\"$rptarget/httpd/lib/libapr-1.so.0 $rptarget/httpd/lib/libaprutil-1.so.0\" $rptarget/httpd/bin/httpd -k start" >> $rptarget/start_apache.sh
-    chmod +x $rptarget/start_apache.sh
+    echo '#!/bin/bash -e' > $rptarget/llxamp-start-apache
+    echo "LD_PRELOAD=\"$rptarget/httpd/lib/libapr-1.so.0 $rptarget/httpd/lib/libaprutil-1.so.0\" $rptarget/httpd/bin/httpd -k start" >> $rptarget/llxamp-start-apache
+    chmod +x $rptarget/llxamp-start-apache
     
-    echo '#!/bin/bash -e' > $rptarget/stop_apache.sh
-    echo "LD_PRELOAD=\"$rptarget/httpd/lib/libapr-1.so.0 $rptarget/httpd/lib/libaprutil-1.so.0\" $rptarget/httpd/bin/httpd -k stop" >> $rptarget/stop_apache.sh
-    chmod +x $rptarget/stop_apache.sh
+    echo '#!/bin/bash -e' > $rptarget/llxamp-stop-apache
+    echo "LD_PRELOAD=\"$rptarget/httpd/lib/libapr-1.so.0 $rptarget/httpd/lib/libaprutil-1.so.0\" $rptarget/httpd/bin/httpd -k stop" >> $rptarget/llxamp-stop-apache
+    chmod +x $rptarget/llxamp-stop-apache
 }
 
 create_target_dir(){
@@ -184,6 +184,15 @@ read_tag(){
     TAG=$(cat "$rptarget/build-tag")
     [ -z "$TAG" ] && error_menu "Empty tag"
     rm "$rptarget/build-tag"
+}
+
+configure_user_path(){
+    echo "Configuring user path"
+    exists=$(grep -s 'LLXAMP_PATH' $HOME/.bashrc)
+    if [ $exits -ne 0 ];then
+        echo 'LLXAMP_PATH="$HOME/llxamp"' >> $HOME/.bashrc
+        echo 'export PATH="$LLXAMP_PATH:$PATH"' >> $HOME/.bashrc
+    fi
 }
 
 # MAIN EXECUTION
@@ -229,3 +238,4 @@ include_php_samples
 configure_mysql
 write_start_scripts
 configure_mysql2
+configure_user_path
