@@ -188,7 +188,7 @@ read_tag(){
 
 # MAIN EXECUTION
 
-script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+script_dir=$( cd -- "$( dirname -- $(realpath -e "${BASH_SOURCE[0]}") )" &> /dev/null && pwd )
 program=$(basename "${BASH_SOURCE[0]}")
 args=$@
 nargs=$#
