@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Downloading files"
+llxamp-download-sources
+
 echo "Checking files integrity"
 [ -e "$1" ] || ( echo Invalid environ file && exit 1 )
 source $1
