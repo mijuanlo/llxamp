@@ -2,6 +2,6 @@
 set -e
 source $1
 
-echo;echo Copying apr sources;echo;
+echo Copying apr sources
 
 mv $DECOMPRESSED_DIR/apr* $DECOMPRESSED_DIR/httpd/srclib/

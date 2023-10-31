@@ -5,7 +5,7 @@ source $1
 BUILDDIR=${BUILDDIR:=/LLXXAMP}
 OWNER=$(whoami)
 
-echo;echo "Creating build dir '$BUILDDIR' as '$OWNER' (needs sudo)";echo;
+echo "Creating build dir '$BUILDDIR' as '$OWNER' (needs sudo)"
 
 sudo mkdir -p $BUILDDIR
 sudo chown $OWNER.$OWNER $BUILDDIR

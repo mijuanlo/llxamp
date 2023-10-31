@@ -6,8 +6,8 @@ BUILDDIR=${BUILDDIR:=/LLXXAMP}
 TAG=${TAG:=$BUILDDIR/123456789123456789123456789123456789123456789}
 PACKNAME=${PACKNAME:=pack.tgz}
 
-echo;echo Compressing base install pack;echo;
+echo Compressing base install pack
 
 tar cfz $PACKNAME -C $TAG .
 
-echo;echo Finished;
+echo Finished;

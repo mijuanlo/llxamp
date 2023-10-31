@@ -2,7 +2,7 @@
 set -e
 source $1
 
-echo;echo Decompressing archive files;echo;
+echo Decompressing archive files
 
 mkdir -p $DECOMPRESSED_DIR
 for archive in $SOURCE_FILES; do 

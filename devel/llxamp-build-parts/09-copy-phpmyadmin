@@ -6,6 +6,6 @@ BUILDDIR=${BUILDDIR:=/LLXXAMP}
 TAG=${TAG:=$BUILDDIR/123456789123456789123456789123456789123456789}
 PREFIX=$TAG/httpd/htdocs
 
-echo;echo Copying PHPMyAdmin files;echo;
+echo Copying PHPMyAdmin files
 
 cp -LR $DECOMPRESSED_DIR/phpMyAdmin $PREFIX

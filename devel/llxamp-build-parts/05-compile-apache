@@ -8,7 +8,7 @@ TAG=${TAG:=$BUILDDIR/123456789123456789123456789123456789123456789}
 PREFIX=$TAG/httpd
 PROCS=$(nproc)
 
-echo;echo Compiling Apache2;echo;
+echo Compiling Apache2
 
 cd $DECOMPRESSED_DIR/httpd
 ./configure --prefix=$PREFIX --enable-mods-shared=all --enable-so --with-included-apr --with-port=$DEFAULT_PORT > /dev/null 2>&1
