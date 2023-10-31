@@ -193,9 +193,6 @@ program=$(basename "${BASH_SOURCE[0]}")
 args=$@
 nargs=$#
 TEMPLATES_DIR=${TEMPLATES_DIR:=$script_dir/templates}
-if [ $nargs -lt 2 ]; then
-    help_menu
-fi
 
 file_pack="$1"
 file_pack=${file_pack:=$INSTALL_PACK_DIR/$PACKNAME}
@@ -206,6 +203,12 @@ target="$2"
 target=${target:=$TARGET_DIR}
 target=${target:=$HOME/llxamp}
 rptarget=$(execute realpath "$target")
+
+if [ $nargs -lt 2 ]; then
+    if [ -z "$rptarget" -o ! -e "$rpfile_pack" ]; then
+        help_menu
+    fi
+fi
 
 if [ ! -e "$rpfile_pack" ]; then
     error_menu "Invalid pack file"
