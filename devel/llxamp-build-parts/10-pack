@@ -5,11 +5,18 @@ source $1
 BUILDDIR=${BUILDDIR:=/LLXXAMP}
 TAG=${TAG:=$BUILDDIR/123456789123456789123456789123456789123456789}
 PACKNAME=${PACKNAME:=install-pack.tgz}
+INSTALL_PACK_DIR=${INSTALL_PACK_DIR:=/tmp/llxamp-install-pack}
 
 echo Compressing base install pack
+mkdir -p "$INSTALL_PACK_DIR"
 
+pushd "$INSTALL_PACK_DIR" >/dev/null 2>&1
 tar cfz $PACKNAME -C $TAG .
+popd >/dev/null 2>&1
 
+echo
+echo "Install pack saved as: '$INSTALL_PACK_DIR/$PACKNAME'"
+echo
 echo "Remember remove manually '$BUILDDIR' !!!"
 echo "Remember remove manually '$DECOMPRESSED_DIR' !!!"
 echo "Remember remove manually '$SOURCE_DIR' !!!"
