@@ -5,8 +5,9 @@ trap 'printf "\e[31m%s: %s\e[m\n" "Error downloading llxamp-packages!" $?' ERR
 script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 script_name="$(basename ${BASH_SOURCE[0]})"
 REPO=https://svnlliurexnet.gva.es/focal/llxamp-packages
-TMPDIR=$(realpath "$1")
+TMPDIR="$1"
 TMPDIR=${TMPDIR:=/tmp/llxamp-packages}
+TMPDIR=$(realpath "$TMPDIR")
 MD5=${MD5:=install-pack.md5}
 CURL=$(which curl)
 SED=$(which sed)
