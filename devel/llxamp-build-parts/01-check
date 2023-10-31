@@ -8,4 +8,6 @@ source $1
 SOURCES_DIR=${SOURCES_DIR:=/tmp/llxamp-sources}
 SOURCESMD5FILE=${SOURCESMD5FILE:=sources.md5}
 
-md5sum -c $SOURCES_DIR/$SOURCESMD5FILE > /dev/null
+pushd "$SOURCES_DIR" > /dev/null 2>&1
+md5sum -c "$SOURCES_DIR/$SOURCESMD5FILE" > /dev/null
+popd > /dev/null 2>&1
