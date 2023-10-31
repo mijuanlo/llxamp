@@ -2,7 +2,7 @@
 set -eE
 trap 'printf "\e[31m%s: %s\e[m\n" "Error downloading llxamp-install-pack!" $?' ERR
 
-script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+script_dir=$( cd -- "$( dirname -- $(realpath -e "${BASH_SOURCE[0]}") )" &> /dev/null && pwd )
 script_name="$(basename ${BASH_SOURCE[0]})"
 REPO=https://svnlliurexnet.gva.es/focal/llxamp-packages
 TMPDIR="$1"
