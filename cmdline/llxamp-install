@@ -115,14 +115,14 @@ configure_mysql2(){
     echo Installing initial database
     execute_silent $rptarget/mysql/scripts/mysql_install_db --basedir=$rptarget/mysql --datadir=$rptarget/mysql/data --no-defaults --user=$(whoami)
     echo Starting database
-    execute_silent bash $rptarget/start_mysql.sh
+    execute_silent bash $rptarget/llxamp-start-mysql
     sleep 5
     echo Creating test table
     execute_silent $rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root < "$TEMPLATES_DIR"/create_table.sql
     echo Securing Mysql installation
     execute_silent $rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root < "$TEMPLATES_DIR"/secure_installation.sql
     echo Stopping database
-    execute bash $rptarget/stop_mysql.sh
+    execute bash $rptarget/llxamp-stop-mysql
 }
 
 write_start_scripts(){
