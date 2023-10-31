@@ -210,6 +210,9 @@ if [ $nargs -lt 2 ]; then
     fi
 fi
 
+if [ -e "$rptarget" ]; then
+    error_menu "'$rptarget' exists, must be non-existent directory"
+fi
 if [ ! -e "$rpfile_pack" ]; then
     error_menu "Invalid pack file"
 fi
