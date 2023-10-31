@@ -155,7 +155,6 @@ write_start_scripts(){
 }
 
 create_target_dir(){
-    [ ! -e "$rptarget" ] && error_menu "invalid target"
     if [ ! -e "$rptarget" ]; then
         mkdir -p "$rptarget" ||  error_menu "Invalid parameter '$target'"
     fi
