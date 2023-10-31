@@ -1,4 +1,5 @@
 #!/bin/bash
 set -e
+script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-run-parts --exit-on-error build-llxamp-parts
+run-parts --exit-on-error "$script_dir"/build-llxamp-parts
