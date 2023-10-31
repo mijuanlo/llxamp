@@ -6,6 +6,6 @@ echo;echo "Checking files integrity";echo;
 source $1
 
 SOURCES_DIR=${SOURCES_DIR:=/tmp/llxamp-sources}
-MD5FILE=${MD5FILE:=md5}
+SOURCESMD5FILE=${SOURCESMD5FILE:=sources.md5}
 
-md5sum -c $SOURCES_DIR/$MD5FILE > /dev/null
+md5sum -c $SOURCES_DIR/$SOURCESMD5FILE > /dev/null

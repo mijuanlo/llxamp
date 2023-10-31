@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MD5FILE=MD5
+SOURCESMD5FILE=sources.md5
 SOURCE_DIR=/tmp/llxamp-sources
 SOURCE_FILES=$(ls $SOURCE_DIR/*.tar.gz|xargs -n1 basename)
 DECOMPRESSED_DIR=sources-decompressed
