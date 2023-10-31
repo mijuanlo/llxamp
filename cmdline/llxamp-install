@@ -6,7 +6,10 @@ help_menu(){
     echo
     echo "Usage:"
     echo
-    echo "$program <file_pack> <target>"
+    echo "$program [<file_pack>] [<target>]"
+    echo "  defaults:"
+    echo "    <file_pack>: $file_pack"
+    echo "    <target>: $rptarget"
     echo
 }
 
@@ -37,6 +40,7 @@ make_change_text(){
     echo Patching text files
     export LC_ALL=C
     components="httpd php mysql"
+    [ ! -e "$rptarget" ] && error_menu "invalid target"
     pushd $rptarget >/dev/null
 
     for component in $components; do
@@ -48,7 +52,7 @@ make_change_text(){
             done
         fi
     done
-    find $rppath -name '*.pre-change' -exec rm {} \;
+    find $rptarget -name '*.pre-change' -exec rm {} \;
     popd > /dev/null
 }
 
@@ -56,6 +60,7 @@ make_change_bin(){
     echo Patching binary files
     export LC_ALL=C
     components="httpd php mysql"
+    [ ! -e "$rptarget" ] && error_menu "invalid target"
     pushd $rptarget >/dev/null
     declare -a found_bins_with_tag
     for component in $components; do
@@ -84,16 +89,19 @@ make_change_bin(){
 }
 
 write_httpd_conf(){
+    [ ! -e "$rptarget" ] && error_menu "invalid target"
     sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" -e "s|@@LLXAMP_PORT@@|$DEFAULT_PORT|g" -e "s|@@LLXAMP_USER@@|$(whoami)|g" -e "s|@@LLXAMP_SERVERNAME@@|$(hostname)|g" templates/httpd.conf > $rptarget/httpd/conf/httpd.conf
 }
 
 include_php_samples(){
+    [ ! -e "$rptarget" ] && error_menu "invalid target"
     echo Including PHP sample pages
     cp templates/db.php $rptarget/httpd/htdocs/
     cp templates/info.php $rptarget/httpd/htdocs/
 }
 
 configure_mysql(){
+    [ ! -e "$rptarget" ] && error_menu "invalid target"
     echo "Configuring MariaDB 5.5"
     mkdir -p $rptarget/mysql/conf
     mkdir -p $rptarget/mysql/temp
@@ -103,6 +111,7 @@ configure_mysql(){
 }
 
 configure_mysql2(){
+    [ ! -e "$rptarget" ] && error_menu "invalid target"
     echo Installing initial database
     execute_silent $rptarget/mysql/scripts/mysql_install_db --basedir=$rptarget/mysql --datadir=$rptarget/mysql/data --no-defaults --user=$(whoami)
     echo Starting database
@@ -117,6 +126,7 @@ configure_mysql2(){
 }
 
 write_start_scripts(){
+    [ ! -e "$rptarget" ] && error_menu "invalid target"
     echo Writting start/stop scripts into "$rptarget"
     
     echo '#!/bin/bash -e' > $rptarget/start_mysql.sh
@@ -145,12 +155,14 @@ write_start_scripts(){
 }
 
 create_target_dir(){
+    [ ! -e "$rptarget" ] && error_menu "invalid target"
     if [ ! -e "$rptarget" ]; then
         mkdir -p "$rptarget" ||  error_menu "Invalid parameter '$target'"
     fi
 }
 
 test_install_pack(){
+    [ ! -e "$rptarget" ] && error_menu "invalid target"
     echo Testing archive "$rpfile_pack"
     contents=$(execute tar -ztf "$rpfile_pack")
     contents=($(echo $contents|xargs -n1|cut -d'/' -f2|uniq|xargs))
@@ -162,11 +174,13 @@ test_install_pack(){
 }
 
 decompress_pack(){
+    [ ! -e "$rptarget" ] && error_menu "invalid target"
     echo "Decompressing archive into '$rptarget'"
     execute tar -zxf "$rpfile_pack" -C "$rptarget"
 }
 
 read_tag(){
+    [ ! -e "$rptarget" ] && error_menu "invalid target"
     echo "Reading tag"
     TAG=$(cat "$rptarget/build-tag")
     [ -z "$TAG" ] && error_menu "Empty tag"
@@ -176,19 +190,22 @@ read_tag(){
 # MAIN EXECUTION
 
 script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-program=$0
+program=$(basename "${BASH_SOURCE[0]}")
 args=$@
 nargs=$#
 
 if [ $nargs -lt 2 ]; then
     help_menu
-    exit 1
 fi
 
 file_pack="$1"
+file_pack=${file_pack:=$INSTALL_PACK_DIR/$PACKNAME}
+file_pack=${file_pack:=/tmp/llxamp-install-pack/install-pack.tgz}
 rpfile_pack=$(execute realpath "$file_pack")
 
 target="$2"
+target=${target:=$TARGET_DIR}
+target=${target:=$HOME/llxamp}
 rptarget=$(execute realpath "$target")
 
 if [ ! -e "$rpfile_pack" ]; then

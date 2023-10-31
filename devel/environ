@@ -3,7 +3,7 @@
 SOURCESMD5FILE=sources.md5
 SOURCE_DIR=/tmp/llxamp-sources
 INSTALL_PACK_DIR=/tmp/llxamp-install-pack
-SOURCE_FILES=$(ls $SOURCE_DIR/*.tar.gz|xargs -n1 basename)
+SOURCE_FILES=$(ls $SOURCE_DIR/*.tar.gz|xargs -n1 basename || true)
 DECOMPRESSED_DIR=/tmp/llxamp-sources-decompressed
 BUILDDIR=/LLXXAMPP
 TAG=$BUILDDIR/123456789123456789123456789123456789123456789
