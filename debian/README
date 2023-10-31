@@ -1,0 +1,6 @@
+The Debian Package llxamp
+----------------------------
+
+LLXAMP install Apache+PHP+MariaDB+PHPMyAdmin instances in user's homedir
+
+ -- M.Angel Juan <m.angel.juan@gmail.com>  Tue, 31 Oct 2023 11:40:29 +0100
