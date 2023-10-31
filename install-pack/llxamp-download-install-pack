@@ -1,12 +1,12 @@
 #!/bin/bash
 set -eE
-trap 'printf "\e[31m%s: %s\e[m\n" "Error downloading llxamp-packages!" $?' ERR
+trap 'printf "\e[31m%s: %s\e[m\n" "Error downloading llxamp-install-pack!" $?' ERR
 
 script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 script_name="$(basename ${BASH_SOURCE[0]})"
 REPO=https://svnlliurexnet.gva.es/focal/llxamp-packages
 TMPDIR="$1"
-TMPDIR=${TMPDIR:=/tmp/llxamp-packages}
+TMPDIR=${TMPDIR:=/tmp/llxamp-install-pack}
 TMPDIR=$(realpath "$TMPDIR")
 MD5=${MD5:=install-pack.md5}
 CURL=$(which curl)

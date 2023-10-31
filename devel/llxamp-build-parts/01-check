@@ -5,7 +5,7 @@ echo;echo "Checking files integrity";echo;
 [ -e "$1" ] || ( echo Invalid environ file && exit 1 )
 source $1
 
-SOURCES_DIR=${SOURCES_DIR:=sources}
+SOURCES_DIR=${SOURCES_DIR:=/tmp/llxamp-sources}
 MD5FILE=${MD5FILE:=md5}
 
 md5sum -c $SOURCES_DIR/$MD5FILE > /dev/null
