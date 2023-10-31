@@ -2,7 +2,7 @@
 set -e
 
 echo;echo "Checking files integrity";echo;
-
+[ -e "$1" ] || ( echo Invalid environ file && exit 1 )
 source $1
 
 SOURCES_DIR=${SOURCES_DIR:=sources}
