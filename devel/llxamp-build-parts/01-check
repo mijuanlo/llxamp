@@ -3,7 +3,7 @@ set -e
 
 echo;echo "Checking files integrity";echo;
 
-source ENVIRON
+source $1
 
 SOURCES_DIR=${SOURCES_DIR:=sources}
 MD5FILE=${MD5FILE:=md5}
