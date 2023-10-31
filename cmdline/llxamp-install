@@ -162,7 +162,7 @@ create_target_dir(){
 }
 
 test_install_pack(){
-    [ ! -e "$rptarget" ] && error_menu "invalid target"
+    [ ! -e "$rpfile_pack" ] && error_menu "invalid install-pack"
     echo Testing archive "$rpfile_pack"
     contents=$(execute tar -ztf "$rpfile_pack")
     contents=($(echo $contents|xargs -n1|cut -d'/' -f2|uniq|xargs))
@@ -174,7 +174,7 @@ test_install_pack(){
 }
 
 decompress_pack(){
-    [ ! -e "$rptarget" ] && error_menu "invalid target"
+    [ ! -e "$rptarget" -o ! -e "$rpfile_pack" ] && error_menu "invalid target or install-pack"
     echo "Decompressing archive into '$rptarget'"
     execute tar -zxf "$rpfile_pack" -C "$rptarget"
 }
