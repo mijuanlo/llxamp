@@ -4,10 +4,16 @@ source $1
 
 BUILDDIR=${BUILDDIR:=/LLXXAMP}
 TAG=${TAG:=$BUILDDIR/123456789123456789123456789123456789123456789}
-PACKNAME=${PACKNAME:=pack.tgz}
+PACKNAME=${PACKNAME:=install-pack.tgz}
 
 echo Compressing base install pack
 
 tar cfz $PACKNAME -C $TAG .
 
+echo "Remember remove manually '$BUILDDIR' !!!"
+echo "Remember remove manually '$DECOMPRESSED_DIR' !!!"
+echo "Remember remove manually '$SOURCE_DIR' !!!"
+echo
+echo "# sudo rm -rf '$BUILDDIR' '$DECOMPRESSED_DIR' '$SOURCE_DIR'"
+echo
 echo Finished;
