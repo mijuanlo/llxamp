@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /usr/lib/llxamp/llxamp-environ
+source /usr/lib/llxamp/environ-cmdline
 
 help_menu(){
     echo
