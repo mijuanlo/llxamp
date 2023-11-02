@@ -187,7 +187,7 @@ TEMPLATES_DIR=${TEMPLATES_DIR:=$script_dir/templates}
 file_pack="$1"
 file_pack=${file_pack:=$INSTALL_PACK_DIR/$PACKNAME}
 file_pack=${file_pack:=/tmp/llxamp-install-pack/install-pack.tgz}
-rpfile_pack=$(execute realpath "$file_pack")
+rpfile_pack=$(execute_silent realpath "$file_pack")
 
 target="$2"
 target=${target:=$TARGET_DIR}
