@@ -186,10 +186,16 @@ gen_openssl_certs(){
 print_info(){
     echo Finished!
     echo
-    echo Start services with: llxamp-start
-    echo View initial page served with: llxamp-open-browser
-    echo View with SSL phpMyAdmin initial page with: llxamp-open-browser-ssl /phpMyAdmin/index.php  (username: root password: root)
-    echo Stop services with: llxamp-stop
+    echo 'Start services with:'
+    echo '  $ llxamp-start'
+    echo 'View initial page served with:'
+    echo '  $ llxamp-open-browser'
+    echo 'View with SSL phpMyAdmin initial page with:'
+    echo '  $ llxamp-open-browser-ssl /phpMyAdmin/index.php  #(default_username=root, default_root password=root)'
+    echo 'Stop services with:'
+    echo '  $ llxamp-stop'
+    echo 'View more scripts pressing bash autocompletion keys:'
+    echo '  $ llxamp<TAB_KEY><TAB_KEY>'
     echo
 }
 # MAIN EXECUTION
