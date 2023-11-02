@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 # Apache
 apache_running=$(ss -Htpnle |grep "uid:$(id -u)"|grep httpd)
 if [ -z "$apache_running" ]; then
