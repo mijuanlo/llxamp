@@ -1,0 +1,2 @@
+#!/bin/bash
+@@LLXAMP_BASEPATH@@/mysql/bin/mysql --defaults-file=@@LLXAMP_BASEPATH@@/mysql/conf/my.cnf $@
