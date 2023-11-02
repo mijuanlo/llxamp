@@ -56,6 +56,10 @@ Description: LLXAMP install Apache+PHP+MariaDB+PHPMyAdmin instances in user's ho
 
 Package: llxamp-gui
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends},
+ llxamp-cmdline, 
+ python3,
+ python3-pyside2.qtcore,
+ python3-pyside2.qtwidgets
 Description: LLXAMP install Apache+PHP+MariaDB+PHPMyAdmin instances in user's homedir
  This package install gui interface
