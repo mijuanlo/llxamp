@@ -1,0 +1,3 @@
+#!/bin/bash
+port=$(sed -nr 's|^[ a-Z]*listen\s+([0-9]+)|\1|igp' @@LLXAMP_BASEPATH@@/httpd/conf/httpd.conf)
+sensible-browser "http://localhost:$port$@"

@@ -131,8 +131,8 @@ write_start_scripts(){
 
     echo Writting start/stop scripts into "$rptarget"
     
-    for script in "$TEMPLATES_DIR"/llxamp-{start,stop,restart,reset,status,mysql,mysqldump,php}*; do
-        sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" "$script" > "$rptarget/$(basename $script)"
+    for script in "$TEMPLATES_DIR"/llxamp-{start,stop,restart,reset,status,mysql,mysqldump,php,open}*; do
+        sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" -e "s|@@LLXAMP_PORT@@|$DEFAULT_PORT|g" -e "s|@@LLXAMP_SSL_PORT@@|$DEFAULT_SSL_PORT|g" "$script" > "$rptarget/$(basename $script)"
         chmod +x "$rptarget/$(basename $script)"
     done
 }
@@ -182,6 +182,16 @@ gen_openssl_certs(){
     echo Generating OpenSSL certificates
     execute_silent openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout "$rptarget"/httpd/conf/server.key -out "$rptarget"/httpd/conf/server.crt -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname"
 }
+
+print_info(){
+    echo Finished!
+    echo
+    echo llxamp-start
+    echo llxamp-open-browser
+    echo llxamp-open-browser-ssl /phpMyAdmin/
+    echo llxamp-stop
+    echo
+}
 # MAIN EXECUTION
 
 script_dir=$( cd -- "$( dirname -- $(realpath -e "${BASH_SOURCE[0]}") )" &> /dev/null && pwd )
@@ -225,3 +235,6 @@ write_start_scripts
 configure_mysql2
 configure_user_path
 gen_openssl_certs
+print_info
+
+exec bash
