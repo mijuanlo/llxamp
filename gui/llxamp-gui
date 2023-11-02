@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+
+from ctypes import Array
+import sys
+import signal
+from gettext import gettext as _
+from PySide2 import QtWidgets, QtGui, QtCore
+
+app = None
+exitting = False
+
+def exit_control_c(sig, frame):
+    global app,exitting
+    exitting = True
+    print(_("Ending QApplication"))
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+signal.signal(signal.SIGINT, exit_control_c)
+
+class MainApp(QtWidgets.QMainWindow):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        
+        self.setWindowTitle('LLXAMP')
+        
+        self.setMinimumSize(QtCore.QSize(800,600))
+        
+        self.setCentralWidget(QtWidgets.QWidget(self))
+        self.centralWidget().setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        
+        self.create_menu_bar()
+        
+        # a=self.findChildren(QtWidgets.QMenu,QtCore.QRegularExpression('menu_F'))
+        # b=[obj.objectName() for obj in a]
+        pass
+    
+    def create_menu_bar(self) -> None:
+        items = [
+            ['File', ['Action1',['SubFile', 'Action2'], 'Action3'] ],
+            ['File2', ['jeje', 'Ohhh'] ],
+            'juju'
+        ]
+        for item in items:
+            if isinstance(item,list):
+                self.menuBar().addMenu(self.create_menu(items=item, parent=self.menuBar()))
+            if isinstance(item,str):
+                self.menuBar().addAction(self.create_menu(items=item, parent=self.menuBar()))
+                
+    def create_menu(self, items=[], parent=None):
+        if isinstance(items,list):
+            newmenu = QtWidgets.QMenu(items[0].capitalize(),parent=parent)
+            newmenu.setObjectName('menu_'+items[0])
+            for subitem in items[1:]:
+                if isinstance(subitem,list):
+                    newmenu.addMenu(self.create_menu(items=subitem, parent=newmenu))
+                if isinstance(subitem,str):
+                    newmenu.addAction(self.create_menu(items=subitem, parent=newmenu))
+            return newmenu
+        if isinstance(items,str):
+            action = QtWidgets.QAction(items.capitalize(),parent=parent)
+            action.setData(items)
+            action.setObjectName('action_'+items)
+            action.setStatusTip(items)
+            #action.setIcon(QtWidgets.QIcon())
+            #action.setShortCuts(QtCore.QKeySequence())
+            action.triggered.connect(self.action_triggered)
+            return action
+        
+    def action_triggered(self):
+        action_sender = self.sender()
+        print(f'text={action_sender.text()} data={action_sender.data()} objectName={action_sender.objectName()}')
+
+def main():
+    global app, exitting
+    
+    app = QtWidgets.QApplication(sys.argv)
+    window = MainApp()
+    window.show()
+    exitLoopTimer = QtCore.QTimer()
+    exitLoopTimer.timeout.connect(lambda: None)
+    exitLoopTimer.start(500)
+    sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()
