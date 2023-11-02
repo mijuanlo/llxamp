@@ -1,0 +1,2 @@
+#!/bin/bash -e
+LD_PRELOAD="@@LLXAMP_BASEPATH@@/httpd/lib/libapr-1.so.0 @@LLXAMP_BASEPATH@@/httpd/lib/libaprutil-1.so.0" @@LLXAMP_BASEPATH@@/httpd/bin/httpd -k stop

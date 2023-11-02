@@ -1,0 +1,2 @@
+#!/bin/bash -e
+kill $(cat @@LLXAMP_BASEPATH@@/mysql/temp/mysql.pid)
