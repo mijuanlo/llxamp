@@ -1,0 +1,3 @@
+#!/bin/bash -e
+@@LLXAMP_BASEPATH@@/llxamp-start-mysql
+@@LLXAMP_BASEPATH@@/llxamp-start-apache
