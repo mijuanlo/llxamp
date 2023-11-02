@@ -91,7 +91,7 @@ make_change_bin(){
 write_httpd_conf(){
     [ ! -e "$rptarget" ] && error_menu "invalid target"
     sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" -e "s|@@LLXAMP_PORT@@|$DEFAULT_PORT|g" -e "s|@@LLXAMP_USER@@|$(whoami)|g" -e "s|@@LLXAMP_SERVERNAME@@|$(hostname)|g" "$TEMPLATES_DIR"/httpd.conf > $rptarget/httpd/conf/httpd.conf
-    sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" -e "s|@@LLXAMP_SSL_PORT@@|$DEFAULT_SSL_PORT|g" -e "s|@@LLXAMP_USER@@|$(whoami)|g" -e "s|@@LLXAMP_SERVERNAME@@|$(hostname)|g" "$TEMPLATES_DIR"/httpd-extra.conf > $rptarget/httpd/conf/httpd-extra.conf
+    sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" -e "s|@@LLXAMP_SSL_PORT@@|$DEFAULT_SSL_PORT|g" -e "s|@@LLXAMP_USER@@|$(whoami)|g" -e "s|@@LLXAMP_SERVERNAME@@|$(hostname)|g" "$TEMPLATES_DIR"/httpd-ssl.conf > $rptarget/httpd/conf/httpd-ssl.conf
 }
 
 include_php_samples(){
@@ -179,7 +179,8 @@ configure_user_path(){
 
 gen_openssl_certs(){
     [ ! -e "$rptarget" ] && error_menu "invalid target"
-    execute openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout "$rptarget"/httpd/conf/server.key -out "$rptarget"/httpd/conf/server.crt -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname"
+    echo Generating OpenSSL certificates
+    execute_silent openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout "$rptarget"/httpd/conf/server.key -out "$rptarget"/httpd/conf/server.crt -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname"
 }
 # MAIN EXECUTION
 
