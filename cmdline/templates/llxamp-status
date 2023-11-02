@@ -1,20 +1,19 @@
 #!/bin/bash
 # Apache
-apache_running=$(ss -Htpnle |grep "uid:$(id -u)"|grep httpd)
-if [ -z "$apache_running" ]; then
+if [ -z "$(ss -Htpnle |grep "uid:$(id -u)"|grep httpd)" ]; then
     echo "Apache: Not running"
 else
-    ports=$(echo $apache_running|awk '{split($4,port,":"); print port[2];}'|xargs|tr ' ' ',' )
-    procs=$(echo $apache_running|awk '{print $6}'|egrep -o 'pid=[0-9]+'|cut -d'=' -f2|xargs|tr ' ' ',' )
+    ports=$(ss -Htpnle |grep "uid:$(id -u)"|grep httpd|awk '{split($4,port,":"); print port[2];}'|xargs|tr ' ' ',' )
+    procs=$(ss -Htpnle |grep "uid:$(id -u)"|grep httpd|awk '{print $6}'|egrep -o 'pid=[0-9]+'|cut -d'=' -f2|xargs|tr ' ' ',' )
     echo "Apache: Running Ports: $ports Procs: $procs"
 fi
 
 # Mysql
-mysql_running=$(ss -Htpnle |grep "uid:$(id -u)"|grep mysqld)
-if [ -z "$mysql_running" ]; then
+mysql_running=$()
+if [ -z "$(ss -Htpnle |grep "uid:$(id -u)"|grep mysqld)" ]; then
     echo "MySQL: Not running"
 else
-    ports=$(echo $mysql_running|awk '{split($4,port,":"); print port[2];}'|xargs|tr ' ' ',' )
-    procs=$(echo $mysql_running|awk '{print $6}'|egrep -o 'pid=[0-9]+'|cut -d'=' -f2|xargs|tr ' ' ',' )
+    ports=$(ss -Htpnle |grep "uid:$(id -u)"|grep mysqld|awk '{split($4,port,":"); print port[2];}'|xargs|tr ' ' ',' )
+    procs=$(ss -Htpnle |grep "uid:$(id -u)"|grep mysqld|awk '{print $6}'|egrep -o 'pid=[0-9]+'|cut -d'=' -f2|xargs|tr ' ' ',' )
     echo "MySQL: Running Ports: $ports Procs: $procs"
 fi

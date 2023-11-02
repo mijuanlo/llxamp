@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /usr/lib/llxamp/environ
+source /usr/lib/llxamp/llxamp-environ
 
 help_menu(){
     echo
@@ -91,6 +91,7 @@ make_change_bin(){
 write_httpd_conf(){
     [ ! -e "$rptarget" ] && error_menu "invalid target"
     sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" -e "s|@@LLXAMP_PORT@@|$DEFAULT_PORT|g" -e "s|@@LLXAMP_USER@@|$(whoami)|g" -e "s|@@LLXAMP_SERVERNAME@@|$(hostname)|g" "$TEMPLATES_DIR"/httpd.conf > $rptarget/httpd/conf/httpd.conf
+    sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" -e "s|@@LLXAMP_SSL_PORT@@|$DEFAULT_SSL_PORT|g" -e "s|@@LLXAMP_USER@@|$(whoami)|g" -e "s|@@LLXAMP_SERVERNAME@@|$(hostname)|g" "$TEMPLATES_DIR"/httpd-extra.conf > $rptarget/httpd/conf/httpd-extra.conf
 }
 
 include_php_samples(){
@@ -130,7 +131,7 @@ write_start_scripts(){
 
     echo Writting start/stop scripts into "$rptarget"
     
-    for script in "$TEMPLATES_DIR"/llxamp-{start,stop,reset,status,mysql,mysqldump,php}*; do
+    for script in "$TEMPLATES_DIR"/llxamp-{start,stop,restart,reset,status,mysql,mysqldump,php}*; do
         sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" "$script" > "$rptarget/$(basename $script)"
         chmod +x "$rptarget/$(basename $script)"
     done
@@ -176,6 +177,10 @@ configure_user_path(){
     fi
 }
 
+gen_openssl_certs(){
+    [ ! -e "$rptarget" ] && error_menu "invalid target"
+    execute openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout "$rptarget"/httpd/conf/server.key -out "$rptarget"/httpd/conf/server.crt -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname"
+}
 # MAIN EXECUTION
 
 script_dir=$( cd -- "$( dirname -- $(realpath -e "${BASH_SOURCE[0]}") )" &> /dev/null && pwd )
@@ -218,3 +223,4 @@ configure_mysql
 write_start_scripts
 configure_mysql2
 configure_user_path
+gen_openssl_certs
