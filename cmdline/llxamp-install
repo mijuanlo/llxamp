@@ -187,7 +187,10 @@ TEMPLATES_DIR=${TEMPLATES_DIR:=$script_dir/templates}
 file_pack="$1"
 file_pack=${file_pack:=$INSTALL_PACK_DIR/$PACKNAME}
 file_pack=${file_pack:=/tmp/llxamp-install-pack/install-pack.tgz}
-rpfile_pack=$(execute_silent realpath "$file_pack")
+rpfile_pack=
+if [ -e "$file_pack" ]; then
+    rpfile_pack=$(execute realpath "$file_pack")
+fi
 
 target="$2"
 target=${target:=$TARGET_DIR}
@@ -197,8 +200,9 @@ rptarget=$(execute realpath "$target")
 if [ -e "$rptarget" ]; then
     error_menu "'$rptarget' exists, must be non-existent directory"
 fi
-if [ ! -e "$rpfile_pack" ]; then
+if [ -z "$rpfile_pack" -o ! -e "$rpfile_pack" ]; then
     llxamp-download-install-pack || error_menu "Invalid pack file"
+    [ -e "tmp/llxamp-install-pack/install-pack.tgz" ] && rpfile_pack="tmp/llxamp-install-pack/install-pack.tgz"
 fi
 
 
