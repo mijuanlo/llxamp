@@ -26,16 +26,25 @@ class MainApp(QtWidgets.QMainWindow):
         
         self.setMinimumSize(QtCore.QSize(800,600))
         
-        self.setCentralWidget(QtWidgets.QWidget(self))
+        self.setCentralWidget(QtWidgets.QWidget(parent=self))
         self.centralWidget().setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         
         self.create_menu_bar()
-        
+        self.create_layout()
+        self.create_buttons()
+        self.create_text()
+        self.p = None
         # a=self.findChildren(QtWidgets.QMenu,QtCore.QRegularExpression('menu_F'))
         # b=[obj.objectName() for obj in a]
         pass
     
-    def create_menu_bar(self) -> None:
+    def create_layout(self):
+        l = QtWidgets.QVBoxLayout()
+        self.centralWidget().setObjectName('main_layout')
+        self.centralWidget().setLayout(l)
+        pass
+        
+    def create_menu_bar(self):
         items = [
             ['File', ['Action1',['SubFile', 'Action2'], 'Action3'] ],
             ['File2', ['jeje', 'Ohhh'] ],
@@ -69,8 +78,61 @@ class MainApp(QtWidgets.QMainWindow):
         
     def action_triggered(self):
         action_sender = self.sender()
-        print(f'text={action_sender.text()} data={action_sender.data()} objectName={action_sender.objectName()}')
+        text = action_sender.text()
+        name = action_sender.objectName()
+        try:
+            data = action_sender.data()
+        except:
+            data = None
+        
+        if data:
+            print(f'text={text} data={data} objectName={name}')
+        else:
+            print(f'text={text} objectName={name}')
+        if name == 'button_Exec':
+            self.execute_script('llxamp-status')       
 
+    def create_buttons(self):
+        txt = "Exec"
+        btn = QtWidgets.QPushButton(txt.capitalize(),parent=self.centralWidget())
+        btn.setObjectName('button_'+txt)
+        btn.setStatusTip(txt)
+        btn.pressed.connect(self.action_triggered)
+        self.centralWidget().layout().addWidget(btn)
+        pass
+    
+    def find(self,name=''):
+        return self.findChildren(QtWidgets.QWidget,QtCore.QRegularExpression(name))
+    
+    def create_text(self):
+        text = QtWidgets.QPlainTextEdit()
+        text.setReadOnly(True)
+        text.setObjectName('textarea')
+        self.centralWidget().layout().addWidget(text)
+
+    def msg(self,txt):
+        self.find('textarea')[0].appendPlainText(txt)
+
+    def finish_script(self,process):
+        self.msg(f'finished {process.objectName()}')
+        self.p = []
+    
+    def output(self):
+        data = bytes(self.p[0].readAllStandardOutput()).decode('utf8').replace('\n','')
+        self.msg(data)
+    
+    def execute_script(self, scriptname):
+        if self.p:
+            print(f'Running')
+        else:
+            p = QtCore.QProcess()
+            p.setObjectName(scriptname)
+            p.finished.connect(lambda: self.finish_script(p))
+            p.started.connect(lambda: self.msg(f'started {scriptname}'))
+            p.readyReadStandardOutput.connect(self.output)
+            self.p = [p]
+            p.start(scriptname,[])
+        
 def main():
     global app, exitting
     
