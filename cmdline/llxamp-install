@@ -133,6 +133,7 @@ write_start_scripts(){
     for script in "$TEMPLATES_DIR"/llxamp-{start,stop,reset,status}-*; do
         sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" > "$rptarget/$(basename $script)"
         chmod +x "$rptarget/$(basename $script)"
+    done
 }
 
 create_target_dir(){
