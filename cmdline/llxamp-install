@@ -188,7 +188,7 @@ print_info(){
     echo
     echo Start services with: llxamp-start
     echo View initial page served with: llxamp-open-browser
-    echo View with SSL phpMyAdmin initial page with: llxamp-open-browser-ssl /phpMyAdmin/
+    echo View with SSL phpMyAdmin initial page with: llxamp-open-browser-ssl /phpMyAdmin/index.php  (username: root password: root)
     echo Stop services with: llxamp-stop
     echo
 }
