@@ -186,10 +186,10 @@ gen_openssl_certs(){
 print_info(){
     echo Finished!
     echo
-    echo llxamp-start
-    echo llxamp-open-browser
-    echo llxamp-open-browser-ssl /phpMyAdmin/
-    echo llxamp-stop
+    echo Start services with: llxamp-start
+    echo View initial page served with: llxamp-open-browser
+    echo View with SSL phpMyAdmin initial page with: llxamp-open-browser-ssl /phpMyAdmin/
+    echo Stop services with: llxamp-stop
     echo
 }
 # MAIN EXECUTION
