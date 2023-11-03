@@ -37,9 +37,7 @@ function check_procs(){
 # Apache
 apache_running=
 if [ -z "$has_opts" -o -n "$apache" ]; then
-    if [ -z "$(check_running httpd)" ]; then
-        echo "Apache: Not running"
-    else
+    if [ -n "$(check_running httpd)" ]; then
         apache_running='yes'
         if [ -z "$has_opts" -o -n "$show_ports" ]; then
             apache_ports=$(check_ports httpd)
@@ -52,9 +50,7 @@ fi
 # Mysql
 mysql_running=
 if [ -z "$has_opts" -o -n "$mysql" ];then
-    if [ -z "$(check_running mysqld)" ]; then
-        echo "MySQL: Not running"
-    else
+    if [ -n "$(check_running mysqld)" ]; then
         mysql_running='yes'
         if [ -z "$has_opts" -o -n "$show_ports" ]; then
             mysql_ports=$(check_ports mysqld)
@@ -67,8 +63,16 @@ fi
 ret=0
 # has_opts
 if [ -z "$has_opts" ]; then
-    echo "Apache: Running Ports: $apache_ports Procs: $apache_procs"
-    echo "MySQL: Running Ports: $mysql_ports Procs: $mysql_procs"
+    if [ -z "$apache_running" ];then
+        echo "Apache: Not running"
+    else
+        echo "Apache: Running Ports: $apache_ports Procs: $apache_procs"
+    fi
+    if [ -z "$mysql_running" ];then
+        echo "MySQL: Not running"
+    else
+        echo "MySQL: Running Ports: $mysql_ports Procs: $mysql_procs"
+    fi
 else
     if [ -n "$apache" ]; then
         [ -z "$apache_running" ] && echo APACHE_RUNNING=0 && ret=1 || echo APACHE_RUNNING=1
