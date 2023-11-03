@@ -1,19 +1,84 @@
 #!/bin/bash
-# Apache
-if [ -z "$(ss -Htpnle |grep "uid:$(id -u)"|grep httpd)" ]; then
-    echo "Apache: Not running"
-else
-    ports=$(ss -Htpnle |grep "uid:$(id -u)"|grep httpd|awk '{split($4,port,":"); print port[2];}'|xargs|tr ' ' ',' )
-    procs=$(ss -Htpnle |grep "uid:$(id -u)"|grep httpd|awk '{print $6}'|egrep -o 'pid=[0-9]+'|cut -d'=' -f2|xargs|tr ' ' ',' )
-    echo "Apache: Running Ports: $ports Procs: $procs"
-fi
+has_opts=
+apache=
+mysql=
+show_ports=
+show_procs=
+for param in "$@"; do
+    case "$param" in
+        -a*)
+            apache='yes'
+            has_opts='yes'
+        ;;
+        -m*)
+            mysql='yes'
+            has_opts='yes'
+        ;;
+        -p*)
+            show_procs='yes'
+            has_opts='yes'
+        ;;
+        -n*)
+            show_ports='yes'
+            has_opts='yes'
+        ;;
+    esac
+done
 
-# Mysql
-mysql_running=$()
-if [ -z "$(ss -Htpnle |grep "uid:$(id -u)"|grep mysqld)" ]; then
-    echo "MySQL: Not running"
-else
-    ports=$(ss -Htpnle |grep "uid:$(id -u)"|grep mysqld|awk '{split($4,port,":"); print port[2];}'|xargs|tr ' ' ',' )
-    procs=$(ss -Htpnle |grep "uid:$(id -u)"|grep mysqld|awk '{print $6}'|egrep -o 'pid=[0-9]+'|cut -d'=' -f2|xargs|tr ' ' ',' )
-    echo "MySQL: Running Ports: $ports Procs: $procs"
+function check_running(){
+    ss -Htpnle |grep "uid:$(id -u)"|grep $1
+}
+function check_ports(){
+    ss -Htpnle |grep "uid:$(id -u)"|grep $1|awk '{split($4,port,":"); print port[2];}'|xargs|tr ' ' ','
+}
+function check_procs(){
+    ss -Htpnle |grep "uid:$(id -u)"|grep $1|awk '{print $6}'|egrep -o 'pid=[0-9]+'|cut -d'=' -f2|xargs|tr ' ' ','
+}
+# Apache
+apache_running=
+if [ -z "$has_opts" -o -n "$apache" ]; then
+    if [ -z "$(check_running httpd)" ]; then
+        echo "Apache: Not running"
+    else
+        apache_running='yes'
+        if [ -z "$has_opts" -o -n "$show_ports" ]; then
+            apache_ports=$(check_ports httpd)
+        fi
+        if [ -z "$has_opts" -o -n "$show_procs" ]; then
+            apache_procs=$(check_procs httpd)
+        fi
+    fi
 fi
+# Mysql
+mysql_running=
+if [ -z "$has_opts" -o -n "$mysql" ];then
+    if [ -z "$(check_running mysqld)" ]; then
+        echo "MySQL: Not running"
+    else
+        mysql_running='yes'
+        if [ -z "$has_opts" -o -n "$show_ports" ]; then
+            mysql_ports=$(check_ports mysqld)
+        fi
+        if [ -z "$has_opts" -o -n "$show_procs" ]; then
+            mysql_procs=$(check_procs mysqld)
+        fi
+    fi
+fi
+ret=0
+# has_opts
+if [ -z "$has_opts" ]; then
+    echo "Apache: Running Ports: $apache_ports Procs: $apache_procs"
+    echo "MySQL: Running Ports: $mysql_ports Procs: $mysql_procs"
+else
+    if [ -n "$apache" ]; then
+        [ -z "$apache_running" ] && echo APACHE_RUNNING=0 && ret=1 || echo APACHE_RUNNING=1
+        [ -n "$show_ports" ] && echo APACHE_PORTS=$apache_ports
+        [ -n "$show_procs" ] && echo APACHE_PROCS=$apache_procs
+    fi
+    if [ -n "$mysql" ]; then
+        [ -z "$mysql_running" ] && echo MYSQL_RUNNING=0 && ret=1 || echo MYSQL_RUNNING=1
+        [ -n "$show_ports" ] && echo MYSQL_PORTS=$mysql_ports
+        [ -n "$show_procs" ] && echo MYSQL_PROCS=$mysql_procs
+    fi
+fi
+exit $ret
