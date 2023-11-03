@@ -6,7 +6,9 @@ help_menu(){
     echo
     echo "Usage:"
     echo
-    echo "$program [<file_pack>] [<target>]"
+    echo "$program [-p <file_pack>] [-t <target>] [-f] [-h]"
+    echo "  -f: force overwrite target"
+    echo "  -h: this help"
     echo "  defaults:"
     echo "    <file_pack>: $file_pack"
     echo "    <target>: $rptarget"
@@ -149,8 +151,13 @@ write_start_scripts(){
 }
 
 create_target_dir(){
+    pkill -9 -f httpd > /dev/null 2>&1
+    pkill -9 -f mysqld > /dev/null 2>&1
     if [ ! -e "$rptarget" ]; then
         mkdir -p "$rptarget" ||  error_menu "Invalid parameter '$target'"
+    fi
+    if [ -e "$rptarget/mysql/data" ]; then
+        rm -rf "$rptarget/mysql/data"
     fi
 }
 
@@ -215,11 +222,38 @@ print_info(){
 
 script_dir=$( cd -- "$( dirname -- $(realpath -e "${BASH_SOURCE[0]}") )" &> /dev/null && pwd )
 program=$(basename "${BASH_SOURCE[0]}")
-args=$@
+args="$@"
 nargs=$#
 TEMPLATES_DIR=${TEMPLATES_DIR:=$script_dir/templates}
+file_pack=
+target=
+forced=
+while test -n "$1"; do
+    param=$1
+    case "$param" in
+        -p)
+            shift
+            file_pack="$1"
+        ;;
+        -t)
+            shift
+            target="$1"
+        ;;
+        -f)
+            forced="yes"
+        ;;
+        -h)
+            help_menu
+            exit 0
+        ;;
+        *)
+            help_menu
+            exit 1
+        ;;
+    esac
+    shift
+done
 
-file_pack="$1"
 file_pack=${file_pack:=$INSTALL_PACK_DIR/$PACKNAME}
 file_pack=${file_pack:=/tmp/llxamp-install-pack/install-pack.tgz}
 rpfile_pack=
@@ -227,14 +261,13 @@ if [ -e "$file_pack" ]; then
     rpfile_pack=$(execute realpath "$file_pack")
 fi
 
-target="$2"
 target=${target:=$TARGET_DIR}
 target=${target:=$HOME/llxamp}
 rptarget=$(execute realpath "$target")
 
-# if [ -e "$rptarget" ]; then
-#     error_menu "'$rptarget' exists, must be non-existent directory"
-# fi
+if [ -e "$rptarget" -a ! -n "$foced" ]; then
+    error_menu "'$rptarget' exists, must be non-existent directory"
+fi
 
 startup_scripts="$rptarget/scripts"
 
