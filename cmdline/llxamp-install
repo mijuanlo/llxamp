@@ -161,9 +161,9 @@ test_install_pack(){
     need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
     for n in $need; do
         if grep -s $n $tmpfile > /dev/null 2>&1; then
-            echo "$n found!" 
+            echo "$(basename $n) found!" 
         else 
-            error_menu "$n not found!"
+            error_menu "$(basename $n) not found!"
         fi
     done
 }
