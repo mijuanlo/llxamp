@@ -1,0 +1,4 @@
+#!/bin/bash
+llxamp-kill-apache
+llxamp-kill-mysql
+

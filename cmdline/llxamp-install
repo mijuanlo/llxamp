@@ -142,7 +142,7 @@ write_start_scripts(){
 
     echo Writting start/stop scripts into "$rptarget"
     
-    for script in "$TEMPLATES_DIR"/llxamp-{start,stop,restart,reset,status,mysql,mysqldump,php,open}*; do
+    for script in "$TEMPLATES_DIR"/llxamp-{start,stop,restart,reset,status,mysql,mysqldump,php,open,kill}*; do
         sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" -e "s|@@LLXAMP_PORT@@|$DEFAULT_PORT|g" -e "s|@@LLXAMP_SSL_PORT@@|$DEFAULT_SSL_PORT|g" "$script" > "$startup_scripts/$(basename $script)"
         chmod +x "$startup_scripts/$(basename $script)"
     done
