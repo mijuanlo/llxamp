@@ -1,1 +1,6 @@
 /usr/lib/llxamp/llxamp-install /usr/bin/llxamp-install
+/usr/lib/llxamp/llxamp-status /usr/bin/llxamp-status
+/usr/lib/llxamp/llxamp-stop /usr/bin/llxamp-stop
+/usr/lib/llxamp/llxamp-start /usr/bin/llxamp-start
+/usr/lib/llxamp/llxamp-restart-apache /usr/bin/llxamp-restart-apache
+/usr/lib/llxamp/llxamp-kill /usr/bin/llxamp-kill
