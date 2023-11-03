@@ -265,7 +265,7 @@ target=${target:=$TARGET_DIR}
 target=${target:=$HOME/llxamp}
 rptarget=$(execute realpath "$target")
 
-if [ -e "$rptarget" -a ! -z "$forced" ]; then
+if [ -e "$rptarget" -a -z "$forced" ]; then
     error_menu "'$rptarget' exists, must be non-existent directory"
 fi
 
