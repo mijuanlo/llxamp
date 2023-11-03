@@ -149,7 +149,7 @@ test_install_pack(){
     echo Testing archive "$rpfile_pack"
     contents=$(execute tar -ztf "$rpfile_pack")
     contents=($(echo $contents|xargs -n1|cut -d'/' -f2|uniq|xargs))
-    need="build-tag httpd php mysql"
+    need="build-tag httpd php mysql httpd/htdocs/phpMyAdmin"
     [ ${#contents[@]} -ne 4 ] && error_menu "Invalid contents into $rpfile_pack"
     for n in $need; do
         [[ " ${contents[*]} " =~ " $n " ]] && echo "$n found!" || error_menu "$n not found!" 
@@ -228,7 +228,7 @@ startup_scripts="$rptarget/scripts"
 
 if [ -z "$rpfile_pack" -o ! -e "$rpfile_pack" ]; then
     llxamp-download-install-pack || error_menu "Invalid pack file"
-    [ -e "tmp/llxamp-install-pack/install-pack.tgz" ] && rpfile_pack="tmp/llxamp-install-pack/install-pack.tgz"
+    [ -e "/tmp/llxamp-install-pack/install-pack.tgz" ] && rpfile_pack="/tmp/llxamp-install-pack/install-pack.tgz"
 fi
 
 
