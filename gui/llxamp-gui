@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from ctypes import Array
 import sys
 import signal
+import time
 from gettext import gettext as _
 from PySide2 import QtWidgets, QtGui, QtCore
 
@@ -21,29 +21,31 @@ signal.signal(signal.SIGINT, exit_control_c)
 class MainApp(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__()
-        
+
         self.setWindowTitle('LLXAMP')
-        
+
         self.setMinimumSize(QtCore.QSize(800,600))
-        
+
         self.setCentralWidget(QtWidgets.QWidget(parent=self))
         self.centralWidget().setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        
+
         self.create_menu_bar()
         self.create_layout()
         self.create_buttons()
         self.create_text()
-        self.p = None
-        # a=self.findChildren(QtWidgets.QMenu,QtCore.QRegularExpression('menu_F'))
-        # b=[obj.objectName() for obj in a]
+        self.process = {}
+        self.timers = {}
+        self.create_timers()
+        self.statusBar().setVisible(True)
+        #self.action_triggered('status_timer')
         pass
-    
+
     def create_layout(self):
         l = QtWidgets.QVBoxLayout()
         self.centralWidget().setObjectName('main_layout')
         self.centralWidget().setLayout(l)
         pass
-        
+
     def create_menu_bar(self):
         items = [
             ['File', ['Action1',['SubFile', 'Action2'], 'Action3'] ],
@@ -70,40 +72,94 @@ class MainApp(QtWidgets.QMainWindow):
             action = QtWidgets.QAction(items.capitalize(),parent=parent)
             action.setData(items)
             action.setObjectName('action_'+items)
-            action.setStatusTip(items)
+            #action.setStatusTip(items)
             #action.setIcon(QtWidgets.QIcon())
             #action.setShortCuts(QtCore.QKeySequence())
             action.triggered.connect(self.action_triggered)
             return action
         
-    def action_triggered(self):
+    def action_triggered(self, name=None):
         action_sender = self.sender()
-        text = action_sender.text()
-        name = action_sender.objectName()
-        try:
-            data = action_sender.data()
-        except:
-            data = None
-        
+        text = None
+        data = None
+        if action_sender:
+            if hasattr(action_sender,'text'):
+                text = action_sender.text()
+            if hasattr(action_sender,'data'):
+                data = action_sender.data()
+            if not name:
+                name = action_sender.objectName()
+        txt=[]
+        if name:
+            txt.append(f'objectName={name}')
         if data:
-            print(f'text={text} data={data} objectName={name}')
-        else:
-            print(f'text={text} objectName={name}')
-        if name == 'button_Exec':
-            self.execute_script('llxamp-status')       
+            txt.append(f'data={data}')
+        if text:
+            txt.append(f'text={text}')
+        if txt:
+            txt = ','.join(txt)
+
+        if name == 'status_timer':
+            self.execute_script(
+                'llxamp-status', ['-a','-m','-p','-n'],
+                output_fn=lambda: None,
+                started_fn=lambda: None,
+                finished_fn=lambda: self.update_status_bar(pname='llxamp-status')
+            )
+        if name[:6] == 'button':
+            cmd = name.split('_')[1]
+            scriptname = f'llxamp-{cmd}'
+            args = []
+            if cmd == 'status':
+               args = ['-a','-m','-p','-n']
+            def output():
+                out = self.process_stdout(scriptname)
+                self.msg(out)
+                if cmd == 'status':
+                    self.update_status_bar(data=out)
+                else:
+                    time.sleep(3)
+                    self.action_triggered('status_timer')
+            self.execute_script(
+                scriptname, args,
+                output_fn=output
+            )
+
+    def update_status_bar(self, pname=None, data=None):
+        if not data and pname:
+            data = self.process_stdout(pname)
+        if data:
+            data = { item[0]:item[1] for item in [line.upper().split('=') for line in data.split('\n')] }
+            msg = []
+            if data.get('APACHE_RUNNING') == '0':
+                msg.append('Apache: Not running')
+            else:
+                msg.append(f"[Apache: ports={data.get('APACHE_PORTS')} {len(data.get('APACHE_PROCS','').split(','))} procs]")
+            if data.get('MYSQL_RUNNING') == '0':
+                msg.append('MySQL: Not running')
+            else:
+                msg.append(f"[MySQL: ports={data.get('MYSQL_PORTS')} {len(data.get('MYSQL_PROCS','').split(','))} procs]")
+            self.statusBar().showMessage(' '.join(msg))
 
     def create_buttons(self):
-        txt = "Exec"
-        btn = QtWidgets.QPushButton(txt.capitalize(),parent=self.centralWidget())
-        btn.setObjectName('button_'+txt)
-        btn.setStatusTip(txt)
-        btn.pressed.connect(self.action_triggered)
-        self.centralWidget().layout().addWidget(btn)
+        buttons = ["status","start","stop"]
+        for txt in buttons:
+            btn = QtWidgets.QPushButton(txt.capitalize(),parent=self.centralWidget())
+            btn.setObjectName('button_'+txt)
+            btn.pressed.connect(self.action_triggered)
+            self.centralWidget().layout().addWidget(btn)
         pass
     
     def find(self,name=''):
         return self.findChildren(QtWidgets.QWidget,QtCore.QRegularExpression(name))
     
+    def create_timers(self):
+        timer = QtCore.QTimer()
+        self.timers.setdefault('status',timer)
+        timer.setObjectName('status')
+        timer.timeout.connect(lambda : self.action_triggered('status_timer'))
+        timer.start(10000)
+
     def create_text(self):
         text = QtWidgets.QPlainTextEdit()
         text.setReadOnly(True)
@@ -111,27 +167,57 @@ class MainApp(QtWidgets.QMainWindow):
         self.centralWidget().layout().addWidget(text)
 
     def msg(self,txt):
-        self.find('textarea')[0].appendPlainText(txt)
+        if txt:
+            textarea=self.find('textarea')[0]
+            txt=txt.strip()
+            for line in txt.split('\n'):
+                textarea.appendPlainText(line.capitalize())
 
     def finish_script(self,process):
-        self.msg(f'finished {process.objectName()}')
-        self.p = []
+        self.msg(f'finished {process}')
     
-    def output(self):
-        data = bytes(self.p[0].readAllStandardOutput()).decode('utf8').replace('\n','')
-        self.msg(data)
-    
-    def execute_script(self, scriptname):
-        if self.p:
-            print(f'Running')
+    def process_stdout(self,process):
+        p = self.process.get(process)
+        if p:
+            data = bytes(p[0].readAllStandardOutput()).decode('utf8').strip()
+            return data
+        return ''
+
+    def process_stderr(self,process):
+        data = bytes(self.process.get(process)[0].readAllStandardError()).decode('utf8').strip()
+        return data
+
+    def execute_script(self, scriptname, arguments, started_fn=None, finished_fn=None, output_fn=None, error_fn=None):
+        if self.process.get(scriptname):
+            print(f'Running {scriptname}')
         else:
             p = QtCore.QProcess()
+            if not started_fn:
+                started_fn = lambda: self.msg(f'started {scriptname}')
+            def sfn():
+                self.process.setdefault(scriptname,[p])
+                started_fn()
+            fn_start = sfn
+            if not finished_fn:
+                finished_fn = lambda: self.msg(f'finished {scriptname}')
+            def ffn():
+                finished_fn()
+                if scriptname in self.process:
+                    if output_fn:
+                        output_fn()
+                    del self.process[scriptname]
+            fn_finish = ffn
+            # if not output_fn:
+            #     output_fn = lambda: self.process_stdout(scriptname)
+            # if not error_fn:
+            #     error_fn = lambda: self.process_stderr(scriptname)
+            
             p.setObjectName(scriptname)
-            p.finished.connect(lambda: self.finish_script(p))
-            p.started.connect(lambda: self.msg(f'started {scriptname}'))
-            p.readyReadStandardOutput.connect(self.output)
-            self.p = [p]
-            p.start(scriptname,[])
+            p.finished.connect(fn_finish)
+            p.started.connect(fn_start)
+            # p.readyReadStandardOutput.connect(output_fn)
+            # p.readyReadStandardError.connect(error_fn)
+            p.start(scriptname,arguments)
         
 def main():
     global app, exitting
