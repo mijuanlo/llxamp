@@ -157,7 +157,7 @@ create_target_dir(){
 test_install_pack(){
     [ ! -e "$rpfile_pack" ] && error_menu "invalid install-pack"
     echo Testing archive "$rpfile_pack"
-    tmpfile=$(execute_to_tempfile 'tar -ztf "$rpfile_pack"')
+    tmpfile=$(execute_to_tempfile tar -ztf "$rpfile_pack")
     need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
     for n in $need; do
         if grep -s $n $tmpfile > /dev/null 2>&1; then
