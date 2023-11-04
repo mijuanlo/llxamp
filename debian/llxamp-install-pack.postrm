@@ -18,9 +18,16 @@ set -e
 # for details, see https://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+TARGETDIR=/usr/lib/llxamp/pack
 
 case "$1" in
-    purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+    purge|failed-upgrade|abort-install|abort-upgrade|disappear)
+        if [ -d "$TARGETDIR" ]; then
+            rm -rf "$TARGETDIR"
+        fi
+    ;;
+
+    upgrade|remove)
     ;;
 
     *)

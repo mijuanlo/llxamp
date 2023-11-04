@@ -25,22 +25,25 @@ TARGETDIR=/usr/lib/llxamp/pack
 
 case "$1" in
     configure)
-        /usr/lib/llxamp/llxamp-download-install-pack
-        echo Testing archive "$PACK"
-        tmpfile=$(mktemp)
-        tar -ztf "$PACK" > $tmpfile
-        need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
-        for n in $need; do
-            if grep -s $n $tmpfile > /dev/null 2>&1; then
-                echo "$(basename $n) found!" 
-            else 
-                echo "$(basename $n) not found!"
-            fi
-        done
-        echo Installing pack into "$TARGETDIR"
-        mkdir -p "$TARGETDIR"
-        cd "$TARGETDIR"
-        tar xfz "$PACK"
+        content=$(ls "$TARGETDIR")
+        if [ ! -d "$TARGETDIR" -o -z "$content" ]; then
+            /usr/lib/llxamp/llxamp-download-install-pack
+            echo Testing archive "$PACK"
+            tmpfile=$(mktemp)
+            tar -ztf "$PACK" > $tmpfile
+            need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
+            for n in $need; do
+                if grep -s $n $tmpfile > /dev/null 2>&1; then
+                    echo "$(basename $n) found!" 
+                else 
+                    echo "$(basename $n) not found!"
+                fi
+            done
+            echo Installing pack into "$TARGETDIR"
+            mkdir -p "$TARGETDIR"
+            cd "$TARGETDIR"
+            tar xfz "$PACK"
+        fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
