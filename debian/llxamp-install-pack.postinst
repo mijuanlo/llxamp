@@ -37,9 +37,10 @@ case "$1" in
                 echo "$(basename $n) not found!"
             fi
         done
+        echo Installing pack into "$TARGETDIR"
         mkdir -p "$TARGETDIR"
         cd "$TARGETDIR"
-        tar xvfz "$PACK"
+        tar xfz "$PACK"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
