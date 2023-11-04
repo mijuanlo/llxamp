@@ -1,2 +1,10 @@
 #!/bin/bash
-env > /tmp/ffffff
+mountpoint=$HOME/llxamp
+lower=/usr/lib/llxamp/pack
+
+if [ -z "$(findmnt -l -O TARGET | grep -so "$mountpoint" > /dev/null)" ]; then
+    if [ -d "$lower" ]; then
+        mkdir -p $HOME/.llxamp/{work,upper}
+        fuse-overlayfs -olowerdir=$lower,upperdir=$HOME/.llxamp/upper,workdir=$HOME/.llxamp/work,squash_to_uid=$(id -u),squash_to_gid=$(id -g) "$mountpoint"
+    fi
+fi
