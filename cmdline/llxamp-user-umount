@@ -1,6 +1,6 @@
 #!/bin/bash
 mountpoint=$HOME/llxamp
 
-if [ -n "$(findmnt -l -O TARGET | grep -so "$mountpoint" > /dev/null)" ]; then
+if [ -n "$(findmnt -l -o TARGET | grep -so "$mountpoint" > /dev/null)" ]; then
     fusermount -u "$mountpoint"
 fi
