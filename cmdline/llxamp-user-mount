@@ -2,7 +2,7 @@
 mountpoint=$HOME/llxamp
 lower=/usr/lib/llxamp/pack
 
-if [ -z "$(findmnt -l -o TARGET | grep -so "$mountpoint" > /dev/null)" ]; then
+if [ -z "$(findmnt -l -o TARGET | grep -o $mountpoint)" ]; then
     if [ -d "$lower" ]; then
         mkdir -p $HOME/.llxamp/{work,upper}
         fuse-overlayfs -olowerdir=$lower,upperdir=$HOME/.llxamp/upper,workdir=$HOME/.llxamp/work,squash_to_uid=$(id -u),squash_to_gid=$(id -g) "$mountpoint"
