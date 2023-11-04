@@ -25,7 +25,7 @@ TARGETDIR=/usr/lib/llxamp/pack
 
 case "$1" in
     configure)
-        content=$(ls "$TARGETDIR")
+        content=$(ls "$TARGETDIR"||true)
         if [ ! -d "$TARGETDIR" -o -z "$content" ]; then
             /usr/lib/llxamp/llxamp-download-install-pack
             echo Testing archive "$PACK"
