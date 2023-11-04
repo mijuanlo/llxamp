@@ -22,6 +22,7 @@ TARGETDIR=/usr/lib/llxamp/pack
 
 case "$1" in
     purge|failed-upgrade|abort-install|abort-upgrade|disappear)
+        echo "Removing install pack from $TARGETDIR ($1)"
         if [ -d "$TARGETDIR" ]; then
             rm -rf "$TARGETDIR"
         fi
