@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Mount llxamp environment
+TryExec=llxamp-user-mount
+Exec=llxamp-user-mount
+StartupNotify=false
+NoDisplay=true
+
+X-GNOME-Autostart-Phase=Initialization
+X-KDE-autostart-phase=1
