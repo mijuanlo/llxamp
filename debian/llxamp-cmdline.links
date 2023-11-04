@@ -4,3 +4,5 @@
 /usr/lib/llxamp/llxamp-start /usr/bin/llxamp-start
 /usr/lib/llxamp/llxamp-restart-apache /usr/bin/llxamp-restart-apache
 /usr/lib/llxamp/llxamp-kill /usr/bin/llxamp-kill
+/usr/lib/llxamp/llxamp-user-mount /usr/bin/llxamp-user-mount
+/usr/lib/llxamp/llxamp-user-umount /usr/bin/llxamp-user-umount
