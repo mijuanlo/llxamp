@@ -38,9 +38,8 @@ case "$1" in
             fi
         done
         mkdir -p "$TARGETDIR"
-        pushd "$TARGETDIR" > /dev/null 2>&1
+        cd "$TARGETDIR"
         tar xvfz "$PACK"
-        popd > /dev/null 2>&1
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
