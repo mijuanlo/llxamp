@@ -43,6 +43,7 @@ case "$1" in
             mkdir -p "$TARGETDIR"
             cd "$TARGETDIR"
             tar xfz "$PACK"
+            # rm -rf "$PACKDIR"
         fi
     ;;
 
