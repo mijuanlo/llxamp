@@ -16,13 +16,8 @@ set -e
 # for details, see https://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-TARGETDIR=/usr/lib/llxamp/pack
-
 case "$1" in
     remove|upgrade|deconfigure)
-        if [ -d "$TARGETDIR" ]; then
-            rm -rf "$TARGETDIR"
-        fi
     ;;
 
     failed-upgrade)
