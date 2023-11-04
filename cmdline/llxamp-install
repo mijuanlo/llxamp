@@ -60,7 +60,8 @@ make_change_text(){
         if [ $? -eq 0 -a -n "$found" ];then
             found=($(echo $found |xargs -n1 |sort|uniq))
             for file in ${found[@]}; do
-                execute sed -r -i'.pre-change' "s|$TAG|$rptarget|g" "$file"
+                cp "$file" "$file.pre-change"
+                sed -r "s|$TAG|$rptarget|g" "$file.pre-change" > "$file"
             done
         fi
     done
@@ -71,19 +72,21 @@ make_change_text(){
 make_change_bin(){
     echo Patching binary files
     export LC_ALL=C
-    components="httpd php mysql"
+    components="httpd php"
     [ ! -e "$rptarget" ] && error_menu "invalid target"
     pushd $rptarget >/dev/null
     declare -a found_bins_with_tag
     for component in $components; do
-        found_bins=$(execute find $component -type f -exec grep . -IL "{}" \;)
+        found_bins=$(execute find $component -type f -not \( -name '*.png' -o -name '*.gif' -o -name '*.mo' -o -name '*.z' -o -name '*.ico' \) -exec grep . -IL "{}" \;)
         if [ $? -eq 0 -a -n "$found_bins" ];then
             found_bins=($(echo $found_bins |xargs -n1 |sort|uniq))
             for file in ${found_bins[@]}; do
-                found_tag=$(grep -ol "$TAG" "$file" || true)
-                found_bins_with_tag+=($found_tag)
-                if [ -n "$found_tag" ];then
-                    execute python3 $script_dir/patch.py $rptarget/$file $TAG $rptarget
+                found_tag=$(grep -ol "$TAG" "$file")
+                if [ -n "$found_tag" ]; then
+                    found_bins_with_tag+=($found_tag)
+                    if [ -n "$found_tag" ];then
+                        execute python3 $script_dir/patch.py $rptarget/$file $TAG $rptarget
+                    fi
                 fi
             done
         fi
@@ -129,7 +132,9 @@ configure_mysql2(){
     execute_silent $rptarget/mysql/scripts/mysql_install_db --basedir=$rptarget/mysql --datadir=$rptarget/mysql/data --no-defaults --user=$(whoami)
     echo Starting database
     execute_silent bash $startup_scripts/llxamp-start-mysql
-    sleep 5
+    while ! $rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root -e 'status' > /dev/null 2>&1; do
+        sleep 1
+    done
     echo Creating test table
     execute_silent $rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root < "$TEMPLATES_DIR"/create_table.sql
     echo Securing Mysql installation
@@ -156,6 +161,7 @@ create_target_dir(){
     if [ ! -e "$rptarget" ]; then
         mkdir -p "$rptarget" ||  error_menu "Invalid parameter '$target'"
     fi
+    mkdir -p $HOME/.llxamp/{work,upper}
     if [ -e "$rptarget/mysql/data" ]; then
         rm -rf "$rptarget/mysql/data"
     fi
@@ -178,7 +184,24 @@ test_install_pack(){
 decompress_pack(){
     [ ! -e "$rptarget" -o ! -e "$rpfile_pack" ] && error_menu "invalid target or install-pack"
     echo "Decompressing archive into '$rptarget'"
-    execute tar -zxf "$rpfile_pack" -C "$rptarget"
+    # execute tar -zxf "$rpfile_pack" -C "$rptarget"
+    mounted=$(findmnt -l -o TARGET | grep "$rptarget")
+    if [ -n "$mounted" ];then
+        fusermount -u "$rptarget"
+        [ -e "$HOME/.llxamp/upper" ] && rm -rf $HOME/.llxamp/upper
+        mkdir -p $HOME/.llxamp/upper
+    fi
+    mounted=$(findmnt -l -o TARGET | grep "$rptarget")
+    if [ -z "$mounted" ];then
+        set -e
+        if [ -e "/usr/lib/llxamp/pack" -a -e "$HOME/.llxamp/upper" -a -e "$HOME/.llxamp/work" ]; then
+            fuse-overlayfs -olowerdir=/usr/lib/llxamp/pack,upperdir=$HOME/.llxamp/upper,workdir=$HOME/.llxamp/work,squash_to_uid=$(id -u),squash_to_gid=$(id -g) "$rptarget"
+        else
+            echo "Can't mount overlay"
+            exit 1
+        fi
+        set +e
+    fi
 }
 
 read_tag(){
@@ -271,13 +294,14 @@ fi
 
 startup_scripts="$rptarget/scripts"
 
-if [ -z "$rpfile_pack" -o ! -e "$rpfile_pack" ]; then
-    llxamp-download-install-pack || error_menu "Invalid pack file"
-    [ -e "/tmp/llxamp-install-pack/install-pack.tgz" ] && rpfile_pack="/tmp/llxamp-install-pack/install-pack.tgz"
+if [ ! -e "/usr/lib/llxamp/pack" ]; then
+    if [ -z "$rpfile_pack" -o ! -e "$rpfile_pack" ]; then
+        llxamp-download-install-pack || error_menu "Invalid pack file"
+        [ -e "/tmp/llxamp-install-pack/install-pack.tgz" ] && rpfile_pack="/tmp/llxamp-install-pack/install-pack.tgz"
+    fi
 fi
 
-
-test_install_pack
+#test_install_pack
 create_target_dir
 decompress_pack
 read_tag
@@ -292,4 +316,4 @@ configure_user_path
 gen_openssl_certs
 print_info
 
-exec bash
+source $HOME/.bashrc

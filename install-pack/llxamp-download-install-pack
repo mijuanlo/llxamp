@@ -34,3 +34,4 @@ done
 pushd "$TMPDIR" > /dev/null 2>&1
 $MD5SUM -c "$TMPDIR/$MD5" >/dev/null 2>&1 && echo Download into $TMPDIR successful || echo Download failed
 popd > /dev/null 2>&1
+exit 0

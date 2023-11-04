@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 llxamp-stop-apache
 sleep 3
 llxamp-start-apache

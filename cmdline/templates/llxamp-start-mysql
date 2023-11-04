@@ -1,4 +1,2 @@
-#!/bin/bash -e
+#!/bin/bash
 @@LLXAMP_BASEPATH@@/mysql/bin/mysqld_safe --defaults-file=@@LLXAMP_BASEPATH@@/mysql/conf/my.cnf > /dev/null 2>&1 &
-
-    
