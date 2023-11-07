@@ -249,7 +249,7 @@ program=$(basename "${BASH_SOURCE[0]}")
 args="$@"
 nargs=$#
 TEMPLATES_DIR=${TEMPLATES_DIR:=$script_dir/templates}
-PACK_DIR=${PACK_DIR:=/usr/lib/llxamp/data}
+PACK_DIR=${PACK_DIR:=/usr/lib/llxamp/pack}
 file_pack=
 target=
 forced=
