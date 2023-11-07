@@ -156,7 +156,7 @@ def process(params):
         config_dir = '/'.join(config_dir.split('/')[:-1])
     # config_text=filter_comments(read_file(CONFIG))
 
-    hierarchy,includes,content=process_includes(CONFIG)
+    hierarchy,includes,content=process_includes(CONFIG,{},[],[])
     
     if '-r' in params:
         comments = False

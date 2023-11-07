@@ -111,7 +111,9 @@ class MainApp(QtWidgets.QMainWindow):
             scriptname = f'llxamp-{cmd}'
             args = []
             if cmd == 'status':
-               args = ['-a','-m','-p','-n']
+                args = ['-a','-m','-p','-n']
+            if cmd == 'config':
+                args = ['-a','-p','-c','-r']
             def output():
                 out = self.process_stdout(scriptname)
                 self.msg(out)
@@ -153,7 +155,7 @@ class MainApp(QtWidgets.QMainWindow):
             self.statusBar().showMessage(' '.join(msg))
 
     def create_buttons(self):
-        buttons = ["status","start","stop"]
+        buttons = ["status","start","stop","config"]
         for txt in buttons:
             btn = QtWidgets.QPushButton(txt.capitalize(),parent=self.centralWidget())
             btn.setObjectName('button_'+txt)
