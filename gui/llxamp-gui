@@ -122,9 +122,20 @@ class MainApp(QtWidgets.QMainWindow):
                     self.action_triggered('status_timer')
             self.execute_script(
                 scriptname, args,
+                started_fn=lambda: self.disable_button(name),
+                finished_fn=lambda: self.enable_button(name),
                 output_fn=output
             )
-
+    def disable_button(self,name=None):
+        btn = self.find(name)
+        if btn:
+            btn[0].setDisabled(True)
+    
+    def enable_button(self,name=None):
+        btn = self.find(name)
+        if btn:
+            btn[0].setEnabled(True)
+    
     def update_status_bar(self, pname=None, data=None):
         if not data and pname:
             data = self.process_stdout(pname)
