@@ -256,11 +256,11 @@ while test -n "$1"; do
     case "$param" in
         -p)
             shift
-            file_pack="$1"
+            [ -n "$1" -a "${1:0:1}" != "-" -a -f "$1" ] && file_pack="$1" || help_menu
         ;;
         -t)
             shift
-            target="$1"
+            [ -n "$1" -a "${1:0:1}" != "-" ] && target="$1" || help_menu
         ;;
         -f)
             forced="yes"
