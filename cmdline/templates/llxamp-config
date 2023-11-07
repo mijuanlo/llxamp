@@ -152,6 +152,8 @@ def process(params):
     COMMENT_LLXAMP = f'{COMMENT} LLXAMP: '
     
     config_dir=os.path.dirname(os.path.realpath(CONFIG))
+    if 'conf' == config_dir.split('/')[-1]:
+        config_dir = '/'.join(config_dir.split('/')[:-1])
     # config_text=filter_comments(read_file(CONFIG))
 
     hierarchy,includes,content=process_includes(CONFIG)
