@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys
+import sys,os
 import signal
 import time
 from gettext import gettext as _
@@ -21,7 +21,9 @@ signal.signal(signal.SIGINT, exit_control_c)
 class MainApp(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__()
-
+        self.process = {}
+        self.timers = {}
+        self.files = { 'apache' : {}, 'php': {}}
         self.setWindowTitle('LLXAMP')
 
         self.setMinimumSize(QtCore.QSize(800,600))
@@ -29,12 +31,11 @@ class MainApp(QtWidgets.QMainWindow):
         self.setCentralWidget(QtWidgets.QWidget(parent=self))
         self.centralWidget().setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
-        self.create_menu_bar()
+        self.execute_script('llxamp-config',['-a','-p','-t'],finished_fn=lambda:self.create_menu_bar(pname='llxamp-config'))
+        #self.create_menu_bar()
         self.create_layout()
         self.create_buttons()
         self.create_text()
-        self.process = {}
-        self.timers = {}
         self.create_timers()
         self.statusBar().setVisible(True)
         #self.action_triggered('status_timer')
@@ -46,12 +47,27 @@ class MainApp(QtWidgets.QMainWindow):
         self.centralWidget().setLayout(l)
         pass
 
-    def create_menu_bar(self):
-        items = [
-            ['File', ['Action1',['SubFile', 'Action2'], 'Action3'] ],
-            ['File2', ['jeje', 'Ohhh'] ],
-            'juju'
-        ]
+    def create_menu_bar(self, pname=None):
+        if pname:
+            out = self.process_stdout(pname)
+            out = out.split('\n')
+            
+            for item in out:
+                if 'httpd' in item:
+                    who = 'apache'
+                else:
+                    who = 'php'
+                self.files[who].setdefault(os.path.basename(item.strip()),item.strip())
+        # items = [
+        #     ['File', ['Action1',['SubFile', 'Action2'], 'Action3'] ],
+        #     ['File2', ['jeje', 'Ohhh'] ],
+        #     'juju'
+        # ]
+        apache_files = [x for x in self.files['apache']]
+        php_files = [x for x in self.files['php']]
+        items = [ ['Apache'] + apache_files , ['PHP'] + php_files ] 
+        
+        pass
         for item in items:
             if isinstance(item,list):
                 self.menuBar().addMenu(self.create_menu(items=item, parent=self.menuBar()))
@@ -106,10 +122,22 @@ class MainApp(QtWidgets.QMainWindow):
                 started_fn=lambda: None,
                 finished_fn=lambda: self.update_status_bar(pname='llxamp-status')
             )
+        if name[:6] == 'action':
+            file = name.split('_')[1]
+            file2=[ v for k,v in self.files['apache'].items() if k == file ]
+            if not file2:
+                file2=[ v for k,v in self.files['php'].items() if k == file ]
+            self.msg(f'Editing {file2}')
+            pass
         if name[:6] == 'button':
             cmd = name.split('_')[1]
             scriptname = f'llxamp-{cmd}'
             args = []
+            if cmd == 'clear':
+                txt=self.find('textarea')
+                if txt:
+                    txt[0].clear()
+                return
             if cmd == 'status':
                 args = ['-a','-m','-p','-n']
             if cmd == 'config':
@@ -155,7 +183,7 @@ class MainApp(QtWidgets.QMainWindow):
             self.statusBar().showMessage(' '.join(msg))
 
     def create_buttons(self):
-        buttons = ["status","start","stop","config"]
+        buttons = ["status","start","stop","config","clear"]
         for txt in buttons:
             btn = QtWidgets.QPushButton(txt.capitalize(),parent=self.centralWidget())
             btn.setObjectName('button_'+txt)
