@@ -182,7 +182,8 @@ test_install_pack(){
 }
 
 decompress_pack(){
-    [ ! -e "$rptarget" -o ! -e "$rpfile_pack" ] && error_menu "invalid target or install-pack"
+    #[ ! -e "$rptarget" -o ! -e "$rpfile_pack" ] && error_menu "invalid target or install-pack"
+    [ ! -e "$rptarget" -o ! -e "$PACK_DIR" ] && error_menu "invalid target or install-pack"
     echo "Decompressing archive into '$rptarget'"
     # execute tar -zxf "$rpfile_pack" -C "$rptarget"
     mounted=$(findmnt -l -o TARGET | grep "$rptarget")
@@ -194,8 +195,8 @@ decompress_pack(){
     mounted=$(findmnt -l -o TARGET | grep "$rptarget")
     if [ -z "$mounted" ];then
         set -e
-        if [ -e "/usr/lib/llxamp/pack" -a -e "$HOME/.llxamp/upper" -a -e "$HOME/.llxamp/work" ]; then
-            fuse-overlayfs -olowerdir=/usr/lib/llxamp/pack,upperdir=$HOME/.llxamp/upper,workdir=$HOME/.llxamp/work,squash_to_uid=$(id -u),squash_to_gid=$(id -g) "$rptarget"
+        if [ -e "$PACK_DIR" -a -e "$HOME/.llxamp/upper" -a -e "$HOME/.llxamp/work" ]; then
+            fuse-overlayfs -olowerdir=$PACK_DIR,upperdir=$HOME/.llxamp/upper,workdir=$HOME/.llxamp/work,squash_to_uid=$(id -u),squash_to_gid=$(id -g) "$rptarget"
         else
             echo "Can't mount overlay"
             exit 1
@@ -248,6 +249,7 @@ program=$(basename "${BASH_SOURCE[0]}")
 args="$@"
 nargs=$#
 TEMPLATES_DIR=${TEMPLATES_DIR:=$script_dir/templates}
+PACK_DIR=${PACK_DIR:=/usr/lib/llxamp/data}
 file_pack=
 target=
 forced=
