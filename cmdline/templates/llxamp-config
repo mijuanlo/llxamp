@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 COMMENT_PHP = ';'
-CONFIG_PHP = '/etc/php/7.4/apache2/php.ini'
+CONFIG_PHP = '@@LLXAMP_BASEPATH@@/php/lib/php.ini'
 COMMENT_APACHE = '#'
-CONFIG_APACHE = '/etc/apache2/apache2.conf'
+CONFIG_APACHE = '@@LLXAMP_BASEPATH@@/httpd/conf/httpd.conf'
 TAB=' '*4
 
 import sys, os, re, glob
