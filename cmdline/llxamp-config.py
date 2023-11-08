@@ -185,7 +185,7 @@ def process(params=[]):
         print_content(content,comments,llxamp_comments)
 
 def set_mode_apache():
-    global COMMENT, CONFIG
+    global COMMENT, CONFIG, COMMENT_APACHE, CONFIG_APACHE
     COMMENT=COMMENT_APACHE
     CONFIG=CONFIG_APACHE
 
