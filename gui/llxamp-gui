@@ -29,8 +29,9 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 signal.signal(signal.SIGINT, exit_control_c)
 
 class MainApp(QtWidgets.QMainWindow):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, app, *args, **kwargs):
         super().__init__()
+        self.app = app
         self.process = {}
         self.timers = {}
         self.files = { 'apache' : {}, 'php': {}}
@@ -94,6 +95,12 @@ class MainApp(QtWidgets.QMainWindow):
         self.systray.setVisible(True)
         self.systray.activated.connect(self.systray_activation)
         self.systray.setToolTip("LliureX Apache+MySQL+PHP")
+        menu = QtWidgets.QMenu(self)
+        menu.setVisible(True)
+        action = QtWidgets.QAction('Exit',self)
+        action.triggered.connect(self.app.quit)
+        menu.addAction(action)
+        self.systray.setContextMenu(menu)
 
     def create_layout(self):
         l = QtWidgets.QVBoxLayout()
@@ -363,7 +370,7 @@ def main():
     global app, exitting
     
     app = QtWidgets.QApplication(sys.argv)
-    window = MainApp()
+    window = MainApp(app)
     window.show()
     exitLoopTimer = QtCore.QTimer()
     exitLoopTimer.timeout.connect(lambda: None)
