@@ -39,21 +39,28 @@ def filter_comments(txtlist):
 def filter_includes(txtlist):
     filtered=[]
     for line in txtlist:
-        if not re.match(f'^\s*include',line,re.IGNORECASE):
+        if not re.match(r'^\s*include',line,re.IGNORECASE):
             filtered.append(line)
     return filtered
 
 def filter_not_includes(txtlist):
     filtered=[]
     for line in txtlist:
-        if re.match(f'^\s*include',line,re.IGNORECASE):
+        if re.match(r'^\s*include',line,re.IGNORECASE):
             filtered.append(line)
+    return filtered
+
+def filter_not_logs(txtlist):
+    filtered=[]
+    for line in txtlist:
+        if re.match(r'^\s*(error|transfer|custom)log',line,re.IGNORECASE):
+            filtered.append(line.strip())
     return filtered
 
 def get_first_param(txtlist):
     params=[]
     for line in txtlist:
-        params.append(line.split()[1])
+        params.append(line.split()[1].replace('"','').replace("'",''))
     return params
 
 def expand_includes(txtlist):
@@ -74,13 +81,17 @@ def expand_includes(txtlist):
                         includes.extend(item)
     return includes
 
-def process_includes(filename,hierarchy={},includes=[],content=[]):
+def process_includes(filename,hierarchy={},includes=[],content=[],logs=[]):
     content.append(f'{COMMENT_LLXAMP}Content from: {filename}')
     hierarchy.setdefault(filename,{})
     
     content_for_append = read_file(filename)
     txt = filter_comments(content_for_append)
     full_newincludes = filter_not_includes(txt)
+    newlogs = filter_not_logs(txt)
+    for logfile in expand_includes(get_first_param(newlogs)):
+        if logfile not in logs:
+            logs.append(logfile)
     #newincludes = expand_includes(get_first_param(full_newincludes))
     
     includes.append(filename)
@@ -98,9 +109,9 @@ def process_includes(filename,hierarchy={},includes=[],content=[]):
             content.append(COMMENT_LLXAMP)
             for include in newincludes:
                 if include not in includes:
-                    process_includes(include,hierarchy[filename],includes,content)
+                    process_includes(include,hierarchy[filename],includes,content,logs)
     content.append(f'{COMMENT_LLXAMP}End content from: {filename}')
-    return hierarchy,includes,content
+    return hierarchy,includes,content,logs
 
 def print_hierarchy(hierarchy={},comments=False,level=0,):
     pad=''
@@ -153,6 +164,7 @@ Options:
 
     -c: Show configfiles content
     -t: Show include tree hierarchy
+    -l: Show logfiles used
 
     -r: Remove comments from output
     -i: Include {filename} comments
@@ -172,7 +184,7 @@ def process(params=[]):
 
     # config_text=filter_comments(read_file(CONFIG))
 
-    hierarchy,includes,content=process_includes(CONFIG,{},[],[])
+    hierarchy,includes,content,logs=process_includes(CONFIG,{},[],[],[])
     
     if '-r' in params:
         comments = False
@@ -187,6 +199,8 @@ def process(params=[]):
         print(print_hierarchy(hierarchy,llxamp_comments))
     if '-c' in params:
         print(print_content(content,comments,llxamp_comments))
+    if '-l' in params:
+        print('\n'.join(logs))
     return hierarchy,includes,content
 
 def set_mode_apache():

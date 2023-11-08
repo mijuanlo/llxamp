@@ -117,7 +117,7 @@ class MainApp(QtWidgets.QMainWindow):
             #action.setShortCuts(QtCore.QKeySequence())
             action.triggered.connect(self.action_triggered)
             return action
-        
+
     def action_triggered(self, name=None):
         action_sender = self.sender()
         text = None
