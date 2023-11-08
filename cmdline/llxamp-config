@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 
+import sys, os, re, glob
+
+BASEPATH=os.path.expanduser('~')+'/llxamp'
+if not os.path.exists(BASEPATH):
+    print(f"Error '{BASEPATH}' not found")
+    sys.exit(1)
+
 COMMENT_PHP = ';'
-CONFIG_PHP = '@@LLXAMP_BASEPATH@@/php/lib/php.ini'
+CONFIG_PHP = f'{BASEPATH}/php/lib/php.ini'
 COMMENT_APACHE = '#'
-CONFIG_APACHE = '@@LLXAMP_BASEPATH@@/httpd/conf/httpd.conf'
+CONFIG_APACHE = f'{BASEPATH}/httpd/conf/httpd.conf'
 TAB=' '*4
 
-import sys, os, re, glob
+
 
 cache={}
 

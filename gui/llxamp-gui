@@ -6,6 +6,10 @@ import time
 from gettext import gettext as _
 from PySide2 import QtWidgets, QtGui, QtCore
 
+sys.path.insert(1,'/usr/lib/llxamp')
+
+import 'llxamp-config'
+
 app = None
 exitting = False
 
@@ -25,13 +29,14 @@ class MainApp(QtWidgets.QMainWindow):
         self.timers = {}
         self.files = { 'apache' : {}, 'php': {}}
         self.setWindowTitle('LLXAMP')
+        self.setWindowIcon(QtGui.QIcon("/usr/share/icons/llxamp.svg"))
 
         self.setMinimumSize(QtCore.QSize(800,600))
 
         self.setCentralWidget(QtWidgets.QWidget(parent=self))
         self.centralWidget().setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
-        self.execute_script('llxamp-config',['-a','-p','-t'],finished_fn=lambda:self.create_menu_bar(pname='llxamp-config'))
+        self.execute_script('llxamp-config',['-a','-p','-t'],finished_fn=lambda:self.create_menu_bar(pname='llxamp-config'),started_fn=lambda: None)
         #self.create_menu_bar()
         self.create_layout()
         self.create_buttons()
@@ -237,11 +242,13 @@ class MainApp(QtWidgets.QMainWindow):
                 started_fn = lambda: self.msg(f'started {scriptname}')
             def sfn():
                 self.process.setdefault(scriptname,[p])
+                # self.msg(f'started {scriptname}')
                 started_fn()
             fn_start = sfn
             if not finished_fn:
                 finished_fn = lambda: self.msg(f'finished {scriptname}')
             def ffn():
+                # self.msg(f'finished {scriptname}')
                 finished_fn()
                 if scriptname in self.process:
                     if output_fn:
