@@ -104,14 +104,16 @@ def process_includes(filename,hierarchy={},includes=[],content=[]):
 
 def print_hierarchy(hierarchy={},comments=False,level=0,):
     pad=''
+    txt=''
     if level:
         pad=TAB*level
     if comments:
         pad=f'{COMMENT}{pad}'
     for key,value in hierarchy.items():
-        print(f"{pad}{key}")
+        txt = f"{txt}{pad}{key}\n"
         if value:
-            print_hierarchy(value,comments,level+1)
+            txt= f'{txt}{print_hierarchy(value,comments,level+1)\n}'
+    return txt
 
 def filter_generic_comments(content):
     filtered=[]
@@ -138,7 +140,7 @@ def print_content(content,comments=False,llxamp_comments=True):
         content = filter_generic_comments(content)
     if not llxamp_comments:
         content = filter_llxamp_comments(content)
-    print('\n'.join(content))
+    return '\n'.join(content)
 
 def help_menu():
     filename = os.path.basename(__file__)
@@ -182,9 +184,9 @@ def process(params=[]):
         llxamp_comments = False
 
     if '-t' in params:
-        print_hierarchy(hierarchy,llxamp_comments)
+        print(print_hierarchy(hierarchy,llxamp_comments))
     if '-c' in params:
-        print_content(content,comments,llxamp_comments)
+        print(print_content(content,comments,llxamp_comments))
     return hierarchy,includes,content
 
 def set_mode_apache():

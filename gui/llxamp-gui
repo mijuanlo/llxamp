@@ -8,7 +8,10 @@ from PySide2 import QtWidgets, QtGui, QtCore
 
 sys.path.insert(1,'/usr/lib/llxamp')
 
-import 'llxamp-config'
+try:
+    llxconfig=__import__('llxamp-config')
+except:
+    print("Can't import llxamp-config")
 
 app = None
 exitting = False
@@ -36,7 +39,15 @@ class MainApp(QtWidgets.QMainWindow):
         self.setCentralWidget(QtWidgets.QWidget(parent=self))
         self.centralWidget().setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
-        self.execute_script('llxamp-config',['-a','-p','-t'],finished_fn=lambda:self.create_menu_bar(pname='llxamp-config'),started_fn=lambda: None)
+        if llxconfig:
+            llxconfig.set_mode_apache()
+            tree,includes,content=llxconfig.process()
+            llxconfig.set_mode_php()
+            tree2,includes2,content2=llxconfig.process()
+            includes.extend(includes2)
+            self.create_menu_bar(includes=includes)
+        else:
+            self.execute_script('llxamp-config',['-a','-p','-t'],finished_fn=lambda:self.create_menu_bar(pname='llxamp-config'),started_fn=lambda: None)
         #self.create_menu_bar()
         self.create_layout()
         self.create_buttons()
@@ -52,17 +63,23 @@ class MainApp(QtWidgets.QMainWindow):
         self.centralWidget().setLayout(l)
         pass
 
-    def create_menu_bar(self, pname=None):
+    def create_menu_bar(self, pname=None, includes=None):
+        out=[]
+        
         if pname:
             out = self.process_stdout(pname)
             out = out.split('\n')
+        
+        if includes:
+            out = includes
             
-            for item in out:
-                if 'httpd' in item:
-                    who = 'apache'
-                else:
-                    who = 'php'
-                self.files[who].setdefault(os.path.basename(item.strip()),item.strip())
+        for item in out:
+            if 'httpd' in item:
+                who = 'apache'
+            else:
+                who = 'php'
+            self.files[who].setdefault(os.path.basename(item.strip()),item.strip())
+        
         # items = [
         #     ['File', ['Action1',['SubFile', 'Action2'], 'Action3'] ],
         #     ['File2', ['jeje', 'Ohhh'] ],
@@ -146,7 +163,15 @@ class MainApp(QtWidgets.QMainWindow):
             if cmd == 'status':
                 args = ['-a','-m','-p','-n']
             if cmd == 'config':
-                args = ['-a','-p','-c','-r']
+                if not llxconfig:
+                    args = ['-a','-p','-c','-r']
+                else:
+                    llxconfig.set_mode_apache()
+                    tree,includes,content = llxconfig.process()
+                    llxconfig.
+                    llxconfig.set_mode_php()
+                    tree2,includes2,content2 = llxconfig.process()
+                    return
             def output():
                 out = self.process_stdout(scriptname)
                 self.msg(out)
