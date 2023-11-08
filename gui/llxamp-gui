@@ -75,13 +75,19 @@ class MainApp(QtWidgets.QMainWindow):
         mode = reason.name.decode().lower()
         if mode == 'context':
             print(mode)
+            self.quit()
         elif mode == 'trigger':
             self.setVisible(not self.isVisible())
         else:
             print(f'TODO: {mode}')
     
     def create_systray(self):
-        self.systray = QtWidgets.QSystemTrayIcon(QtGui.QIcon(ICON))
+        fallback = QtGui.QIcon(ICON)
+        fallback.setThemeName('hicolor')
+        icon = QtGui.QIcon.fromTheme('llxamp',fallback)
+        self.systray = QtWidgets.QSystemTrayIcon(icon,self)
+        
+        #self.systray = QtWidgets.QSystemTrayIcon(fallback,self)
         self.systray.setVisible(True)
         self.systray.activated.connect(self.systray_activation)
         self.systray.setToolTip("LliureX Apache+MySQL+PHP")
