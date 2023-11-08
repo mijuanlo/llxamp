@@ -192,7 +192,7 @@ def set_mode_apache():
     CONFIG=CONFIG_APACHE
 
 def set_mode_php():
-    global COMMENT, CONFIG
+    global COMMENT, CONFIG, COMMENT_PHP, CONFIG_PHP
     COMMENT=COMMENT_PHP
     CONFIG=CONFIG_PHP
 
