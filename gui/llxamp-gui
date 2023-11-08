@@ -50,6 +50,8 @@ class MainApp(QtWidgets.QMainWindow):
         else:
             self.execute_script('llxamp-config',['-a','-p','-t'],finished_fn=lambda:self.create_menu_bar(pname='llxamp-config'),started_fn=lambda: None)
         #self.create_menu_bar()
+        self.msglabel = QtWidgets.QLabel()
+        self.statusBar().addPermanentWidget(self.msglabel,100)
         self.create_layout()
         self.create_buttons()
         self.create_text()
@@ -90,6 +92,8 @@ class MainApp(QtWidgets.QMainWindow):
         php_files = [x for x in self.files['php']]
         items = [ ['Apache'] + apache_files , ['PHP'] + php_files ] 
         
+        pass
+        self.menuBar().setStatusTip('a')
         pass
         for item in items:
             if isinstance(item,list):
@@ -206,14 +210,15 @@ class MainApp(QtWidgets.QMainWindow):
             data = { item[0]:item[1] for item in [line.upper().split('=') for line in data.split('\n')] }
             msg = []
             if data.get('APACHE_RUNNING') == '0':
-                msg.append('Apache: Not running')
+                msg.append('[Apache: Not running]')
             else:
                 msg.append(f"[Apache: ports={data.get('APACHE_PORTS')} {len(data.get('APACHE_PROCS','').split(','))} procs]")
             if data.get('MYSQL_RUNNING') == '0':
-                msg.append('MySQL: Not running')
+                msg.append('[MySQL: Not running]')
             else:
                 msg.append(f"[MySQL: ports={data.get('MYSQL_PORTS')} {len(data.get('MYSQL_PROCS','').split(','))} procs]")
-            self.statusBar().showMessage(' '.join(msg))
+            #self.statusBar().showMessage(' '.join(msg))
+            self.msglabel.setText(' '.join(msg))
 
     def create_buttons(self):
         buttons = ["status","start","stop","config","clear"]
