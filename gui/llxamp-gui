@@ -8,7 +8,7 @@ from PySide2 import QtWidgets, QtGui, QtCore
 
 sys.path.insert(1,'/usr/lib/llxamp')
 
-ICON="/usr/share/icons/llxamp.svg"
+ICON="/usr/share/icons/hicolor/scalable/apps/llxamp.svg"
 
 try:
     llxconfig=__import__('llxamp-config')
@@ -35,7 +35,10 @@ class MainApp(QtWidgets.QMainWindow):
         self.timers = {}
         self.files = { 'apache' : {}, 'php': {}}
         self.setWindowTitle('LLXAMP')
-        self.setWindowIcon(QtGui.QIcon(ICON))
+        fallback = QtGui.QIcon(ICON)
+        fallback.setThemeName('hicolor')
+        icon = QtGui.QIcon.fromTheme('llxamp',fallback)
+        self.setWindowIcon(icon)
 
         self.setMinimumSize(QtCore.QSize(800,600))
 
