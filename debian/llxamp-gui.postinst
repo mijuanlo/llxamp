@@ -20,6 +20,7 @@ set -e
 
 case "$1" in
     configure)
+        update-icon-caches /usr/share/icons/*
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
