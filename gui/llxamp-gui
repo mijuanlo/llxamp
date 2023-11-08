@@ -11,6 +11,7 @@ sys.path.insert(1,'/usr/lib/llxamp')
 try:
     llxconfig=__import__('llxamp-config')
 except:
+    llxconfig=None
     print("Can't import llxamp-config")
 
 app = None
@@ -168,9 +169,11 @@ class MainApp(QtWidgets.QMainWindow):
                 else:
                     llxconfig.set_mode_apache()
                     tree,includes,content = llxconfig.process()
-                    llxconfig.print_config()
+                    txt = llxconfig.print_content(content,False,False)
                     llxconfig.set_mode_php()
                     tree2,includes2,content2 = llxconfig.process()
+                    txt = f'{txt}{llxconfig.print_content(content2,False,False)}'
+                    self.msg(txt)
                     return
             def output():
                 out = self.process_stdout(scriptname)
