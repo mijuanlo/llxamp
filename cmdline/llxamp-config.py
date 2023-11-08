@@ -112,7 +112,7 @@ def print_hierarchy(hierarchy={},comments=False,level=0,):
     for key,value in hierarchy.items():
         txt = f"{txt}{pad}{key}\n"
         if value:
-            txt= f'{txt}{print_hierarchy(value,comments,level+1)\n}'
+            txt= f'{txt}{print_hierarchy(value,comments,level+1)}\n'
     return txt
 
 def filter_generic_comments(content):

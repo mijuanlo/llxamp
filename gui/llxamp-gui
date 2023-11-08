@@ -168,7 +168,7 @@ class MainApp(QtWidgets.QMainWindow):
                 else:
                     llxconfig.set_mode_apache()
                     tree,includes,content = llxconfig.process()
-                    llxconfig.
+                    llxconfig.print_config()
                     llxconfig.set_mode_php()
                     tree2,includes2,content2 = llxconfig.process()
                     return
