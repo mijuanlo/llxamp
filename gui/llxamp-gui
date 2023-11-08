@@ -45,11 +45,18 @@ class MainApp(QtWidgets.QMainWindow):
             tree,includes,content,logs=llxconfig.process()
             llxconfig.set_mode_php()
             tree2,includes2,content2,logs2=llxconfig.process()
-            includes.extend(includes2)
-            logs.extend(logs2)
-            self.create_menu_bar(includes=includes,logs=logs)
+            self.create_menu_bar(config={
+                'apache': { 
+                    'config files': includes,
+                    'log files': logs
+                },
+                'php': {
+                    'config files': includes2,
+                    'log files': logs2
+                }
+            })
         else:
-            self.execute_script('llxamp-config',['-a','-p','-t'],finished_fn=lambda:self.create_menu_bar(pname='llxamp-config'),started_fn=lambda: None)
+            self.execute_script('llxamp-config',['-a','-p','-t','-i','-l'],finished_fn=lambda:self.create_menu_bar(pname='llxamp-config'),started_fn=lambda: None)
         #self.create_menu_bar()
         self.msglabel = QtWidgets.QLabel()
         self.statusBar().addPermanentWidget(self.msglabel,100)
@@ -67,32 +74,60 @@ class MainApp(QtWidgets.QMainWindow):
         self.centralWidget().setLayout(l)
         pass
 
-    def create_menu_bar(self, pname=None, includes=None, logs=None):
-        out=[]
-        
+    def config_to_menu(self,config={}):
+        menu = []
+        for owner,conf in config.items():
+            owner_list = [ owner.capitalize() ]
+            for what,files in conf.items():
+                if files:
+                    what_list = [ what.capitalize() ]
+                    for file in files:
+                        label = os.path.basename(file)
+                        what_list.append(label)
+                        self.files[label]=file
+                    owner_list.append(what_list)
+            menu.append(owner_list)
+        return menu
+
+    def output_to_menu(self,text=[]):
+        config = {}
+        for item in text:
+            hint = item.split(':')[0]
+            filepath = item.split(':')[1]
+            if 'APACHE' in hint:
+                config.setdefault('apache',{})
+                if 'CONFIG' in hint:
+                    config['apache'].setdefault('config files', [])
+                    config['apache']['config files'].append(filepath)
+                if 'LOG' in hint:
+                    config['apache'].setdefault('log files', [])
+                    config['apache']['log files'].append(filepath)
+            if 'PHP' in hint:
+                config.setdefault('php',{})
+                if 'CONFIG' in hint:
+                    config['php'].setdefault('config files', [])
+                    config['php']['config files'].append(filepath)
+                if 'LOG' in hint:
+                    config['php'].setdefault('log files', [])
+                    config['php']['log files'].append(filepath)
+        return self.config_to_menu(config)
+
+    def create_menu_bar(self, pname=None, config=None):
+        items = []
         if pname:
             out = self.process_stdout(pname)
             out = out.split('\n')
-        
-        if includes:
-            out = includes
+            items = self.output_to_menu(out)
             
-        for item in out:
-            if 'httpd' in item:
-                who = 'apache'
-            else:
-                who = 'php'
-            self.files[who].setdefault(os.path.basename(item.strip()),item.strip())
-        
+        if config:
+            items = self.config_to_menu(config)
+
         # items = [
         #     ['File', ['Action1',['SubFile', 'Action2'], 'Action3'] ],
         #     ['File2', ['jeje', 'Ohhh'] ],
         #     'juju'
         # ]
-        apache_files = [x for x in self.files['apache']]
-        php_files = [x for x in self.files['php']]
-        items = [ ['Apache'] + apache_files , ['PHP'] + php_files ] 
-        
+
         for item in items:
             if isinstance(item,list):
                 self.menuBar().addMenu(self.create_menu(items=item, parent=self.menuBar()))
@@ -148,11 +183,10 @@ class MainApp(QtWidgets.QMainWindow):
                 finished_fn=lambda: self.update_status_bar(pname='llxamp-status')
             )
         if name[:6] == 'action':
-            file = name.split('_')[1]
-            file2=[ v for k,v in self.files['apache'].items() if k == file ]
-            if not file2:
-                file2=[ v for k,v in self.files['php'].items() if k == file ]
-            self.msg(f'Editing {file2}')
+            file = data
+            if file in self.files:
+                file = self.files.get(file)
+            self.msg(f'Editing {file}')
             pass
         if name[:6] == 'button':
             cmd = name.split('_')[1]
@@ -170,10 +204,10 @@ class MainApp(QtWidgets.QMainWindow):
                     args = ['-a','-p','-c','-r']
                 else:
                     llxconfig.set_mode_apache()
-                    tree,includes,content = llxconfig.process()
+                    tree,includes,content,logs = llxconfig.process()
                     txt = llxconfig.print_content(content,False,False)
                     llxconfig.set_mode_php()
-                    tree2,includes2,content2 = llxconfig.process()
+                    tree2,includes2,content2,logs = llxconfig.process()
                     txt = f'{txt}{llxconfig.print_content(content2,False,False)}'
                     self.msg(txt)
                     return
