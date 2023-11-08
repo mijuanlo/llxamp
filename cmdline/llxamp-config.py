@@ -161,7 +161,7 @@ def fix_config_dir(config):
         config_dir = '/'.join(config_dir.split('/')[:-1])
 
 def process(params=[]):
-    global COMMENT_LLXAMP, config_dir
+    global COMMENT, COMMENT_LLXAMP, config_dir
     COMMENT_LLXAMP = f'{COMMENT} LLXAMP: '
     
     fix_config_dir()
