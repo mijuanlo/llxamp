@@ -156,7 +156,7 @@ Options:
     -i: Include {filename} comments
 ''')
 
-def fix_config_dir(config):
+def fix_config_dir():
     global config_dir
     config_dir=os.path.dirname(os.path.realpath(CONFIG))
     if 'conf' == config_dir.split('/')[-1]:
