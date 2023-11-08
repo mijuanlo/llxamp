@@ -154,13 +154,18 @@ Options:
     -i: Include {filename} comments
 ''')
 
+def fix_config_dir(config):
+    global config_dir
+    config_dir=os.path.dirname(os.path.realpath(CONFIG))
+    if 'conf' == config_dir.split('/')[-1]:
+        config_dir = '/'.join(config_dir.split('/')[:-1])
+
 def process(params):
     global COMMENT_LLXAMP, config_dir
     COMMENT_LLXAMP = f'{COMMENT} LLXAMP: '
     
-    config_dir=os.path.dirname(os.path.realpath(CONFIG))
-    if 'conf' == config_dir.split('/')[-1]:
-        config_dir = '/'.join(config_dir.split('/')[:-1])
+    fix_config_dir()
+
     # config_text=filter_comments(read_file(CONFIG))
 
     hierarchy,includes,content=process_includes(CONFIG,{},[],[])
@@ -179,6 +184,16 @@ def process(params):
     if '-c' in params:
         print_content(content,comments,llxamp_comments)
 
+def set_mode_apache():
+    global COMMENT, CONFIG
+    COMMENT=COMMENT_APACHE
+    CONFIG=CONFIG_APACHE
+
+def set_mode_php():
+    global COMMENT, CONFIG
+    COMMENT=COMMENT_PHP
+    CONFIG=CONFIG_PHP
+
 if __name__ == '__main__':
     params = sys.argv
     
@@ -187,13 +202,11 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if '-a' in params:
-        COMMENT=COMMENT_APACHE
-        CONFIG=CONFIG_APACHE
+        set_mode_apache()
         process(params)
 
     if '-p' in params:
-        COMMENT=COMMENT_PHP
-        CONFIG=CONFIG_PHP
+        set_mode_php()
         process(params)
 
     sys.exit(0)
