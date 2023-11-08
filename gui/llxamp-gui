@@ -79,7 +79,6 @@ class MainApp(QtWidgets.QMainWindow):
         mode = reason.name.decode().lower()
         if mode == 'context':
             print(mode)
-            self.quit()
         elif mode == 'trigger':
             self.setVisible(not self.isVisible())
         else:
@@ -90,16 +89,16 @@ class MainApp(QtWidgets.QMainWindow):
         fallback.setThemeName('hicolor')
         icon = QtGui.QIcon.fromTheme('llxamp',fallback)
         self.systray = QtWidgets.QSystemTrayIcon(icon,self)
-        
-        #self.systray = QtWidgets.QSystemTrayIcon(fallback,self)
         self.systray.setVisible(True)
         self.systray.activated.connect(self.systray_activation)
         self.systray.setToolTip("LliureX Apache+MySQL+PHP")
+        
         menu = QtWidgets.QMenu(self)
         menu.setVisible(True)
         action = QtWidgets.QAction('Exit',self)
         action.triggered.connect(self.app.quit)
         menu.addAction(action)
+        
         self.systray.setContextMenu(menu)
 
     def create_layout(self):
