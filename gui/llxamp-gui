@@ -92,9 +92,6 @@ class MainApp(QtWidgets.QMainWindow):
         php_files = [x for x in self.files['php']]
         items = [ ['Apache'] + apache_files , ['PHP'] + php_files ] 
         
-        pass
-        self.menuBar().setStatusTip('a')
-        pass
         for item in items:
             if isinstance(item,list):
                 self.menuBar().addMenu(self.create_menu(items=item, parent=self.menuBar()))
