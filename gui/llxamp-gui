@@ -42,9 +42,9 @@ class MainApp(QtWidgets.QMainWindow):
 
         if llxconfig:
             llxconfig.set_mode_apache()
-            tree,includes,content=llxconfig.process()
+            tree,includes,content,logs=llxconfig.process()
             llxconfig.set_mode_php()
-            tree2,includes2,content2=llxconfig.process()
+            tree2,includes2,content2,logs=llxconfig.process()
             includes.extend(includes2)
             self.create_menu_bar(includes=includes)
         else:

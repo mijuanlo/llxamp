@@ -201,7 +201,7 @@ def process(params=[]):
         print(print_content(content,comments,llxamp_comments))
     if '-l' in params:
         print('\n'.join(logs))
-    return hierarchy,includes,content
+    return hierarchy,includes,content,logs
 
 def set_mode_apache():
     global COMMENT, CONFIG, COMMENT_APACHE, CONFIG_APACHE
