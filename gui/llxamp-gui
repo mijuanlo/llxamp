@@ -8,6 +8,8 @@ from PySide2 import QtWidgets, QtGui, QtCore
 
 sys.path.insert(1,'/usr/lib/llxamp')
 
+ICON="/usr/share/icons/llxamp.svg"
+
 try:
     llxconfig=__import__('llxamp-config')
 except:
@@ -33,7 +35,7 @@ class MainApp(QtWidgets.QMainWindow):
         self.timers = {}
         self.files = { 'apache' : {}, 'php': {}}
         self.setWindowTitle('LLXAMP')
-        self.setWindowIcon(QtGui.QIcon("/usr/share/icons/llxamp.svg"))
+        self.setWindowIcon(QtGui.QIcon(ICON))
 
         self.setMinimumSize(QtCore.QSize(800,600))
 
@@ -65,8 +67,24 @@ class MainApp(QtWidgets.QMainWindow):
         self.create_text()
         self.create_timers()
         self.statusBar().setVisible(True)
+        self.create_systray()
         #self.action_triggered('status_timer')
         pass
+
+    def systray_activation(self,reason):
+        mode = reason.name.decode().lower()
+        if mode == 'context':
+            print(mode)
+        elif mode == 'trigger':
+            self.setVisible(not self.isVisible())
+        else:
+            print(f'TODO: {mode}')
+    
+    def create_systray(self):
+        self.systray = QtWidgets.QSystemTrayIcon(QtGui.QIcon(ICON))
+        self.systray.setVisible(True)
+        self.systray.activated.connect(self.systray_activation)
+        self.systray.setToolTip("LliureX Apache+MySQL+PHP")
 
     def create_layout(self):
         l = QtWidgets.QVBoxLayout()
