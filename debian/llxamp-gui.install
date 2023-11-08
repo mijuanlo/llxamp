@@ -1,1 +1,3 @@
-gui/* usr/lib/llxamp/
+gui/llxamp-gui usr/lib/llxamp/
+gui/llxamp-gui.desktop usr/share/applications/
+gui/llxamp.svg usr/share/icons/

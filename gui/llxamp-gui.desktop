@@ -1,0 +1,23 @@
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Name=LliureX Apache+MySQL+PHP
+Name[en]=LliureX Apache+MySQL+PHP
+Name[es]=LliureX Apache+MySQL+PHP
+Name[ca_ES]=LliureX Apache+MySQL+PHP
+Name[ca]=LliureX Apache+MySQL+PHP
+Name[ca_ES.UTF-8]=LliureX Apache+MySQL+PHP
+Name[ca_ES@valencia]=LliureX Apache+MySQL+PHP
+Comment=LliureX Apache+MySQL+PHP
+Comment[es]=LliureX Apache+MySQL+PHP
+Comment[ca_ES]=LliureX Apache+MySQL+PHP
+Comment[ca]=LliureX Apache+MySQL+PHP
+Comment[ca_ES@valencia]=LliureX Apache+MySQL+PHP
+Comment[ca_ES.UTF-8@valencia]=LliureX Apache+MySQL+PHP
+Exec=llxamp-gui
+TryExec=llxamp-gui
+Terminal=false
+Icon=/usr/share/applications/llxamp.svg
+Type=Application
+GenericName=llxamp
+Categories=Development;
