@@ -185,6 +185,7 @@ def process(params=[]):
         print_hierarchy(hierarchy,llxamp_comments)
     if '-c' in params:
         print_content(content,comments,llxamp_comments)
+    return hierarchy,includes,content
 
 def set_mode_apache():
     global COMMENT, CONFIG, COMMENT_APACHE, CONFIG_APACHE
