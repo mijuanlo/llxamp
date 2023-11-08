@@ -11,6 +11,8 @@ COMMENT_PHP = ';'
 CONFIG_PHP = f'{BASEPATH}/php/lib/php.ini'
 COMMENT_APACHE = '#'
 CONFIG_APACHE = f'{BASEPATH}/httpd/conf/httpd.conf'
+COMMENT = None
+CONFIG = None
 TAB=' '*4
 
 
