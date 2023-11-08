@@ -113,17 +113,21 @@ def process_includes(filename,hierarchy={},includes=[],content=[],logs=[]):
     content.append(f'{COMMENT_LLXAMP}End content from: {filename}')
     return hierarchy,includes,content,logs
 
-def print_hierarchy(hierarchy={},comments=False,level=0,):
+def print_hierarchy(hierarchy={},comments=False,level=0):
+    if CONFIG == CONFIG_APACHE:
+        label='CONFIG_APACHE:'
+    else:
+        label='CONFIG_PHP:'
     pad=''
     txt=''
     if level:
         pad=TAB*level
     if comments:
-        pad=f'{COMMENT}{pad}'
+        pad=f'{COMMENT}{label}{pad}'
     for key,value in hierarchy.items():
         txt = f"{txt}{pad}{key}\n"
         if value:
-            txt= f'{txt}{print_hierarchy(value,comments,level+1)}\n'
+            txt= f'{txt}{print_hierarchy(value,comments,level+1)}'
     return txt
 
 def filter_generic_comments(content):
@@ -152,6 +156,16 @@ def print_content(content,comments=False,llxamp_comments=True):
     if not llxamp_comments:
         content = filter_llxamp_comments(content)
     return '\n'.join(content)
+
+def print_logs(loglist,comments=False):
+    if CONFIG == CONFIG_APACHE:
+        label='LOG_APACHE:'
+    else:
+        label='LOG_PHP:'
+    pad=''
+    if comments:
+        pad=COMMENT+label
+    return '\n'.join((f'{pad}{l}' for l in loglist))
 
 def help_menu():
     filename = os.path.basename(__file__)
@@ -196,11 +210,11 @@ def process(params=[]):
         llxamp_comments = False
 
     if '-t' in params:
-        print(print_hierarchy(hierarchy,llxamp_comments))
+        print(print_hierarchy(hierarchy,llxamp_comments).rstrip())
     if '-c' in params:
         print(print_content(content,comments,llxamp_comments))
     if '-l' in params:
-        print('\n'.join(logs))
+        print(print_logs(logs,llxamp_comments))
     return hierarchy,includes,content,logs
 
 def set_mode_apache():

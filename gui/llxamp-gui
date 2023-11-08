@@ -44,9 +44,10 @@ class MainApp(QtWidgets.QMainWindow):
             llxconfig.set_mode_apache()
             tree,includes,content,logs=llxconfig.process()
             llxconfig.set_mode_php()
-            tree2,includes2,content2,logs=llxconfig.process()
+            tree2,includes2,content2,logs2=llxconfig.process()
             includes.extend(includes2)
-            self.create_menu_bar(includes=includes)
+            logs.extend(logs2)
+            self.create_menu_bar(includes=includes,logs=logs)
         else:
             self.execute_script('llxamp-config',['-a','-p','-t'],finished_fn=lambda:self.create_menu_bar(pname='llxamp-config'),started_fn=lambda: None)
         #self.create_menu_bar()
@@ -66,7 +67,7 @@ class MainApp(QtWidgets.QMainWindow):
         self.centralWidget().setLayout(l)
         pass
 
-    def create_menu_bar(self, pname=None, includes=None):
+    def create_menu_bar(self, pname=None, includes=None, logs=None):
         out=[]
         
         if pname:
