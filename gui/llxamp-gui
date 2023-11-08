@@ -75,6 +75,11 @@ class MainApp(QtWidgets.QMainWindow):
         #self.action_triggered('status_timer')
         pass
 
+    def closeEvent(self,ev=None,*args):
+        print('Exit')
+        super().closeEvent(ev)
+        self.app.quit()
+
     def systray_activation(self,reason):
         mode = reason.name.decode().lower()
         if mode == 'context':
@@ -96,7 +101,7 @@ class MainApp(QtWidgets.QMainWindow):
         menu = QtWidgets.QMenu(self)
         menu.setVisible(True)
         action = QtWidgets.QAction('Exit',self)
-        action.triggered.connect(self.app.quit)
+        action.triggered.connect(self.closeEvent)
         menu.addAction(action)
         
         self.systray.setContextMenu(menu)
