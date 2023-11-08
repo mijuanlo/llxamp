@@ -6,4 +6,4 @@
 /usr/lib/llxamp/llxamp-kill /usr/bin/llxamp-kill
 /usr/lib/llxamp/llxamp-user-mount /usr/bin/llxamp-user-mount
 /usr/lib/llxamp/llxamp-user-umount /usr/bin/llxamp-user-umount
-/usr/lib/llxamp/llxamp-config /usr/bin/llxamp-config
+/usr/lib/llxamp/llxamp-config.py /usr/bin/llxamp-config
