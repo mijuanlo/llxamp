@@ -194,7 +194,6 @@ class MainApp(QtWidgets.QMainWindow):
             return action
 
     def action_triggered(self, name=None):
-        self.msg(f'{self.get_time()} Action trigger {name}')
         action_sender = self.sender()
         parent_name = ''
         if hasattr(action_sender,'parent'):
@@ -208,6 +207,7 @@ class MainApp(QtWidgets.QMainWindow):
                 data = action_sender.data()
             if not name:
                 name = action_sender.objectName()
+        self.msg(f'{self.get_time()} Action trigger {name}')
         txt=[]
         if name:
             txt.append(f'objectName={name}')
