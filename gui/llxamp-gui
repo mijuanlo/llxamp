@@ -9,6 +9,8 @@ MAX_LINES=1000
 import sys,os
 import signal
 import time
+import socket
+
 from gettext import gettext as _
 from PySide2 import QtWidgets, QtGui, QtCore
 
@@ -33,6 +35,23 @@ def exit_control_c(sig, frame):
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 signal.signal(signal.SIGINT, exit_control_c)
 
+class Highlighter(QtGui.QSyntaxHighlighter):
+    def __init__(self,*args, **kwargs):
+        super().__init__(*args)
+    
+    def _format(self, namecolor, style=''):
+        color = QtGui.QColor()
+        color.setNamedColor(namecolor)
+        format = QtGui.QTextCharFormat()
+        format.setForeground(color)
+        if style == 'bold':
+            format.setFontWeight(QtGui.QFont.Bold)
+        return format
+    
+    def highlightBlock(self, text):
+        if 'error' in text.lower():
+            self.setFormat(0,len(text),self._format('red','bold'))
+    
 class MainApp(QtWidgets.QMainWindow):
     def __init__(self, app, *args, **kwargs):
         super().__init__()
@@ -286,6 +305,7 @@ class MainApp(QtWidgets.QMainWindow):
             if cmd == 'status':
                 args = ['-a','-m','-p','-n']
             if cmd == 'config':
+                prepend=''
                 if not llxconfig:
                     args = ['-a','-p','-c','-r']
                 else:
@@ -295,11 +315,11 @@ class MainApp(QtWidgets.QMainWindow):
                     llxconfig.set_mode_php()
                     tree2,includes2,content2,logs = llxconfig.process()
                     txt = f'{txt}{llxconfig.print_content(content2,False,False)}'
-                    self.msg(txt)
+                    self.msg(txt,prepend)
                     return
             def output():
                 out = self.process_stdout(scriptname)
-                self.msg(out)
+                self.msg(out,prepend)
                 if cmd == 'status':
                     self.update_status_bar(data=out)
                 else:
@@ -359,6 +379,7 @@ class MainApp(QtWidgets.QMainWindow):
 
     def create_text(self):
         text = QtWidgets.QPlainTextEdit()
+        Highlighter(text.document())
         text.setReadOnly(True)
         text.setObjectName('textarea')
         text.document().setMaximumBlockCount(MAX_LINES)
@@ -440,7 +461,12 @@ class MainApp(QtWidgets.QMainWindow):
         
 def main():
     global app, exitting
-    
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.bind('llxamp')
+    except:
+        print('Already running')
+        sys.exit(0)
     app = QtWidgets.QApplication(sys.argv)
     window = MainApp(app)
     window.show()
