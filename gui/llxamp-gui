@@ -194,6 +194,7 @@ class MainApp(QtWidgets.QMainWindow):
             return action
 
     def action_triggered(self, name=None):
+        self.msg(f'{self.get_time()} Action trigger {name}')
         action_sender = self.sender()
         parent_name = ''
         if hasattr(action_sender,'parent'):
@@ -263,8 +264,7 @@ class MainApp(QtWidgets.QMainWindow):
                 if cmd == 'status':
                     self.update_status_bar(data=out)
                 else:
-                    QtCore.QTimer.singleShot(3000,self,lambda: self.action_triggered('status_timer'))
-                    # self.action_triggered('status_timer')
+                    QtCore.QTimer.singleShot(3000,lambda: self.action_triggered('status_timer'))
             self.execute_script(
                 scriptname, args,
                 started_fn=lambda: self.disable_button(name),
@@ -316,7 +316,7 @@ class MainApp(QtWidgets.QMainWindow):
         self.timers.setdefault('status',timer)
         timer.setObjectName('status')
         timer.timeout.connect(lambda : self.action_triggered('status_timer'))
-        timer.start(10000)
+        timer.start(30000)
 
     def create_text(self):
         text = QtWidgets.QPlainTextEdit()
@@ -355,6 +355,9 @@ class MainApp(QtWidgets.QMainWindow):
                 break
         return full_scriptname
 
+    def get_time(self):
+        return time.strftime("[%Y-%m-%d %H:%M:%S]", time.gmtime())
+    
     def execute_script(self, scriptname, arguments, started_fn=None, finished_fn=None, output_fn=None, error_fn=None):
         if self.process.get(scriptname):
             print(f'Running {scriptname}')
@@ -364,13 +367,13 @@ class MainApp(QtWidgets.QMainWindow):
                 started_fn = lambda: self.msg(f'started {scriptname}')
             def sfn():
                 self.process.setdefault(scriptname,[p])
-                self.msg(f'started {scriptname}')
+                self.msg(f'{self.get_time()} started {scriptname}')
                 started_fn()
             fn_start = sfn
             if not finished_fn:
                 finished_fn = lambda: self.msg(f'finished {scriptname}')
             def ffn():
-                self.msg(f'finished {scriptname}')
+                self.msg(f'{self.get_time()} finished {scriptname}')
                 finished_fn()
                 if scriptname in self.process:
                     if output_fn:
