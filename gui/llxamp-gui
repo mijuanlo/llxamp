@@ -172,7 +172,7 @@ class MainApp(QtWidgets.QMainWindow):
                 self.menuBar().addMenu(self.create_menu(items=item, parent=self.menuBar()))
             if isinstance(item,str):
                 self.menuBar().addAction(self.create_menu(items=item, parent=self.menuBar()))
-                
+
     def create_menu(self, items=[], parent=None):
         if isinstance(items,list):
             newmenu = QtWidgets.QMenu(items[0].capitalize(),parent=parent)
@@ -354,13 +354,13 @@ class MainApp(QtWidgets.QMainWindow):
                 started_fn = lambda: self.msg(f'started {scriptname}')
             def sfn():
                 self.process.setdefault(scriptname,[p])
-                # self.msg(f'started {scriptname}')
+                self.msg(f'started {scriptname}')
                 started_fn()
             fn_start = sfn
             if not finished_fn:
                 finished_fn = lambda: self.msg(f'finished {scriptname}')
             def ffn():
-                # self.msg(f'finished {scriptname}')
+                self.msg(f'finished {scriptname}')
                 finished_fn()
                 if scriptname in self.process:
                     if output_fn:
