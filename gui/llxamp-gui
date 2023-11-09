@@ -77,6 +77,7 @@ class MainApp(QtWidgets.QMainWindow):
         self.statusBar().addPermanentWidget(self.msglabel,100)
         self.statusBar().setVisible(True)
         self.create_layout()
+        self.create_tabs()
         self.create_buttons()
         self.create_text()
         self.create_timers()
@@ -84,6 +85,33 @@ class MainApp(QtWidgets.QMainWindow):
         self.action_triggered('status_timer')
         pass
 
+    def changed_tab(self,idx):
+        self.msg(f'TAB CHANGE {idx}')
+
+    def close_tab(self,idx):
+        self.msg(f'TAB CLOSE {idx}')
+        tabs = self.find('tabs')[0]
+        widget = tabs.widget(idx)
+        widget.deleteLater()
+        tabs.removeTab(idx)
+        if tabs.count() == 0:
+            tabs.setVisible(False)
+
+    def create_tabs(self):
+        tabs = QtWidgets.QTabWidget(self)
+        tabs.setObjectName('tabs')
+        tabs.setTabsClosable(True)
+        tabs.currentChanged.connect(self.changed_tab)
+        tabs.tabCloseRequested.connect(self.close_tab)
+        text = QtWidgets.QPlainTextEdit()
+        text.setObjectName('tab_tab1')
+        tabs.addTab(text,'tab1')
+        text2 = QtWidgets.QPlainTextEdit()
+        text2.setObjectName('tab_tab2')
+        tabs.addTab(text2,'tab2')
+        self.centralWidget().layout().addWidget(tabs)
+        # tabs.setVisible(False)
+        
     def follow(self, filename):
         file = self.files_followed.get(filename,None)
         if not file:
@@ -251,6 +279,23 @@ class MainApp(QtWidgets.QMainWindow):
             action.triggered.connect(self.action_triggered)
             return action
 
+    def new_tab(self, filename):
+        name = filename.split('/')[-1]
+        tab = self.find(f'tab_{name}')
+        tabs = self.find('tabs')[0]
+        if not tab:
+            text = QtWidgets.QPlainTextEdit()
+            text.setObjectName(f'tab_{name}')
+            with open(filename,'r') as fp:
+                text.appendPlainText(fp.read())
+            tabs.addTab(text,name)
+            tabs.setCurrentIndex(tabs.count()-1)
+            self.msg(f'tab created {tabs.count()}')
+        else:
+            idx = tabs.indexOf(tab[0])
+            tabs.setCurrentIndex(idx)
+        tabs.setVisible(True)
+
     def action_triggered(self, name=None):
         action_sender = self.sender()
         parent_name = ''
@@ -292,6 +337,8 @@ class MainApp(QtWidgets.QMainWindow):
                 if file in self.files:
                     file = self.files.get(file)
                 self.msg(f'Editing {file}')
+                self.new_tab(file)
+                pass
 
         if name[:6] == 'button':
             cmd = name.split('_')[1]
@@ -387,7 +434,11 @@ class MainApp(QtWidgets.QMainWindow):
 
     def msg(self,txt,prepend=''):
         if txt:
-            textarea=self.find('textarea')[0]
+            textarea=self.find('textarea')
+            if textarea:
+                textarea = textarea[0]
+            else:
+                return
             txtlines=[]
             if isinstance(txt,str):
                 txt=txt.strip()
