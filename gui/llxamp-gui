@@ -345,6 +345,16 @@ class MainApp(QtWidgets.QMainWindow):
         data = bytes(self.process.get(process)[0].readAllStandardError()).decode('utf8').strip()
         return data
 
+    def get_full_path(self,scriptname):
+        full_scriptname = None
+        userhome = os.path.expanduser("~")
+        paths = ['/usr/bin',f'{userhome}/llxamp/scripts']
+        for path in paths:
+            if os.path.exists(f'{path}/{scriptname}'):
+                full_scriptname = f'{path}/{scriptname}'
+                break
+        return full_scriptname
+
     def execute_script(self, scriptname, arguments, started_fn=None, finished_fn=None, output_fn=None, error_fn=None):
         if self.process.get(scriptname):
             print(f'Running {scriptname}')
@@ -377,7 +387,8 @@ class MainApp(QtWidgets.QMainWindow):
             p.started.connect(fn_start)
             # p.readyReadStandardOutput.connect(output_fn)
             # p.readyReadStandardError.connect(error_fn)
-            p.start(scriptname,arguments)
+            full_scriptname = self.get_full_path(scriptname)
+            p.start(full_scriptname,arguments)
         
 def main():
     global app, exitting
