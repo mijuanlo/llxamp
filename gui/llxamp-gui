@@ -263,8 +263,8 @@ class MainApp(QtWidgets.QMainWindow):
                 if cmd == 'status':
                     self.update_status_bar(data=out)
                 else:
-                    time.sleep(3)
-                    self.action_triggered('status_timer')
+                    QtCore.QTimer.singleShot(3000,self,labda: self.action_triggered('status_timer'))
+                    # self.action_triggered('status_timer')
             self.execute_script(
                 scriptname, args,
                 started_fn=lambda: self.disable_button(name),
