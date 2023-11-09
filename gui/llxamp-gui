@@ -263,7 +263,7 @@ class MainApp(QtWidgets.QMainWindow):
                 if cmd == 'status':
                     self.update_status_bar(data=out)
                 else:
-                    QtCore.QTimer.singleShot(3000,self,labda: self.action_triggered('status_timer'))
+                    QtCore.QTimer.singleShot(3000,self,lambda: self.action_triggered('status_timer'))
                     # self.action_triggered('status_timer')
             self.execute_script(
                 scriptname, args,
