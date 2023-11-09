@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+EXIT_TIMER=500
+READLOG_TIMER=2000
+STATUS_TIMER=30000
+
+MAX_LINES=1000
+
 import sys,os
 import signal
 import time
@@ -7,7 +13,6 @@ from gettext import gettext as _
 from PySide2 import QtWidgets, QtGui, QtCore
 
 sys.path.insert(1,'/usr/lib/llxamp')
-
 ICON="/usr/share/icons/hicolor/scalable/apps/llxamp.svg"
 
 try:
@@ -34,6 +39,8 @@ class MainApp(QtWidgets.QMainWindow):
         self.app = app
         self.process = {}
         self.timers = {}
+        self.follow_files = True
+        self.files_followed = {}
         self.files = { 'apache' : {}, 'php': {}}
         self.setWindowTitle('LLXAMP')
         fallback = QtGui.QIcon(ICON)
@@ -58,6 +65,32 @@ class MainApp(QtWidgets.QMainWindow):
         self.action_triggered('status_timer')
         pass
 
+    def follow(self, filename):
+        file = self.files_followed.get(filename,None)
+        if not file:
+            if os.path.exists(filename):
+                file = open(filename,'r')
+                file.seek(0,2)
+                self.files_followed.setdefault(filename,{'fp':file})
+                timer = QtCore.QTimer(self)
+                timer.timeout.connect(lambda: self.read_logfile(filename))
+                timer.start(READLOG_TIMER)
+                self.files_followed[filename].setdefault('timer',timer)
+                return
+        fp=file['fp']
+        while self.follow_files:
+            # lines = []
+            # line = fp.readline().rstrip()
+            # while line:
+            #     lines.append(line)
+            #     line = fp.readline().rstrip()
+            # return lines
+            return fp.read().splitlines()
+
+    def read_logfile(self, filename):
+        lines = self.follow(filename)
+        self.msg(lines,f'[{filename.split("/")[-1]}]')
+        
     def begin_build_menubar(self):
         if llxconfig:
             llxconfig.set_mode_apache()
@@ -78,6 +111,9 @@ class MainApp(QtWidgets.QMainWindow):
             self.execute_script('llxamp-config',['-a','-p','-t','-i','-l'],finished_fn=lambda:self.create_menu_bar(pname='llxamp-config'),started_fn=lambda: None)
 
     def closeEvent(self,ev=None,*args):
+        self.follow_files = False
+        for filename,attrs in self.files_followed.items():
+            attrs['fp'].close()
         print('Exit')
         super().closeEvent(ev)
         self.app.quit()
@@ -118,6 +154,8 @@ class MainApp(QtWidgets.QMainWindow):
                 if files:
                     what_list = [ what.capitalize() ]
                     for file in files:
+                        if what == 'log files':
+                            self.follow(file)
                         label = os.path.basename(file)
                         what_list.append(label)
                         self.files[label]=file
@@ -163,6 +201,7 @@ class MainApp(QtWidgets.QMainWindow):
         #     ['File2', ['jeje', 'Ohhh'] ],
         #     'juju'
         # ]
+
         menu_context_items = ['Llxamp', 'Exit' ]
         menu_context = self.create_menu(items=menu_context_items, parent=self.menuBar())
         self.menuBar().addMenu(menu_context)
@@ -316,20 +355,26 @@ class MainApp(QtWidgets.QMainWindow):
         self.timers.setdefault('status',timer)
         timer.setObjectName('status')
         timer.timeout.connect(lambda : self.action_triggered('status_timer'))
-        timer.start(30000)
+        timer.start(STATUS_TIMER)
 
     def create_text(self):
         text = QtWidgets.QPlainTextEdit()
         text.setReadOnly(True)
         text.setObjectName('textarea')
+        text.document().setMaximumBlockCount(MAX_LINES)
         self.centralWidget().layout().addWidget(text)
 
-    def msg(self,txt):
+    def msg(self,txt,prepend=''):
         if txt:
             textarea=self.find('textarea')[0]
-            txt=txt.strip()
-            for line in txt.split('\n'):
-                textarea.appendPlainText(line.capitalize())
+            txtlines=[]
+            if isinstance(txt,str):
+                txt=txt.strip()
+                txtlines = txt.split('\n')
+            if isinstance(txt,list):
+                txtlines=txt
+            for line in txtlines:
+                textarea.appendPlainText(f'{prepend}{line.capitalize()}')
 
     def finish_script(self,process):
         self.msg(f'finished {process}')
@@ -401,7 +446,7 @@ def main():
     window.show()
     exitLoopTimer = QtCore.QTimer()
     exitLoopTimer.timeout.connect(lambda: None)
-    exitLoopTimer.start(500)
+    exitLoopTimer.start(EXIT_TIMER)
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
