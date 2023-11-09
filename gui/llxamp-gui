@@ -465,7 +465,7 @@ def main():
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.bind('\0llxamp')
     except Exception as e:
-        print(f'Already running {e}')
+        print(f'Already running')
         sys.exit(0)
     app = QtWidgets.QApplication(sys.argv)
     window = MainApp(app)
