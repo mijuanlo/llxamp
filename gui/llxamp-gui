@@ -463,7 +463,7 @@ def main():
     global app, exitting
     try:
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        s.bind('llxamp')
+        s.bind('\0llxamp')
     except Exception as e:
         print(f'Already running {e}')
         sys.exit(0)
