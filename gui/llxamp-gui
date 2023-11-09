@@ -46,6 +46,19 @@ class MainApp(QtWidgets.QMainWindow):
         self.setCentralWidget(QtWidgets.QWidget(parent=self))
         self.centralWidget().setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
+        self.begin_build_menubar()
+        self.msglabel = QtWidgets.QLabel()
+        self.statusBar().addPermanentWidget(self.msglabel,100)
+        self.statusBar().setVisible(True)
+        self.create_layout()
+        self.create_buttons()
+        self.create_text()
+        self.create_timers()
+        self.create_systray()
+        self.action_triggered('status_timer')
+        pass
+
+    def begin_build_menubar(self):
         if llxconfig:
             llxconfig.set_mode_apache()
             tree,includes,content,logs=llxconfig.process()
@@ -63,17 +76,6 @@ class MainApp(QtWidgets.QMainWindow):
             })
         else:
             self.execute_script('llxamp-config',['-a','-p','-t','-i','-l'],finished_fn=lambda:self.create_menu_bar(pname='llxamp-config'),started_fn=lambda: None)
-        #self.create_menu_bar()
-        self.msglabel = QtWidgets.QLabel()
-        self.statusBar().addPermanentWidget(self.msglabel,100)
-        self.create_layout()
-        self.create_buttons()
-        self.create_text()
-        self.create_timers()
-        self.statusBar().setVisible(True)
-        self.create_systray()
-        #self.action_triggered('status_timer')
-        pass
 
     def closeEvent(self,ev=None,*args):
         print('Exit')
@@ -94,16 +96,12 @@ class MainApp(QtWidgets.QMainWindow):
         fallback.setThemeName('hicolor')
         icon = QtGui.QIcon.fromTheme('llxamp',fallback)
         self.systray = QtWidgets.QSystemTrayIcon(icon,self)
+        
         self.systray.setVisible(True)
         self.systray.activated.connect(self.systray_activation)
         self.systray.setToolTip("LliureX Apache+MySQL+PHP")
         
-        menu = QtWidgets.QMenu(self)
-        menu.setVisible(True)
-        action = QtWidgets.QAction('Exit',self)
-        action.triggered.connect(self.closeEvent)
-        menu.addAction(action)
-        
+        menu=self.find('menu_llxamp')[0]
         self.systray.setContextMenu(menu)
 
     def create_layout(self):
@@ -160,12 +158,15 @@ class MainApp(QtWidgets.QMainWindow):
         if config:
             items = self.config_to_menu(config)
 
-        # items = [
+        # items_example = [
         #     ['File', ['Action1',['SubFile', 'Action2'], 'Action3'] ],
         #     ['File2', ['jeje', 'Ohhh'] ],
         #     'juju'
         # ]
-
+        menu_context_items = ['Llxamp', 'Exit' ]
+        menu_context = self.create_menu(items=menu_context_items, parent=self.menuBar())
+        self.menuBar().addMenu(menu_context)
+        
         for item in items:
             if isinstance(item,list):
                 self.menuBar().addMenu(self.create_menu(items=item, parent=self.menuBar()))
@@ -194,6 +195,9 @@ class MainApp(QtWidgets.QMainWindow):
 
     def action_triggered(self, name=None):
         action_sender = self.sender()
+        parent_name = ''
+        if hasattr(action_sender,'parent'):
+            parent_name = action_sender.parent().objectName()
         text = None
         data = None
         if action_sender:
@@ -221,11 +225,15 @@ class MainApp(QtWidgets.QMainWindow):
                 finished_fn=lambda: self.update_status_bar(pname='llxamp-status')
             )
         if name[:6] == 'action':
-            file = data
-            if file in self.files:
-                file = self.files.get(file)
-            self.msg(f'Editing {file}')
-            pass
+            if parent_name.lower() == 'menu_llxamp':
+                if text.lower() == 'exit':
+                    self.closeEvent()
+            else:
+                file = data
+                if file in self.files:
+                    file = self.files.get(file)
+                self.msg(f'Editing {file}')
+
         if name[:6] == 'button':
             cmd = name.split('_')[1]
             scriptname = f'llxamp-{cmd}'
@@ -263,6 +271,7 @@ class MainApp(QtWidgets.QMainWindow):
                 finished_fn=lambda: self.enable_button(name),
                 output_fn=output
             )
+    
     def disable_button(self,name=None):
         btn = self.find(name)
         if btn:
@@ -291,7 +300,7 @@ class MainApp(QtWidgets.QMainWindow):
             self.msglabel.setText(' '.join(msg))
 
     def create_buttons(self):
-        buttons = ["status","start","stop","config","clear"]
+        buttons = ["status","start","stop","config","clear","open-browser","open-browser-ssl"]
         for txt in buttons:
             btn = QtWidgets.QPushButton(txt.capitalize(),parent=self.centralWidget())
             btn.setObjectName('button_'+txt)
@@ -300,7 +309,7 @@ class MainApp(QtWidgets.QMainWindow):
         pass
     
     def find(self,name=''):
-        return self.findChildren(QtWidgets.QWidget,QtCore.QRegularExpression(name))
+        return self.findChildren(QtWidgets.QWidget,QtCore.QRegularExpression(name,QtCore.QRegularExpression.CaseInsensitiveOption))
     
     def create_timers(self):
         timer = QtCore.QTimer()
