@@ -202,7 +202,7 @@ class MainApp(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
         )
         if dialog == QtWidgets.QMessageBox.No:
-            return            
+            return False
         self.msg(f'TAB CLOSE {idx}')
         tabs = self.find('tabs')[0]
         widget = tabs.widget(idx)
@@ -212,6 +212,7 @@ class MainApp(QtWidgets.QMainWindow):
         tabs.removeTab(idx)
         if tabs.count() == 0:
             tabs.setVisible(False)
+        return True
 
     def create_tabs(self):
         tabs = QtWidgets.QTabWidget(self)
@@ -274,9 +275,20 @@ class MainApp(QtWidgets.QMainWindow):
             self.execute_script('llxamp-config',['-a','-p','-t','-i','-l'],finished_fn=lambda:self.create_menu_bar(pname='llxamp-config'),started_fn=lambda: None)
 
     def closeEvent(self,ev=None,*args):
+        for tabs in self.find('tabs'):
+            if tabs.objectName() == 'tabs':
+                for idx in range(tabs.count()):
+                    widget=tabs.widget(idx)
+                    if isinstance(widget,Editor):
+                        if not self.close_tab(idx):
+                            if hasattr(ev,'ignore'):
+                                ev.ignore()
+                            return
+
         self.follow_files = False
         for filename,attrs in self.files_followed.items():
             attrs['fp'].close()
+
         print('Exit')
         super().closeEvent(ev)
         self.app.quit()
