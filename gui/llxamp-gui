@@ -52,21 +52,80 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         if 'error' in text.lower():
             self.setFormat(0,len(text),self._format('red','bold'))
 
-class Editor(QtWidgets.QPlainTextEdit):
+class Editor(QtWidgets.QWidget):
     editorModified = QtCore.Signal(bool)
     
     def __init__(self,*args, **kwargs):
         super().__init__(*args)
-        self.textChanged.connect(self.setChanged)
+        self._qplaintext = QtWidgets.QPlainTextEdit(self)
+        self._qplaintext.setUndoRedoEnabled(True)
+        self._toolbar = QtWidgets.QToolBar(self)
+        if not self.layout():
+            self.setLayout(QtWidgets.QVBoxLayout(self))
+        icons = [['document-revert','restore'],['edit-undo','undo'],['edit-redo','redo'],['document-save','save']]
+        for (name,data) in icons:
+            qt_default = None
+            if hasattr(QtWidgets.QStyle,name):
+                qt_default = getattr(QtWidgets.QStyle,name) 
+            if qt_default:
+                icon = self.style().standardIcon(qt_default)
+            else:
+                icon = QtGui.QIcon.fromTheme(name)
+            if not icon.isNull():
+                action = QtWidgets.QAction(icon,'',self._toolbar)
+            else:
+                action = QtWidgets.QAction(data.capitalize(),self._toolbar)
+            action.setData(data)
+            action.setObjectName(data)
+            action.setDisabled(True)
+            self._toolbar.addAction(action)
+            action.triggered.connect(self._iconPressed)
+        self.layout().addWidget(self._toolbar)
+        self.layout().addWidget(self._qplaintext)
         self._initialText = ''
         self._textChanged = False
 
+    def _iconPressed(self):
+        action = self.sender()
+        data = action.data()
+        print(f'Editor button pressed {data}')
+        if data == 'restore':
+            doc = self._qplaintext.document()
+            doc.setPlainText(self._initialText)
+        if data == 'undo':
+            self._qplaintext.undo()
+        if data == 'redo':
+            self._qplaintext.redo()
+     
+    #Only if invokable       
+    #@QtCore.Slot(bool)
+    def _undoAvailable(self,*args):
+        for action in self._toolbar.findChildren(QtWidgets.QAction,'undo'):
+            action.setDisabled(self._textChanged)
+        pass
+    def _redoAvailable(self,status):
+        for action in self._toolbar.findChildren(QtWidgets.QAction,'redo'):
+            action.setEnabled(status)
+        pass
     def setInitialText(self,text):
         self._initialText = text
-        self.appendPlainText(text)
-    
-    def setChanged(self):
-        self._textChanged = self._initialText == self.toPlainText()
+        self._qplaintext.appendPlainText(text)
+        # doc = self._qplaintext.document()
+        # cur = QtGui.QTextCursor(doc)
+        cur = self._qplaintext.textCursor()
+        cur.setPosition(0)
+        self._qplaintext.setTextCursor(cur)
+        self._qplaintext.textChanged.connect(self._setChanged)
+        self._qplaintext.undoAvailable.connect(self._undoAvailable)
+        self._qplaintext.redoAvailable.connect(self._redoAvailable)
+        
+    def appendPlainText(self,text):
+        self._qplaintext.appendPlainText(text)
+
+    def _setChanged(self):
+        self._textChanged = self._initialText == self._qplaintext.toPlainText()
+        for action in ( action for action in self._toolbar.actions() if action.objectName() in ['restore','save','undo']):
+            action.setDisabled(self._textChanged)
         self.editorModified.emit(self._textChanged)
     
     def isChanged(self):
