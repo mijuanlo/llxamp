@@ -51,6 +51,26 @@ class Highlighter(QtGui.QSyntaxHighlighter):
     def highlightBlock(self, text):
         if 'error' in text.lower():
             self.setFormat(0,len(text),self._format('red','bold'))
+
+class Editor(QtWidgets.QPlainTextEdit):
+    editorModified = QtCore.Signal(bool)
+    
+    def __init__(self,*args, **kwargs):
+        super().__init__(*args)
+        self.textChanged.connect(self.setChanged)
+        self._initialText = ''
+        self._textChanged = False
+
+    def setInitialText(self,text):
+        self._initialText = text
+        self.appendPlainText(text)
+    
+    def setChanged(self):
+        self._textChanged = self._initialText == self.toPlainText()
+        self.editorModified.emit(self._textChanged)
+    
+    def isChanged(self):
+        return self._textChanged
     
 class MainApp(QtWidgets.QMainWindow):
     def __init__(self, app, *args, **kwargs):
@@ -74,6 +94,11 @@ class MainApp(QtWidgets.QMainWindow):
 
         self.begin_build_menubar()
         self.msglabel = QtWidgets.QLabel()
+        self.msglabel.setIndent(8)
+        font = QtGui.QFont()
+        font.setFamilies(['Hack','Courier New','monospace'])
+        font.setPointSize(10)
+        self.msglabel.setFont(font)
         self.statusBar().addPermanentWidget(self.msglabel,100)
         self.statusBar().setVisible(True)
         self.create_layout()
@@ -109,7 +134,7 @@ class MainApp(QtWidgets.QMainWindow):
         text2 = QtWidgets.QPlainTextEdit()
         text2.setObjectName('tab_tab2')
         tabs.addTab(text2,'tab2')
-        self.centralWidget().layout().addWidget(tabs)
+        self.split.addWidget(tabs)
         # tabs.setVisible(False)
         
     def follow(self, filename):
@@ -191,6 +216,10 @@ class MainApp(QtWidgets.QMainWindow):
         l = QtWidgets.QVBoxLayout()
         self.centralWidget().setObjectName('main_layout')
         self.centralWidget().setLayout(l)
+        self.split=QtWidgets.QSplitter(self)
+        self.split.setOrientation(QtCore.Qt.Vertical)
+        self.split.setChildrenCollapsible(False)
+        l.addWidget(self.split)
         pass
 
     def config_to_menu(self,config={}):
@@ -279,15 +308,32 @@ class MainApp(QtWidgets.QMainWindow):
             action.triggered.connect(self.action_triggered)
             return action
 
+    def modification(self,*args):
+        self.msg(f'Document changed {args}')
+        sender = self.sender()
+        tab = sender.parent().parent()
+        idx = tab.indexOf(sender)
+        tabIcon = tab.tabIcon(idx)
+        icon = self.style().standardIcon(getattr(QtWidgets.QStyle,'SP_DialogSaveButton'))
+        if not tabIcon:
+            tab.setTabIcon(idx,icon)
+        if sender.isChanged():
+            tab.setTabIcon(idx,QtGui.QIcon())
+
     def new_tab(self, filename):
         name = filename.split('/')[-1]
         tab = self.find(f'tab_{name}')
         tabs = self.find('tabs')[0]
         if not tab:
-            text = QtWidgets.QPlainTextEdit()
+            font = QtGui.QFont()
+            font.setFamilies(['Hack','Courier New','monospace'])
+            font.setPointSize(10)
+            text = Editor()
             text.setObjectName(f'tab_{name}')
+            text.setFont(font)
             with open(filename,'r') as fp:
-                text.appendPlainText(fp.read())
+                text.setInitialText(fp.read())
+            text.editorModified.connect(self.modification)
             tabs.addTab(text,name)
             tabs.setCurrentIndex(tabs.count()-1)
             self.msg(f'tab created {tabs.count()}')
@@ -344,6 +390,7 @@ class MainApp(QtWidgets.QMainWindow):
             cmd = name.split('_')[1]
             scriptname = f'llxamp-{cmd}'
             args = []
+            prepend=''
             if cmd == 'clear':
                 txt=self.find('textarea')
                 if txt:
@@ -352,7 +399,6 @@ class MainApp(QtWidgets.QMainWindow):
             if cmd == 'status':
                 args = ['-a','-m','-p','-n']
             if cmd == 'config':
-                prepend=''
                 if not llxconfig:
                     args = ['-a','-p','-c','-r']
                 else:
@@ -408,7 +454,7 @@ class MainApp(QtWidgets.QMainWindow):
     def create_buttons(self):
         buttons = ["status","start","stop","config","clear","open-browser","open-browser-ssl"]
         for txt in buttons:
-            btn = QtWidgets.QPushButton(txt.capitalize(),parent=self.centralWidget())
+            btn = QtWidgets.QPushButton(txt.capitalize(),parent=self.split)
             btn.setObjectName('button_'+txt)
             btn.pressed.connect(self.action_triggered)
             self.centralWidget().layout().addWidget(btn)
@@ -426,11 +472,16 @@ class MainApp(QtWidgets.QMainWindow):
 
     def create_text(self):
         text = QtWidgets.QPlainTextEdit()
-        Highlighter(text.document())
+        doc = text.document()
+        doc.setMaximumBlockCount(MAX_LINES)
+        font = QtGui.QFont()
+        font.setFamilies(['Hack','Courier New','monospace'])
+        text.setFont(font)
+        Highlighter(doc)
         text.setReadOnly(True)
         text.setObjectName('textarea')
-        text.document().setMaximumBlockCount(MAX_LINES)
-        self.centralWidget().layout().addWidget(text)
+        text.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.MinimumExpanding))
+        self.split.addWidget(text)
 
     def msg(self,txt,prepend=''):
         if txt:
