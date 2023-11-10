@@ -195,6 +195,14 @@ class MainApp(QtWidgets.QMainWindow):
         self.msg(f'TAB CHANGE {idx}')
 
     def close_tab(self,idx):
+        dialog = QtWidgets.QMessageBox.question(
+            self,
+            f'Close tab',
+            f'Desear cerrar la pestaña',
+            QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
+        )
+        if dialog == QtWidgets.QMessageBox.No:
+            return            
         self.msg(f'TAB CLOSE {idx}')
         tabs = self.find('tabs')[0]
         widget = tabs.widget(idx)
