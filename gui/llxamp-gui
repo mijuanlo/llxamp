@@ -55,8 +55,9 @@ class Highlighter(QtGui.QSyntaxHighlighter):
 class Editor(QtWidgets.QWidget):
     editorModified = QtCore.Signal(bool)
     
-    def __init__(self,*args, **kwargs):
+    def __init__(self,filename,*args, **kwargs):
         super().__init__(*args)
+        self._filename = filename
         self._qplaintext = QtWidgets.QPlainTextEdit(self)
         self._qplaintext.setUndoRedoEnabled(True)
         self._toolbar = QtWidgets.QToolBar(self)
@@ -77,6 +78,7 @@ class Editor(QtWidgets.QWidget):
                 action = QtWidgets.QAction(data.capitalize(),self._toolbar)
             action.setData(data)
             action.setObjectName(data)
+            action.setToolTip(data)
             action.setDisabled(True)
             self._toolbar.addAction(action)
             action.triggered.connect(self._iconPressed)
@@ -84,6 +86,9 @@ class Editor(QtWidgets.QWidget):
         self.layout().addWidget(self._qplaintext)
         self._initialText = ''
         self._textChanged = False
+        if os.path.exists(filename):
+            with open(filename,'r') as fp:
+                self.setInitialText(fp.read())
 
     def _iconPressed(self):
         action = self.sender()
@@ -96,7 +101,24 @@ class Editor(QtWidgets.QWidget):
             self._qplaintext.undo()
         if data == 'redo':
             self._qplaintext.redo()
-     
+        if data == 'save':
+            self.askSave()
+            
+    def askSave(self):
+        if not self.isChanged():
+            return 
+        dialog = QtWidgets.QMessageBox.question(
+            self,
+            f'Save file "{self._filename}"',
+            f'Desear guardar {self._filename}',
+            QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
+        )
+        if dialog == QtWidgets.QMessageBox.Yes:
+            self._savefile()
+
+    def _savefile(self):
+        print(f'file {self._filename} saved')
+        
     #Only if invokable       
     #@QtCore.Slot(bool)
     def _undoAvailable(self,*args):
@@ -123,9 +145,9 @@ class Editor(QtWidgets.QWidget):
         self._qplaintext.appendPlainText(text)
 
     def _setChanged(self):
-        self._textChanged = self._initialText == self._qplaintext.toPlainText()
+        self._textChanged = not (self._initialText == self._qplaintext.toPlainText())
         for action in ( action for action in self._toolbar.actions() if action.objectName() in ['restore','save','undo']):
-            action.setDisabled(self._textChanged)
+            action.setEnabled(self._textChanged)
         self.editorModified.emit(self._textChanged)
     
     def isChanged(self):
@@ -176,6 +198,8 @@ class MainApp(QtWidgets.QMainWindow):
         self.msg(f'TAB CLOSE {idx}')
         tabs = self.find('tabs')[0]
         widget = tabs.widget(idx)
+        if hasattr(widget,'askSave'):
+            widget.askSave()
         widget.deleteLater()
         tabs.removeTab(idx)
         if tabs.count() == 0:
@@ -368,7 +392,7 @@ class MainApp(QtWidgets.QMainWindow):
             return action
 
     def modification(self,*args):
-        self.msg(f'Document changed {args}')
+        # self.msg(f'Document changed {args}')
         sender = self.sender()
         tab = sender.parent().parent()
         idx = tab.indexOf(sender)
@@ -387,11 +411,9 @@ class MainApp(QtWidgets.QMainWindow):
             font = QtGui.QFont()
             font.setFamilies(['Hack','Courier New','monospace'])
             font.setPointSize(10)
-            text = Editor()
+            text = Editor(filename)
             text.setObjectName(f'tab_{name}')
             text.setFont(font)
-            with open(filename,'r') as fp:
-                text.setInitialText(fp.read())
             text.editorModified.connect(self.modification)
             tabs.addTab(text,name)
             tabs.setCurrentIndex(tabs.count()-1)
