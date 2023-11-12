@@ -22,7 +22,7 @@ try:
 except:
     llxconfig=None
     print("Can't import llxamp-config")
-
+llxconfig = None
 app = None
 exitting = False
 
@@ -152,12 +152,87 @@ class Editor(QtWidgets.QWidget):
     
     def isChanged(self):
         return self._textChanged
+
+class MyPyStaticUtils():
+    def getTime():
+        return time.strftime("[%Y-%m-%d %H:%M:%S]", time.gmtime())
     
+    def getScriptFullPath(scriptname):
+        full_scriptname = None
+        userhome = os.path.expanduser("~")
+        paths = ['/usr/bin',f'{userhome}/llxamp/scripts']
+        for path in paths:
+            if os.path.exists(f'{path}/{scriptname}'):
+                full_scriptname = f'{path}/{scriptname}'
+                break
+        return full_scriptname
+
+class QtProc():
+    def __init__(self):
+        self.process = {}
+
+    def executeSingletonScript(self, scriptname, arguments, started_fn=None, finished_fn=None, debug_fn=None):
+
+        def process_stdout(process):
+            p = self.process.get(process)
+            if p:
+                data = bytes(p[0].readAllStandardOutput()).decode('utf8').strip()
+                return data
+            return ''
+
+        def process_stderr(process):
+            data = bytes(self.process.get(process)[0].readAllStandardError()).decode('utf8').strip()
+            return data
+
+        if not debug_fn:
+            debug_fn = print
+        
+        if self.process.get(scriptname):
+            debug_fn(f'Running {scriptname}')
+            return
+        
+        debug_start_fn = lambda: debug_fn(f'{MyPyStaticUtils.getTime()}Started {scriptname}')
+        debug_finish_fn = lambda x: debug_fn(f'{MyPyStaticUtils.getTime()}Finished {scriptname} {x}')
+
+        if not started_fn:
+            started_fn = debug_start_fn
+        
+        if not finished_fn:
+            finished_fn = debug_finish_fn
+        
+        process = QtCore.QProcess()
+        process.setObjectName(scriptname)
+
+        def sfn():
+            self.process.setdefault(scriptname, [process])
+            debug_start_fn()
+            started_fn()
+        
+        def ffn():
+            out = process_stdout(scriptname)
+            err = process_stderr(scriptname)
+            debug_finish_fn({'out': out, 'err': err})
+            finished_fn({'out': out, 'err': err})
+            if scriptname in self.process:
+                del self.process[scriptname]
+
+        fn_start = sfn
+        fn_finish = ffn
+        
+        process.finished.connect(fn_finish)
+        process.started.connect(fn_start)
+        
+        process.start(MyPyStaticUtils.getScriptFullPath(scriptname),arguments)
+
+
+class MyQtStaticUtils():
+    pass
+
 class MainApp(QtWidgets.QMainWindow):
     def __init__(self, app, *args, **kwargs):
         super().__init__()
         self.app = app
-        self.process = {}
+        self.qtproc = QtProc()
         self.timers = {}
         self.follow_files = True
         self.files_followed = {}
@@ -261,7 +336,7 @@ class MainApp(QtWidgets.QMainWindow):
             tree,includes,content,logs=llxconfig.process()
             llxconfig.set_mode_php()
             tree2,includes2,content2,logs2=llxconfig.process()
-            self.create_menu_bar(config={
+            self.update_menu_bar(data={
                 'apache': { 
                     'config files': includes,
                     'log files': logs
@@ -272,7 +347,15 @@ class MainApp(QtWidgets.QMainWindow):
                 }
             })
         else:
-            self.execute_script('llxamp-config',['-a','-p','-t','-i','-l'],finished_fn=lambda:self.create_menu_bar(pname='llxamp-config'),started_fn=lambda: None)
+            self.qtproc.executeSingletonScript(
+                'llxamp-config',['-a','-p','-t','-i','-l'],
+                finished_fn=lambda x:self.update_menu_bar(data=x),
+                debug_fn=self.msg
+            )
+        
+        menu_context_items = ['Llxamp', 'Exit' ]
+        menu_context = self.create_menu(items=menu_context_items, parent=self.menuBar())
+        self.menuBar().addMenu(menu_context)
 
     def closeEvent(self,ev=None,*args):
         for tabs in self.find('tabs'):
@@ -365,26 +448,22 @@ class MainApp(QtWidgets.QMainWindow):
                     config['php']['log files'].append(filepath)
         return self.config_to_menu(config)
 
-    def create_menu_bar(self, pname=None, config=None):
+    def update_menu_bar(self, data=None):
+        if data.get('err'):
+            self.msg(f"Error updating menubar: {data.get('err')}")
+            return
+        
         items = []
-        if pname:
-            out = self.process_stdout(pname)
-            out = out.split('\n')
-            items = self.output_to_menu(out)
-            
-        if config:
-            items = self.config_to_menu(config)
-
+        
+        data = data.get('out')
+        items = self.output_to_menu(data.split('\n'))
+        
         # items_example = [
         #     ['File', ['Action1',['SubFile', 'Action2'], 'Action3'] ],
         #     ['File2', ['jeje', 'Ohhh'] ],
         #     'juju'
         # ]
 
-        menu_context_items = ['Llxamp', 'Exit' ]
-        menu_context = self.create_menu(items=menu_context_items, parent=self.menuBar())
-        self.menuBar().addMenu(menu_context)
-        
         for item in items:
             if isinstance(item,list):
                 self.menuBar().addMenu(self.create_menu(items=item, parent=self.menuBar()))
@@ -457,7 +536,7 @@ class MainApp(QtWidgets.QMainWindow):
                 data = action_sender.data()
             if not name:
                 name = action_sender.objectName()
-        self.msg(f'{self.get_time()} Action trigger {name}')
+        self.msg(f'{MyPyStaticUtils.getTime()} Action trigger {name}')
         txt=[]
         if name:
             txt.append(f'objectName={name}')
@@ -469,11 +548,10 @@ class MainApp(QtWidgets.QMainWindow):
             txt = ','.join(txt)
 
         if name == 'status_timer':
-            self.execute_script(
+            self.qtproc.executeSingletonScript(
                 'llxamp-status', ['-a','-m','-p','-n'],
-                output_fn=lambda: None,
-                started_fn=lambda: None,
-                finished_fn=lambda: self.update_status_bar(pname='llxamp-status')
+                debug_fn=self.msg,
+                finished_fn=lambda x: self.update_status_bar(data=x)
             )
         if name[:6] == 'action':
             if parent_name.lower() == 'menu_llxamp':
@@ -511,18 +589,21 @@ class MainApp(QtWidgets.QMainWindow):
                     txt = f'{txt}{llxconfig.print_content(content2,False,False)}'
                     self.msg(txt,prepend)
                     return
-            def output():
-                out = self.process_stdout(scriptname)
-                self.msg(out,prepend)
+            def output(x):
+                if x.get('err'):
+                    self.msg(f"Error config button: {x.get('err')}")
+                self.msg(x.get('out'),prepend)
+                self.enable_button(name)
                 if cmd == 'status':
-                    self.update_status_bar(data=out)
+                    self.update_status_bar(data=x)
                 else:
                     QtCore.QTimer.singleShot(3000,lambda: self.action_triggered('status_timer'))
-            self.execute_script(
+        
+            self.qtproc.executeSingletonScript(
                 scriptname, args,
                 started_fn=lambda: self.disable_button(name),
-                finished_fn=lambda: self.enable_button(name),
-                output_fn=output
+                finished_fn=lambda x: output(x),
+                debug_fn=self.msg
             )
     
     def disable_button(self,name=None):
@@ -535,10 +616,12 @@ class MainApp(QtWidgets.QMainWindow):
         if btn:
             btn[0].setEnabled(True)
     
-    def update_status_bar(self, pname=None, data=None):
-        if not data and pname:
-            data = self.process_stdout(pname)
+    def update_status_bar(self, data = None):
         if data:
+            if data.get('err'):
+                self.msg(f"Error updating status bar: {data.get('err')}")
+                return
+            data = data.get('out')
             data = { item[0]:item[1] for item in [line.upper().split('=') for line in data.split('\n')] }
             msg = []
             if data.get('APACHE_RUNNING') == '0':
@@ -600,68 +683,6 @@ class MainApp(QtWidgets.QMainWindow):
             for line in txtlines:
                 textarea.appendPlainText(f'{prepend}{line.capitalize()}')
 
-    def finish_script(self,process):
-        self.msg(f'finished {process}')
-    
-    def process_stdout(self,process):
-        p = self.process.get(process)
-        if p:
-            data = bytes(p[0].readAllStandardOutput()).decode('utf8').strip()
-            return data
-        return ''
-
-    def process_stderr(self,process):
-        data = bytes(self.process.get(process)[0].readAllStandardError()).decode('utf8').strip()
-        return data
-
-    def get_full_path(self,scriptname):
-        full_scriptname = None
-        userhome = os.path.expanduser("~")
-        paths = ['/usr/bin',f'{userhome}/llxamp/scripts']
-        for path in paths:
-            if os.path.exists(f'{path}/{scriptname}'):
-                full_scriptname = f'{path}/{scriptname}'
-                break
-        return full_scriptname
-
-    def get_time(self):
-        return time.strftime("[%Y-%m-%d %H:%M:%S]", time.gmtime())
-    
-    def execute_script(self, scriptname, arguments, started_fn=None, finished_fn=None, output_fn=None, error_fn=None):
-        if self.process.get(scriptname):
-            print(f'Running {scriptname}')
-        else:
-            p = QtCore.QProcess()
-            if not started_fn:
-                started_fn = lambda: self.msg(f'started {scriptname}')
-            def sfn():
-                self.process.setdefault(scriptname,[p])
-                self.msg(f'{self.get_time()} started {scriptname}')
-                started_fn()
-            fn_start = sfn
-            if not finished_fn:
-                finished_fn = lambda: self.msg(f'finished {scriptname}')
-            def ffn():
-                self.msg(f'{self.get_time()} finished {scriptname}')
-                finished_fn()
-                if scriptname in self.process:
-                    if output_fn:
-                        output_fn()
-                    del self.process[scriptname]
-            fn_finish = ffn
-            # if not output_fn:
-            #     output_fn = lambda: self.process_stdout(scriptname)
-            # if not error_fn:
-            #     error_fn = lambda: self.process_stderr(scriptname)
-            
-            p.setObjectName(scriptname)
-            p.finished.connect(fn_finish)
-            p.started.connect(fn_start)
-            # p.readyReadStandardOutput.connect(output_fn)
-            # p.readyReadStandardError.connect(error_fn)
-            full_scriptname = self.get_full_path(scriptname)
-            p.start(full_scriptname,arguments)
-        
 def main():
     global app, exitting
     try:
