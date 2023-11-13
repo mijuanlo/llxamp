@@ -23,8 +23,8 @@ try:
     llxconfig=__import__('llxamp-config')
 except:
     llxconfig=None
-    print("Can't import llxamp-config")
-llxconfig = None
+    print(f"{_('Can not import')} llxamp-config")
+
 app = None
 exitting = False
 
@@ -75,7 +75,7 @@ class Editor(QtWidgets.QWidget):
     def __init__(self,filename=None,*args, **kwargs):
         super().__init__(*args)
         if not filename:
-            raise Exception('Empty filename')
+            raise Exception(_('Empty filename'))
         self._filename = filename
         self._data = None
         self._qplaintext = QtWidgets.QPlainTextEdit(self)
@@ -125,7 +125,7 @@ class Editor(QtWidgets.QWidget):
     def _iconPressed(self):
         action = self.sender()
         data = action.data()
-        print(f'Editor button pressed {data}')
+        print(f'{_("Editor button pressed")} {data}')
         if data == 'restore':
             self.restoreFile()
         if data == 'undo':
@@ -139,8 +139,8 @@ class Editor(QtWidgets.QWidget):
         if self.isChanged() or forced:
             dialog = QtWidgets.QMessageBox.question(
                 self,
-                f'Save file "{self._filename}"',
-                f'Desear guardar {self._filename}',
+                f'{_("Save file")} "{self._filename}"',
+                f'{_("Do you want to save?")} {self._filename}',
                 QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
             )
             if dialog == QtWidgets.QMessageBox.Yes:
@@ -153,8 +153,8 @@ class Editor(QtWidgets.QWidget):
     def askRestore(self):
         dialog = QtWidgets.QMessageBox.question(
             self,
-            f'Restore file "{self._filename}"',
-            f'Desear restaurar al fichero inicial {self._filename}',
+            f'{_("Restore file")} "{self._filename}"',
+            f'{_("Do you want restore original file?")} {self._filename}',
             QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
         )
         if dialog == QtWidgets.QMessageBox.No:
@@ -178,7 +178,7 @@ class Editor(QtWidgets.QWidget):
         with open(self._filename,'w') as fp:
             fp.write(contents)
         self.setInitialText(contents)
-        print(f'file {self._filename} saved')
+        print(f'{_("File")} {self._filename} {_("saved")}')
 
     def hasRestore(self):
         if self._restore_content:
@@ -256,7 +256,7 @@ class LogViewer(QtWidgets.QWidget):
         self._follow_files = True
         self._files_followed = {}
         self._textedit = self._create_text_edit(self)
-        self._label = QtWidgets.QLabel('Log viewer',self)
+        self._label = QtWidgets.QLabel(_('Log viewer'),self)
 
         if not self.layout():
             self.setLayout(QtWidgets.QVBoxLayout(self))
@@ -296,7 +296,7 @@ class LogViewer(QtWidgets.QWidget):
                 timer.start(READLOG_TIMER)
                 self._files_followed[filename].setdefault('timer',timer)
                 if DEBUG:
-                    self.msg(f'Following logfile {filename}')
+                    self.msg(f'{_("Following logfile")} {filename}')
                 return
         fp=file['fp']
         while self._follow_files:
@@ -502,7 +502,7 @@ class QtProc():
             finished_fn = debug_finish_fn
 
         if self.process.get(scriptname):
-            debug_fn(f'Already running {scriptname}')
+            debug_fn(f'{_("Already running")} {scriptname}')
             return
 
         process = QtCore.QProcess()
@@ -517,7 +517,7 @@ class QtProc():
             out = process_stdout(scriptname)
             err = process_stderr(scriptname)
             if err:
-                debug_finish_fn(f'Error executing script {scriptname}')
+                debug_finish_fn(f'{_("Error executing script")} {scriptname}')
             debug_finish_fn({'out': out, 'err': err})
             finished_fn(out)
             if scriptname in self.process:
@@ -583,14 +583,14 @@ class MainApp(QtWidgets.QMainWindow):
         if forced == False:
             dialog = QtWidgets.QMessageBox.question(
                 self,
-                f'Close tab',
-                f'Desear cerrar la pestaña "{widget.data()}"',
+                f'{_("Close tab")}',
+                f'{_("Do you want close the tab?")} "{widget.data()}"',
                 QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
             )
             if dialog == QtWidgets.QMessageBox.No:
                 return False
         if DEBUG:
-            self.msg(f'TAB CLOSE {idx}')
+            self.msg(f'{_("TAB CLOSE")} {idx}')
 
         if hasattr(widget,'askSave'):
             ret = widget.askSave()
@@ -626,7 +626,6 @@ class MainApp(QtWidgets.QMainWindow):
                 self.file_mappings = x.get_mappings()
                 for f in x.get_logfiles():
                     self.logviewer.follow(f)
-
 
         if llxconfig:
             cfg = MyAppConfigFiles()
@@ -667,7 +666,7 @@ class MainApp(QtWidgets.QMainWindow):
                             return
         self.logviewer.terminate()
 
-        print('Exit')
+        print(_('Exit'))
         super().closeEvent(ev)
         self.app.quit()
 
@@ -771,7 +770,7 @@ class MainApp(QtWidgets.QMainWindow):
             tabs.addTab(text,name)
             tabs.setCurrentIndex(tabs.count()-1)
             if DEBUG:
-                self.msg(f'tab created {tabs.count()}')
+                self.msg(f'{_("Tab created")} {tabs.count()}')
         else:
             idx = tabs.indexOf(tab[0])
             tabs.setCurrentIndex(idx)
@@ -817,7 +816,7 @@ class MainApp(QtWidgets.QMainWindow):
             else:
                 file = data
                 if DEBUG:
-                    self.msg(f'Editing {file}')
+                    self.msg(f'{_("Editing")} {file}')
                 self.new_tab(file)
                 pass
 
@@ -853,7 +852,7 @@ class MainApp(QtWidgets.QMainWindow):
             # Common "output" parameter for button actions
             def output(x):
                 if DEBUG:
-                    self.msg(f"Output from command {scriptname}:\n{x}\n",prepend)
+                    self.msg(f"{_('Output from command')} {scriptname}:\n{x}\n",prepend)
                 else:
                     self.msg(x)
                 button.setEnabled(True)
@@ -874,11 +873,11 @@ class MainApp(QtWidgets.QMainWindow):
             data = { item[0]:item[1] for item in [line.upper().split('=') for line in data.split('\n')] }
             msg = []
             if data.get('APACHE_RUNNING') == '0':
-                msg.append('[Apache: Not running]')
+                msg.append(f'[Apache: {_("Not running")}]')
             else:
                 msg.append(f"[Apache: ports={data.get('APACHE_PORTS')} {len(data.get('APACHE_PROCS','').split(','))} procs]")
             if data.get('MYSQL_RUNNING') == '0':
-                msg.append('[MySQL: Not running]')
+                msg.append(f'[MySQL: {_("Not running")}]')
             else:
                 msg.append(f"[MySQL: ports={data.get('MYSQL_PORTS')} {len(data.get('MYSQL_PROCS','').split(','))} procs]")
             #self.statusBar().showMessage(' '.join(msg))
@@ -910,7 +909,7 @@ def main():
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.bind('\0llxamp')
     except Exception as e:
-        print(f'Already running')
+        print(f'{_("Already running")}')
         sys.exit(0)
     app = QtWidgets.QApplication(sys.argv)
     window = MainApp(app)
