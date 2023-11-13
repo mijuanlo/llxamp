@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-DEBUG=True
+DEBUG=False
 
 EXIT_TIMER=500
 READLOG_TIMER=2000
@@ -37,6 +37,20 @@ def exit_control_c(sig, frame):
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 signal.signal(signal.SIGINT, exit_control_c)
 
+def getSignal (oObject : QtCore.QObject, strSignalName : str):
+    oMetaObj = oObject.metaObject()
+    for i in range (oMetaObj.methodCount()):
+        oMetaMethod = oMetaObj.method(i)
+        if not oMetaMethod.isValid():
+            continue
+        if oMetaMethod.methodType () == QtCore.QMetaMethod.Signal and \
+            oMetaMethod.name() == strSignalName:
+            return oMetaMethod
+    return None
+
+def checkSignalConnected(oObject : QtCore.QObject, strSignalName : str):
+    return oObject.isSignalConnected(getSignal(oObject,strSignalName))
+
 class Highlighter(QtGui.QSyntaxHighlighter):
     def __init__(self,*args, **kwargs):
         super().__init__(*args)
@@ -56,15 +70,19 @@ class Highlighter(QtGui.QSyntaxHighlighter):
 
 class Editor(QtWidgets.QWidget):
     editorModified = QtCore.Signal(bool)
+    editorSaved = QtCore.Signal(bool)
 
     def __init__(self,filename=None,*args, **kwargs):
         super().__init__(*args)
         if not filename:
             raise Exception('Empty filename')
         self._filename = filename
+        self._data = None
         self._qplaintext = QtWidgets.QPlainTextEdit(self)
         self._qplaintext.setUndoRedoEnabled(True)
         self._toolbar = QtWidgets.QToolBar(self)
+        self._actions = {}
+        self._restore_content = None
         if not self.layout():
             self.setLayout(QtWidgets.QVBoxLayout(self))
         icons = [['document-revert','restore'],['edit-undo','undo'],['edit-redo','redo'],['document-save','save']]
@@ -85,7 +103,11 @@ class Editor(QtWidgets.QWidget):
             action.setToolTip(data)
             action.setDisabled(True)
             self._toolbar.addAction(action)
+            self._actions.setdefault(data,action)
             action.triggered.connect(self._iconPressed)
+
+        self._qplaintext.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Maximum)
         self.layout().addWidget(self._toolbar)
         self.layout().addWidget(self._qplaintext)
         self._initialText = ''
@@ -94,13 +116,18 @@ class Editor(QtWidgets.QWidget):
             with open(filename,'r') as fp:
                 self.setInitialText(fp.read())
 
+    def setData(self, data):
+        self._data = data
+
+    def data(self):
+        return self._data
+
     def _iconPressed(self):
         action = self.sender()
         data = action.data()
         print(f'Editor button pressed {data}')
         if data == 'restore':
-            doc = self._qplaintext.document()
-            doc.setPlainText(self._initialText)
+            self.restoreFile()
         if data == 'undo':
             self._qplaintext.undo()
         if data == 'redo':
@@ -108,53 +135,119 @@ class Editor(QtWidgets.QWidget):
         if data == 'save':
             self.askSave()
 
-    def askSave(self):
-        if not self.isChanged():
-            return
+    def askSave(self, forced=False):
+        if self.isChanged() or forced:
+            dialog = QtWidgets.QMessageBox.question(
+                self,
+                f'Save file "{self._filename}"',
+                f'Desear guardar {self._filename}',
+                QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
+            )
+            if dialog == QtWidgets.QMessageBox.Yes:
+                self._savefile()
+                self.editorSaved.emit(True)
+            else:
+                return True
+        return True
+
+    def askRestore(self):
         dialog = QtWidgets.QMessageBox.question(
             self,
-            f'Save file "{self._filename}"',
-            f'Desear guardar {self._filename}',
+            f'Restore file "{self._filename}"',
+            f'Desear restaurar al fichero inicial {self._filename}',
             QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
         )
-        if dialog == QtWidgets.QMessageBox.Yes:
-            self._savefile()
+        if dialog == QtWidgets.QMessageBox.No:
+            return False
+        return True
 
     def _savefile(self):
+        dirname = os.path.dirname(self._filename)
+        backupdir = f'{dirname}/backups'
+        filename = os.path.basename(self._filename)
+        timestamp = MyPyStaticUtils.getTimestamp()
+        restorefile = f'{dirname}/.{filename}.initial'
+        if not self.hasRestore():
+            with open(restorefile,'w') as fp:
+                fp.write(self._initialText)
+        if not os.path.exists(backupdir):
+            os.mkdir(backupdir)
+        with open(f'{backupdir}/{filename}.bkp.{timestamp}','w') as fp:
+            fp.write(self._initialText)
+        contents = self._qplaintext.toPlainText()
+        with open(self._filename,'w') as fp:
+            fp.write(contents)
+        self.setInitialText(contents)
         print(f'file {self._filename} saved')
+
+    def hasRestore(self):
+        if self._restore_content:
+            return True
+        else:
+            dirname = os.path.dirname(self._filename)
+            filename = os.path.basename(self._filename)
+            restorefile = f'{dirname}/.{filename}.initial'
+            exist = os.path.exists(restorefile)
+            if exist:
+                with open(restorefile,'r') as fp:
+                    self._restore_content = fp.read()
+        return exist
+
+    def restoreFile(self):
+        dirname = os.path.dirname(self._filename)
+        filename = os.path.basename(self._filename)
+        restorefile = f'{dirname}/.{filename}.initial'
+        if self.hasRestore():
+            if self.askRestore():
+                if self.askSave(forced=True):
+                    with open(restorefile,'r') as fprestore:
+                        with open(self._filename,'w') as fpfile:
+                            content = fprestore.read()
+                            self.setInitialText(content)
+                            fpfile.write(content)
+                            self.editorSaved.emit(True)
 
     #Only if invokable
     #@QtCore.Slot(bool)
-    def _undoAvailable(self,*args):
-        for action in self._toolbar.findChildren(QtWidgets.QAction,'undo'):
-            action.setDisabled(self._textChanged)
-        pass
+    def _undoAvailable(self,status):
+        self._actions.get('undo').setEnabled(status)
+
     def _redoAvailable(self,status):
-        for action in self._toolbar.findChildren(QtWidgets.QAction,'redo'):
-            action.setEnabled(status)
-        pass
+        self._actions.get('redo').setEnabled(status)
+
     def setInitialText(self,text):
         self._initialText = text
+        self._qplaintext.clear()
         self._qplaintext.appendPlainText(text)
+        self._textChanged = False
         # doc = self._qplaintext.document()
         # cur = QtGui.QTextCursor(doc)
         cur = self._qplaintext.textCursor()
         cur.setPosition(0)
         self._qplaintext.setTextCursor(cur)
-        self._qplaintext.textChanged.connect(self._setChanged)
-        self._qplaintext.undoAvailable.connect(self._undoAvailable)
-        self._qplaintext.redoAvailable.connect(self._redoAvailable)
+        if not checkSignalConnected(self._qplaintext,'textChanged'):
+            self._qplaintext.textChanged.connect(self._setChanged)
+        if not checkSignalConnected(self._qplaintext,'undoAvailable'):
+            self._qplaintext.undoAvailable.connect(self._undoAvailable)
+        if not checkSignalConnected(self._qplaintext,'redoAvailable'):
+            self._qplaintext.redoAvailable.connect(self._redoAvailable)
+        self._qplaintext.document().clearUndoRedoStacks()
+        self.hasRestore()
+        self._setChanged()
 
     def appendPlainText(self,text):
         self._qplaintext.appendPlainText(text)
 
     def _setChanged(self):
-        self._textChanged = not (self._initialText == self._qplaintext.toPlainText())
-        for action in ( action for action in self._toolbar.actions() if action.objectName() in ['restore','save','undo']):
-            action.setEnabled(self._textChanged)
+        content = self._qplaintext.toPlainText()
+        self._textChanged = not (self._initialText == content)
+        self._restoreChanged = not (self._restore_content == content)
+        self._actions.get('save').setEnabled(self._textChanged)
+        self._actions.get('restore').setEnabled(self._restoreChanged)
         self.editorModified.emit(self._textChanged)
 
     def isChanged(self):
+        self._textChanged = not (self._initialText == self._qplaintext.toPlainText())
         return self._textChanged
 
 class LogViewer(QtWidgets.QWidget):
@@ -163,12 +256,15 @@ class LogViewer(QtWidgets.QWidget):
         self._follow_files = True
         self._files_followed = {}
         self._textedit = self._create_text_edit(self)
+        self._label = QtWidgets.QLabel('Log viewer',self)
 
         if not self.layout():
             self.setLayout(QtWidgets.QVBoxLayout(self))
         self.layout().setMargin(0)
 
+        self.layout().addWidget(self._label)
         self.layout().addWidget(self._textedit)
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.MinimumExpanding))
 
     def terminate(self):
         self._follow_files = False
@@ -199,7 +295,8 @@ class LogViewer(QtWidgets.QWidget):
                 timer.timeout.connect(lambda: self._read_logfile(filename))
                 timer.start(READLOG_TIMER)
                 self._files_followed[filename].setdefault('timer',timer)
-                self.msg(f'Following logfile {filename}')
+                if DEBUG:
+                    self.msg(f'Following logfile {filename}')
                 return
         fp=file['fp']
         while self._follow_files:
@@ -229,6 +326,9 @@ class LogViewer(QtWidgets.QWidget):
 class MyPyStaticUtils():
     def getTime():
         return time.strftime("[%Y-%m-%d %H:%M:%S]", time.gmtime())
+
+    def getTimestamp():
+        return time.strftime("%Y%m%d%H%M%S", time.gmtime())
 
     def getScriptFullPath(scriptname):
         full_scriptname = None
@@ -303,11 +403,8 @@ class MyAppConfigFiles():
                 if files:
                     what_list = [ what.capitalize() ]
                     for file in files:
-                        # if what == self.LOGFILES_TAG:
-                        #     self.follow(file)
                         label = os.path.basename(file)
                         what_list.append(label)
-                        # self.files[label]=file
                     owner_list.append(what_list)
             menu.append(owner_list)
         return menu
@@ -441,12 +538,13 @@ class MainApp(QtWidgets.QMainWindow):
         self.qtproc = QtProc()
         self.logviewer = LogViewer(self)
         self.timers = {}
-        self.files = { 'apache' : {}, 'php': {}}
         self.file_mappings = {}
+
         self.setWindowTitle('LLXAMP')
         fallback = QtGui.QIcon(ICON)
         fallback.setThemeName('hicolor')
         icon = QtGui.QIcon.fromTheme('llxamp',fallback)
+
         self.setWindowIcon(icon)
 
         self.setMinimumSize(QtCore.QSize(800,600))
@@ -476,24 +574,28 @@ class MainApp(QtWidgets.QMainWindow):
         if DEBUG:
             self.msg(f'TAB CHANGE {idx}')
 
-    def close_tab(self,idx):
-        dialog = QtWidgets.QMessageBox.question(
-            self,
-            f'Close tab',
-            f'Desear cerrar la pestaña',
-            QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
-        )
-        if dialog == QtWidgets.QMessageBox.No:
-            return False
-        if DEBUG:
-            self.msg(f'TAB CLOSE {idx}')
+    def close_tab(self,idx,forced=False):
         tabs = MyQtStaticUtils.findObject(self,'tabs')
         if not tabs:
             return False
         tabs = tabs[0]
         widget = tabs.widget(idx)
+        if forced == False:
+            dialog = QtWidgets.QMessageBox.question(
+                self,
+                f'Close tab',
+                f'Desear cerrar la pestaña "{widget.data()}"',
+                QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
+            )
+            if dialog == QtWidgets.QMessageBox.No:
+                return False
+        if DEBUG:
+            self.msg(f'TAB CLOSE {idx}')
+
         if hasattr(widget,'askSave'):
-            widget.askSave()
+            ret = widget.askSave()
+            if not ret:
+                return False
         widget.deleteLater()
         tabs.removeTab(idx)
         if tabs.count() == 0:
@@ -506,14 +608,14 @@ class MainApp(QtWidgets.QMainWindow):
         tabs.setTabsClosable(True)
         tabs.currentChanged.connect(self.changed_tab)
         tabs.tabCloseRequested.connect(self.close_tab)
-        text = QtWidgets.QPlainTextEdit()
-        text.setObjectName('tab_tab1')
-        tabs.addTab(text,'tab1')
-        text2 = QtWidgets.QPlainTextEdit()
-        text2.setObjectName('tab_tab2')
-        tabs.addTab(text2,'tab2')
+        # text = QtWidgets.QPlainTextEdit()
+        # text.setObjectName('tab_exampletab1')
+        # tabs.addTab(text,'exampletab1')
+        # text2 = QtWidgets.QPlainTextEdit()
+        # text2.setObjectName('tab_exampletab2')
+        # tabs.addTab(text2,'exampletab2')
         self.split.addWidget(tabs)
-        # tabs.setVisible(False)
+        tabs.setVisible(False)
 
     def begin_build_menubar(self):
         def post_actions(x):
@@ -559,7 +661,7 @@ class MainApp(QtWidgets.QMainWindow):
                 for idx in range(tabs.count()):
                     widget=tabs.widget(idx)
                     if isinstance(widget,Editor):
-                        if not self.close_tab(idx):
+                        if not self.close_tab(idx,forced=True):
                             if hasattr(ev,'ignore'):
                                 ev.ignore()
                             return
@@ -632,17 +734,22 @@ class MainApp(QtWidgets.QMainWindow):
                     )
                 )
 
-    def modification(self,*args):
+    def modification_slot(self,*args):
         # self.msg(f'Document changed {args}')
         sender = self.sender()
         tab = sender.parent().parent()
         idx = tab.indexOf(sender)
-        tabIcon = tab.tabIcon(idx)
         icon = self.style().standardIcon(getattr(QtWidgets.QStyle,'SP_DialogSaveButton'))
-        if not tabIcon:
-            tab.setTabIcon(idx,icon)
+
         if sender.isChanged():
+            tab.setTabIcon(idx,icon)
+        else:
             tab.setTabIcon(idx,QtGui.QIcon())
+
+    def editor_save_slot(self):
+        self.menuBar().clear()
+        self.begin_build_menubar()
+
 
     def new_tab(self, filename):
         name = filename.split('/')[-1]
@@ -650,7 +757,6 @@ class MainApp(QtWidgets.QMainWindow):
         if not tabs:
             return False
         tabs = tabs[0]
-
         tab = MyQtStaticUtils.findObject(self,f'tab_{name}')
         if not tab:
             font = QtGui.QFont()
@@ -659,7 +765,9 @@ class MainApp(QtWidgets.QMainWindow):
             text = Editor(self.file_mappings.get(filename))
             text.setObjectName(f'tab_{name}')
             text.setFont(font)
-            text.editorModified.connect(self.modification)
+            text.setData(filename)
+            text.editorModified.connect(self.modification_slot)
+            text.editorSaved.connect(self.editor_save_slot)
             tabs.addTab(text,name)
             tabs.setCurrentIndex(tabs.count()-1)
             if DEBUG:
@@ -708,8 +816,6 @@ class MainApp(QtWidgets.QMainWindow):
                     self.closeEvent()
             else:
                 file = data
-                if file in self.files:
-                    file = self.files.get(file)
                 if DEBUG:
                     self.msg(f'Editing {file}')
                 self.new_tab(file)
@@ -748,6 +854,8 @@ class MainApp(QtWidgets.QMainWindow):
             def output(x):
                 if DEBUG:
                     self.msg(f"Output from command {scriptname}:\n{x}\n",prepend)
+                else:
+                    self.msg(x)
                 button.setEnabled(True)
                 if cmd == 'status':
                     self.update_status_bar(data=x)
@@ -777,12 +885,13 @@ class MainApp(QtWidgets.QMainWindow):
             self.msglabel.setText(' '.join(msg))
 
     def create_buttons(self):
-        buttons = ["status","start","stop","config","clear","open-browser","open-browser-ssl"]
+        buttons = ["#status","start","stop","#config","clear","open-browser","open-browser-ssl"]
         for txt in buttons:
-            btn = QtWidgets.QPushButton(txt.capitalize(),parent=self.split)
-            btn.setObjectName('button_'+txt)
-            btn.pressed.connect(self.action_triggered)
-            self.centralWidget().layout().addWidget(btn)
+            if txt[0] != '#':
+                btn = QtWidgets.QPushButton(txt.capitalize(),parent=self.split)
+                btn.setObjectName('button_'+txt)
+                btn.pressed.connect(self.action_triggered)
+                self.centralWidget().layout().addWidget(btn)
         pass
 
     def create_timers(self):

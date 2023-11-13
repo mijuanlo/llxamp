@@ -66,25 +66,27 @@ def get_first_param(txtlist):
 def expand_includes(txtlist):
     includes=[]
     for line in txtlist:
-        if os.path.exists(line):
-            includes.append(line)
-        else:
-            if os.path.exists(os.path.realpath(f'{config_dir}/{line}')):
-                includes.append(os.path.realpath(f'{config_dir}/{line}'))
+        if '*' in line:
+            item = glob.glob(line)
+            if item:
+                includes.extend(item)
             else:
-                item = glob.glob(line)
+                item = glob.glob(os.path.realpath(f'{config_dir}/{line}'))
                 if item:
                     includes.extend(item)
-                else:
-                    item = glob.glob(os.path.realpath(f'{config_dir}/{line}'))
-                    if item:
-                        includes.extend(item)
+        else:
+            # files without glob ALWAYS be included even if they do not exist yet
+            if line[:1] == '/' or line[:2] == './':
+                includes.append(line)
+            else:
+                includes.append(os.path.realpath(f'{config_dir}/{line}'))
+
     return includes
 
 def process_includes(filename,hierarchy={},includes=[],content=[],logs=[]):
     content.append(f'{COMMENT_LLXAMP}Content from: {filename}')
     hierarchy.setdefault(filename,{})
-    
+
     content_for_append = read_file(filename)
     txt = filter_comments(content_for_append)
     full_newincludes = filter_not_includes(txt)
@@ -93,9 +95,9 @@ def process_includes(filename,hierarchy={},includes=[],content=[],logs=[]):
         if logfile not in logs:
             logs.append(logfile)
     #newincludes = expand_includes(get_first_param(full_newincludes))
-    
+
     includes.append(filename)
-    
+
     newincludes = []
     for line in content_for_append:
         if line not in full_newincludes:
@@ -193,13 +195,13 @@ def fix_config_dir():
 def process(params=[]):
     global COMMENT, COMMENT_LLXAMP, config_dir
     COMMENT_LLXAMP = f'{COMMENT} LLXAMP: '
-    
+
     fix_config_dir()
 
     # config_text=filter_comments(read_file(CONFIG))
 
     hierarchy,includes,content,logs=process_includes(CONFIG,{},[],[],[])
-    
+
     if '-r' in params:
         comments = False
     else:
@@ -229,7 +231,7 @@ def set_mode_php():
 
 if __name__ == '__main__':
     params = sys.argv
-    
+
     if '-h' in params:
         help_menu()
         sys.exit(0)
