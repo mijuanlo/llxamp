@@ -91,7 +91,7 @@ make_change_bin(){
             done
         fi
     done
- 
+
     for file in ${found_bins_with_tag[@]}; do
         path=""
         path=$((chrpath -l "$file" 2>/dev/null || true)|grep "$TAG"|sed -nr "s|.*RUNPATH=$TAG(.*)|\1|p")
@@ -99,7 +99,7 @@ make_change_bin(){
             execute chrpath -r "$rptarget$path" $file >/dev/null
         fi
     done
-    
+
     popd > /dev/null
 }
 
@@ -148,7 +148,7 @@ write_start_scripts(){
     [ ! -e "$startup_scripts" ] && mkdir -p "$startup_scripts"
 
     echo Writting start/stop scripts into "$rptarget"
-    
+
     for script in "$TEMPLATES_DIR"/llxamp-*; do
         sed -r -e "s|@@LLXAMP_BASEPATH@@|$rptarget|g" -e "s|@@LLXAMP_PORT@@|$DEFAULT_PORT|g" -e "s|@@LLXAMP_SSL_PORT@@|$DEFAULT_SSL_PORT|g" "$script" > "$startup_scripts/$(basename $script)"
         chmod +x "$startup_scripts/$(basename $script)"
@@ -174,8 +174,8 @@ test_install_pack(){
     need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
     for n in $need; do
         if grep -s $n $tmpfile > /dev/null 2>&1; then
-            echo "$(basename $n) found!" 
-        else 
+            echo "$(basename $n) found!"
+        else
             error_menu "$(basename $n) not found!"
         fi
     done
@@ -188,6 +188,7 @@ decompress_pack(){
     # execute tar -zxf "$rpfile_pack" -C "$rptarget"
     mounted=$(findmnt -l -o TARGET | grep "$rptarget")
     if [ -n "$mounted" ];then
+        fuser -mk "$rptarget"
         fusermount -u "$rptarget"
         [ -e "$HOME/.llxamp/upper" ] && rm -rf $HOME/.llxamp/upper
         mkdir -p $HOME/.llxamp/upper
@@ -307,7 +308,7 @@ fi
 create_target_dir
 decompress_pack
 read_tag
-make_change_text 
+make_change_text
 make_change_bin
 write_httpd_conf
 include_php_samples

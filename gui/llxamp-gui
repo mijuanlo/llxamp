@@ -13,7 +13,11 @@ import signal
 import time
 import socket
 
+import gettext
 from gettext import gettext as _
+
+gettext.bindtextdomain('llxamp-gui','/usr/share/locale')
+gettext.textdomain('llxamp-gui')
 from PySide2 import QtWidgets, QtGui, QtCore
 
 sys.path.insert(1,'/usr/lib/llxamp')
