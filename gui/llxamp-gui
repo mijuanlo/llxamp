@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+DEBUG=True
+
 EXIT_TIMER=500
 READLOG_TIMER=2000
 STATUS_TIMER=30000
@@ -38,7 +40,7 @@ signal.signal(signal.SIGINT, exit_control_c)
 class Highlighter(QtGui.QSyntaxHighlighter):
     def __init__(self,*args, **kwargs):
         super().__init__(*args)
-    
+
     def _format(self, namecolor, style=''):
         color = QtGui.QColor()
         color.setNamedColor(namecolor)
@@ -47,16 +49,18 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         if style == 'bold':
             format.setFontWeight(QtGui.QFont.Bold)
         return format
-    
+
     def highlightBlock(self, text):
         if 'error' in text.lower():
             self.setFormat(0,len(text),self._format('red','bold'))
 
 class Editor(QtWidgets.QWidget):
     editorModified = QtCore.Signal(bool)
-    
-    def __init__(self,filename,*args, **kwargs):
+
+    def __init__(self,filename=None,*args, **kwargs):
         super().__init__(*args)
+        if not filename:
+            raise Exception('Empty filename')
         self._filename = filename
         self._qplaintext = QtWidgets.QPlainTextEdit(self)
         self._qplaintext.setUndoRedoEnabled(True)
@@ -67,7 +71,7 @@ class Editor(QtWidgets.QWidget):
         for (name,data) in icons:
             qt_default = None
             if hasattr(QtWidgets.QStyle,name):
-                qt_default = getattr(QtWidgets.QStyle,name) 
+                qt_default = getattr(QtWidgets.QStyle,name)
             if qt_default:
                 icon = self.style().standardIcon(qt_default)
             else:
@@ -103,10 +107,10 @@ class Editor(QtWidgets.QWidget):
             self._qplaintext.redo()
         if data == 'save':
             self.askSave()
-            
+
     def askSave(self):
         if not self.isChanged():
-            return 
+            return
         dialog = QtWidgets.QMessageBox.question(
             self,
             f'Save file "{self._filename}"',
@@ -118,8 +122,8 @@ class Editor(QtWidgets.QWidget):
 
     def _savefile(self):
         print(f'file {self._filename} saved')
-        
-    #Only if invokable       
+
+    #Only if invokable
     #@QtCore.Slot(bool)
     def _undoAvailable(self,*args):
         for action in self._toolbar.findChildren(QtWidgets.QAction,'undo'):
@@ -140,7 +144,7 @@ class Editor(QtWidgets.QWidget):
         self._qplaintext.textChanged.connect(self._setChanged)
         self._qplaintext.undoAvailable.connect(self._undoAvailable)
         self._qplaintext.redoAvailable.connect(self._redoAvailable)
-        
+
     def appendPlainText(self,text):
         self._qplaintext.appendPlainText(text)
 
@@ -149,14 +153,83 @@ class Editor(QtWidgets.QWidget):
         for action in ( action for action in self._toolbar.actions() if action.objectName() in ['restore','save','undo']):
             action.setEnabled(self._textChanged)
         self.editorModified.emit(self._textChanged)
-    
+
     def isChanged(self):
         return self._textChanged
+
+class LogViewer(QtWidgets.QWidget):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self._follow_files = True
+        self._files_followed = {}
+        self._textedit = self._create_text_edit(self)
+
+        if not self.layout():
+            self.setLayout(QtWidgets.QVBoxLayout(self))
+        self.layout().setMargin(0)
+
+        self.layout().addWidget(self._textedit)
+
+    def terminate(self):
+        self._follow_files = False
+        for filename,attrs in self._files_followed.items():
+            attrs['fp'].close()
+
+    def _create_text_edit(self, parent):
+        text = QtWidgets.QPlainTextEdit(parent)
+        doc = text.document()
+        doc.setMaximumBlockCount(MAX_LINES)
+        font = QtGui.QFont()
+        font.setFamilies(['Hack','Courier New','monospace'])
+        text.setFont(font)
+        Highlighter(doc)
+        text.setReadOnly(True)
+        text.setObjectName('textarea')
+        text.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.MinimumExpanding))
+        return text
+
+    def follow(self, filename):
+        file = self._files_followed.get(filename)
+        if not file:
+            if os.path.exists(filename):
+                file = open(filename,'r')
+                file.seek(0,2)
+                self._files_followed.setdefault(filename,{'fp':file})
+                timer = QtCore.QTimer(self)
+                timer.timeout.connect(lambda: self._read_logfile(filename))
+                timer.start(READLOG_TIMER)
+                self._files_followed[filename].setdefault('timer',timer)
+                self.msg(f'Following logfile {filename}')
+                return
+        fp=file['fp']
+        while self._follow_files:
+            # lines = []
+            # line = fp.readline().rstrip()
+            # while line:
+            #     lines.append(line)
+            #     line = fp.readline().rstrip()
+            # return lines
+            return fp.read().splitlines()
+
+    def _read_logfile(self, filename):
+        lines = self.follow(filename)
+        self.msg(lines,f'[{filename.split("/")[-1]}]')
+
+    def msg(self,txt='',prepend=''):
+        if txt:
+            txtlines=[]
+            if isinstance(txt,str):
+                txt=txt.strip()
+                txtlines = txt.splitlines()
+            if isinstance(txt,list):
+                txtlines=txt
+            for line in txtlines:
+                self._textedit.appendPlainText(f'{prepend}{line.capitalize()}')
 
 class MyPyStaticUtils():
     def getTime():
         return time.strftime("[%Y-%m-%d %H:%M:%S]", time.gmtime())
-    
+
     def getScriptFullPath(scriptname):
         full_scriptname = None
         userhome = os.path.expanduser("~")
@@ -166,6 +239,138 @@ class MyPyStaticUtils():
                 full_scriptname = f'{path}/{scriptname}'
                 break
         return full_scriptname
+
+class MyAppConfigFiles():
+    APACHE_TAG = 'APACHE'
+    PHP_TAG = 'PHP'
+    CONFIGFILES_TAG = 'CONFFILES'
+    LOGFILES_TAG= 'LOGFILES'
+
+    def __init__(self,txt=[]):
+        self.apache_confs = []
+        self.apache_logs = []
+        self.php_confs = []
+        self.php_logs = []
+        if txt:
+            self.set_from_output(txt)
+
+    def to_config(self):
+        data={
+            self.APACHE_TAG: {
+                self.CONFIGFILES_TAG: self.apache_confs,
+                self.LOGFILES_TAG: self.apache_logs
+            },
+            self.PHP_TAG: {
+                self.CONFIGFILES_TAG: self.php_confs,
+                self.LOGFILES_TAG: self.php_logs
+            }
+        }
+        return data
+
+    def get_mappings(self):
+        return self.get_mappings_from_config(self.to_config())
+
+    def get_mappings_from_config(self, config):
+        mappings = {}
+        for owner,conf in config.items():
+            for what,files in conf.items():
+                if files:
+                    for file in files:
+                        mappings.setdefault(file.split('/')[-1],file)
+        return mappings
+
+    def get_logfiles(self):
+        return self.get_logfiles_from_config(self.to_config())
+
+    def get_logfiles_from_config(self, config):
+        logfiles = []
+        for owner,conf in config.items():
+            for what,files in conf.items():
+                if what == self.LOGFILES_TAG:
+                    if files:
+                        for file in files:
+                            logfiles.append(file)
+        return logfiles
+
+    def get_menu(self):
+        return self.config_to_menu(self.to_config())
+
+    def config_to_menu(self, config={}):
+        menu = []
+        for owner,conf in config.items():
+            owner_list = [ owner.capitalize() ]
+            for what,files in conf.items():
+                if files:
+                    what_list = [ what.capitalize() ]
+                    for file in files:
+                        # if what == self.LOGFILES_TAG:
+                        #     self.follow(file)
+                        label = os.path.basename(file)
+                        what_list.append(label)
+                        # self.files[label]=file
+                    owner_list.append(what_list)
+            menu.append(owner_list)
+        return menu
+
+    def output_to_menu(self, text=[]):
+        return self.config_to_menu(self.output_to_config(text))
+
+    def set_from_output(self, text=[]):
+        cfg = self.output_to_config(text)
+        self.apache_confs = cfg.get(self.APACHE_TAG).get(self.CONFIGFILES_TAG)
+        self.apache_logs = cfg.get(self.APACHE_TAG).get(self.LOGFILES_TAG)
+        self.php_confs = cfg.get(self.PHP_TAG).get(self.CONFIGFILES_TAG)
+        self.php_logs = cfg.get(self.PHP_TAG).get(self.LOGFILES_TAG)
+
+    def output_to_config(self, text=[]):
+        if isinstance(text,str):
+            text=text.splitlines()
+        config = {}
+        for item in text:
+            hint = item.split(':')[0]
+            filepath = item.split(':')[1]
+            filepath = filepath.strip()
+            if self.APACHE_TAG in hint:
+                config.setdefault(self.APACHE_TAG,{})
+                if 'CONFIG' in hint:
+                    config[self.APACHE_TAG].setdefault(self.CONFIGFILES_TAG, [])
+                    config[self.APACHE_TAG][self.CONFIGFILES_TAG].append(filepath)
+                if 'LOG' in hint:
+                    config[self.APACHE_TAG].setdefault(self.LOGFILES_TAG, [])
+                    config[self.APACHE_TAG][self.LOGFILES_TAG].append(filepath)
+            if self.PHP_TAG in hint:
+                config.setdefault(self.PHP_TAG,{})
+                if 'CONFIG' in hint:
+                    config[self.PHP_TAG].setdefault(self.CONFIGFILES_TAG, [])
+                    config[self.PHP_TAG][self.CONFIGFILES_TAG].append(filepath)
+                if 'LOG' in hint:
+                    config[self.PHP_TAG].setdefault(self.LOGFILES_TAG, [])
+                    config[self.PHP_TAG][self.LOGFILES_TAG].append(filepath)
+        return config
+
+class MyQtStaticUtils():
+    def findObject(object,name=''):
+        return object.findChildren(QtWidgets.QWidget,QtCore.QRegularExpression(name,QtCore.QRegularExpression.CaseInsensitiveOption))
+
+    def create_menu(items=[], receiver=None, parent=None):
+        if isinstance(items,list):
+            newmenu = QtWidgets.QMenu(items[0].capitalize(),parent=parent)
+            newmenu.setObjectName('menu_'+items[0])
+            for subitem in items[1:]:
+                if isinstance(subitem,list):
+                    newmenu.addMenu(MyQtStaticUtils.create_menu(items=subitem, receiver=receiver, parent=newmenu))
+                if isinstance(subitem,str):
+                    newmenu.addAction(MyQtStaticUtils.create_menu(items=subitem, receiver=receiver, parent=newmenu))
+            return newmenu
+        if isinstance(items,str):
+            action = QtWidgets.QAction(items.capitalize(),parent=parent)
+            action.setData(items)
+            action.setObjectName('action_'+items)
+            #action.setStatusTip(items)
+            #action.setIcon(QtWidgets.QIcon())
+            #action.setShortCuts(QtCore.QKeySequence())
+            action.triggered.connect(receiver)
+            return action
 
 class QtProc():
     def __init__(self):
@@ -184,22 +389,25 @@ class QtProc():
             data = bytes(self.process.get(process)[0].readAllStandardError()).decode('utf8').strip()
             return data
 
+        if not DEBUG:
+            debug_fn = lambda x: None
+
         if not debug_fn:
             debug_fn = print
-        
-        if self.process.get(scriptname):
-            debug_fn(f'Running {scriptname}')
-            return
-        
-        debug_start_fn = lambda: debug_fn(f'{MyPyStaticUtils.getTime()}Started {scriptname}')
-        debug_finish_fn = lambda x: debug_fn(f'{MyPyStaticUtils.getTime()}Finished {scriptname} {x}')
+
+        debug_start_fn = lambda: debug_fn(f'{MyPyStaticUtils.getTime()} Started {scriptname}')
+        debug_finish_fn = lambda x: debug_fn(f'{MyPyStaticUtils.getTime()} Finished {scriptname}\n{x}\n')
 
         if not started_fn:
             started_fn = debug_start_fn
-        
+
         if not finished_fn:
             finished_fn = debug_finish_fn
-        
+
+        if self.process.get(scriptname):
+            debug_fn(f'Already running {scriptname}')
+            return
+
         process = QtCore.QProcess()
         process.setObjectName(scriptname)
 
@@ -207,36 +415,34 @@ class QtProc():
             self.process.setdefault(scriptname, [process])
             debug_start_fn()
             started_fn()
-        
+
         def ffn():
             out = process_stdout(scriptname)
             err = process_stderr(scriptname)
+            if err:
+                debug_finish_fn(f'Error executing script {scriptname}')
             debug_finish_fn({'out': out, 'err': err})
-            finished_fn({'out': out, 'err': err})
+            finished_fn(out)
             if scriptname in self.process:
                 del self.process[scriptname]
 
         fn_start = sfn
         fn_finish = ffn
-        
+
         process.finished.connect(fn_finish)
         process.started.connect(fn_start)
-        
+
         process.start(MyPyStaticUtils.getScriptFullPath(scriptname),arguments)
-
-
-class MyQtStaticUtils():
-    pass
 
 class MainApp(QtWidgets.QMainWindow):
     def __init__(self, app, *args, **kwargs):
         super().__init__()
         self.app = app
         self.qtproc = QtProc()
+        self.logviewer = LogViewer(self)
         self.timers = {}
-        self.follow_files = True
-        self.files_followed = {}
         self.files = { 'apache' : {}, 'php': {}}
+        self.file_mappings = {}
         self.setWindowTitle('LLXAMP')
         fallback = QtGui.QIcon(ICON)
         fallback.setThemeName('hicolor')
@@ -260,14 +466,15 @@ class MainApp(QtWidgets.QMainWindow):
         self.create_layout()
         self.create_tabs()
         self.create_buttons()
-        self.create_text()
+        self.split.addWidget(self.logviewer)
         self.create_timers()
         self.create_systray()
         self.action_triggered('status_timer')
         pass
 
     def changed_tab(self,idx):
-        self.msg(f'TAB CHANGE {idx}')
+        if DEBUG:
+            self.msg(f'TAB CHANGE {idx}')
 
     def close_tab(self,idx):
         dialog = QtWidgets.QMessageBox.question(
@@ -278,8 +485,12 @@ class MainApp(QtWidgets.QMainWindow):
         )
         if dialog == QtWidgets.QMessageBox.No:
             return False
-        self.msg(f'TAB CLOSE {idx}')
-        tabs = self.find('tabs')[0]
+        if DEBUG:
+            self.msg(f'TAB CLOSE {idx}')
+        tabs = MyQtStaticUtils.findObject(self,'tabs')
+        if not tabs:
+            return False
+        tabs = tabs[0]
         widget = tabs.widget(idx)
         if hasattr(widget,'askSave'):
             widget.askSave()
@@ -303,62 +514,47 @@ class MainApp(QtWidgets.QMainWindow):
         tabs.addTab(text2,'tab2')
         self.split.addWidget(tabs)
         # tabs.setVisible(False)
-        
-    def follow(self, filename):
-        file = self.files_followed.get(filename,None)
-        if not file:
-            if os.path.exists(filename):
-                file = open(filename,'r')
-                file.seek(0,2)
-                self.files_followed.setdefault(filename,{'fp':file})
-                timer = QtCore.QTimer(self)
-                timer.timeout.connect(lambda: self.read_logfile(filename))
-                timer.start(READLOG_TIMER)
-                self.files_followed[filename].setdefault('timer',timer)
-                return
-        fp=file['fp']
-        while self.follow_files:
-            # lines = []
-            # line = fp.readline().rstrip()
-            # while line:
-            #     lines.append(line)
-            #     line = fp.readline().rstrip()
-            # return lines
-            return fp.read().splitlines()
 
-    def read_logfile(self, filename):
-        lines = self.follow(filename)
-        self.msg(lines,f'[{filename.split("/")[-1]}]')
-        
     def begin_build_menubar(self):
+        def post_actions(x):
+            self.update_menu_bar(data=x)
+            if isinstance(x,(list,str)):
+                x = MyAppConfigFiles(x)
+            if x:
+                self.file_mappings = x.get_mappings()
+                for f in x.get_logfiles():
+                    self.logviewer.follow(f)
+
+
         if llxconfig:
+            cfg = MyAppConfigFiles()
             llxconfig.set_mode_apache()
-            tree,includes,content,logs=llxconfig.process()
+            includes,content,logs=llxconfig.process()
+            cfg.apache_confs = includes
+            cfg.apache_logs = logs
             llxconfig.set_mode_php()
             tree2,includes2,content2,logs2=llxconfig.process()
-            self.update_menu_bar(data={
-                'apache': { 
-                    'config files': includes,
-                    'log files': logs
-                },
-                'php': {
-                    'config files': includes2,
-                    'log files': logs2
-                }
-            })
+            cfg.php_confs = includes2
+            cfg.php_logs = logs2
+            post_actions(cfg.to_config())
         else:
+
             self.qtproc.executeSingletonScript(
                 'llxamp-config',['-a','-p','-t','-i','-l'],
-                finished_fn=lambda x:self.update_menu_bar(data=x),
+                finished_fn=post_actions,
                 debug_fn=self.msg
             )
-        
+
         menu_context_items = ['Llxamp', 'Exit' ]
-        menu_context = self.create_menu(items=menu_context_items, parent=self.menuBar())
+        menu_context = MyQtStaticUtils.create_menu(
+            items=menu_context_items,
+            receiver=self.action_triggered,
+            parent=self.menuBar()
+        )
         self.menuBar().addMenu(menu_context)
 
     def closeEvent(self,ev=None,*args):
-        for tabs in self.find('tabs'):
+        for tabs in MyQtStaticUtils.findObject(self,'tabs'):
             if tabs.objectName() == 'tabs':
                 for idx in range(tabs.count()):
                     widget=tabs.widget(idx)
@@ -367,10 +563,7 @@ class MainApp(QtWidgets.QMainWindow):
                             if hasattr(ev,'ignore'):
                                 ev.ignore()
                             return
-
-        self.follow_files = False
-        for filename,attrs in self.files_followed.items():
-            attrs['fp'].close()
+        self.logviewer.terminate()
 
         print('Exit')
         super().closeEvent(ev)
@@ -384,18 +577,21 @@ class MainApp(QtWidgets.QMainWindow):
             self.setVisible(not self.isVisible())
         else:
             print(f'TODO: {mode}')
-    
+
     def create_systray(self):
         fallback = QtGui.QIcon(ICON)
         fallback.setThemeName('hicolor')
         icon = QtGui.QIcon.fromTheme('llxamp',fallback)
         self.systray = QtWidgets.QSystemTrayIcon(icon,self)
-        
+
         self.systray.setVisible(True)
         self.systray.activated.connect(self.systray_activation)
         self.systray.setToolTip("LliureX Apache+MySQL+PHP")
-        
-        menu=self.find('menu_llxamp')[0]
+
+        menu = MyQtStaticUtils.findObject(self,'menu_llxamp')
+        if not menu:
+            return False
+        menu = menu[0]
         self.systray.setContextMenu(menu)
 
     def create_layout(self):
@@ -406,89 +602,35 @@ class MainApp(QtWidgets.QMainWindow):
         self.split.setOrientation(QtCore.Qt.Vertical)
         self.split.setChildrenCollapsible(False)
         l.addWidget(self.split)
-        pass
-
-    def config_to_menu(self,config={}):
-        menu = []
-        for owner,conf in config.items():
-            owner_list = [ owner.capitalize() ]
-            for what,files in conf.items():
-                if files:
-                    what_list = [ what.capitalize() ]
-                    for file in files:
-                        if what == 'log files':
-                            self.follow(file)
-                        label = os.path.basename(file)
-                        what_list.append(label)
-                        self.files[label]=file
-                    owner_list.append(what_list)
-            menu.append(owner_list)
-        return menu
-
-    def output_to_menu(self,text=[]):
-        config = {}
-        for item in text:
-            hint = item.split(':')[0]
-            filepath = item.split(':')[1]
-            if 'APACHE' in hint:
-                config.setdefault('apache',{})
-                if 'CONFIG' in hint:
-                    config['apache'].setdefault('config files', [])
-                    config['apache']['config files'].append(filepath)
-                if 'LOG' in hint:
-                    config['apache'].setdefault('log files', [])
-                    config['apache']['log files'].append(filepath)
-            if 'PHP' in hint:
-                config.setdefault('php',{})
-                if 'CONFIG' in hint:
-                    config['php'].setdefault('config files', [])
-                    config['php']['config files'].append(filepath)
-                if 'LOG' in hint:
-                    config['php'].setdefault('log files', [])
-                    config['php']['log files'].append(filepath)
-        return self.config_to_menu(config)
 
     def update_menu_bar(self, data=None):
-        if data.get('err'):
-            self.msg(f"Error updating menubar: {data.get('err')}")
-            return
-        
         items = []
-        
-        data = data.get('out')
-        items = self.output_to_menu(data.split('\n'))
-        
+
+        items = MyAppConfigFiles(data.splitlines()).get_menu()
+
         # items_example = [
         #     ['File', ['Action1',['SubFile', 'Action2'], 'Action3'] ],
-        #     ['File2', ['jeje', 'Ohhh'] ],
-        #     'juju'
+        #     ['File2', [Action4, Action5] ],
+        #     Action6
         # ]
 
         for item in items:
             if isinstance(item,list):
-                self.menuBar().addMenu(self.create_menu(items=item, parent=self.menuBar()))
+                self.menuBar().addMenu(
+                    MyQtStaticUtils.create_menu(
+                        items = item,
+                        receiver = self.action_triggered,
+                        parent = self.menuBar()
+                    )
+                )
             if isinstance(item,str):
-                self.menuBar().addAction(self.create_menu(items=item, parent=self.menuBar()))
-
-    def create_menu(self, items=[], parent=None):
-        if isinstance(items,list):
-            newmenu = QtWidgets.QMenu(items[0].capitalize(),parent=parent)
-            newmenu.setObjectName('menu_'+items[0])
-            for subitem in items[1:]:
-                if isinstance(subitem,list):
-                    newmenu.addMenu(self.create_menu(items=subitem, parent=newmenu))
-                if isinstance(subitem,str):
-                    newmenu.addAction(self.create_menu(items=subitem, parent=newmenu))
-            return newmenu
-        if isinstance(items,str):
-            action = QtWidgets.QAction(items.capitalize(),parent=parent)
-            action.setData(items)
-            action.setObjectName('action_'+items)
-            #action.setStatusTip(items)
-            #action.setIcon(QtWidgets.QIcon())
-            #action.setShortCuts(QtCore.QKeySequence())
-            action.triggered.connect(self.action_triggered)
-            return action
+                self.menuBar().addAction(
+                    MyQtStaticUtils.create_menu(
+                        items = item,
+                        receiver = self.action_triggered,
+                        parent=self.menuBar()
+                    )
+                )
 
     def modification(self,*args):
         # self.msg(f'Document changed {args}')
@@ -504,19 +646,24 @@ class MainApp(QtWidgets.QMainWindow):
 
     def new_tab(self, filename):
         name = filename.split('/')[-1]
-        tab = self.find(f'tab_{name}')
-        tabs = self.find('tabs')[0]
+        tabs = MyQtStaticUtils.findObject(self,'tabs')
+        if not tabs:
+            return False
+        tabs = tabs[0]
+
+        tab = MyQtStaticUtils.findObject(self,f'tab_{name}')
         if not tab:
             font = QtGui.QFont()
             font.setFamilies(['Hack','Courier New','monospace'])
             font.setPointSize(10)
-            text = Editor(filename)
+            text = Editor(self.file_mappings.get(filename))
             text.setObjectName(f'tab_{name}')
             text.setFont(font)
             text.editorModified.connect(self.modification)
             tabs.addTab(text,name)
             tabs.setCurrentIndex(tabs.count()-1)
-            self.msg(f'tab created {tabs.count()}')
+            if DEBUG:
+                self.msg(f'tab created {tabs.count()}')
         else:
             idx = tabs.indexOf(tab[0])
             tabs.setCurrentIndex(idx)
@@ -536,7 +683,8 @@ class MainApp(QtWidgets.QMainWindow):
                 data = action_sender.data()
             if not name:
                 name = action_sender.objectName()
-        self.msg(f'{MyPyStaticUtils.getTime()} Action trigger {name}')
+        if DEBUG:
+            self.msg(f'{MyPyStaticUtils.getTime()} Action trigger {name}')
         txt=[]
         if name:
             txt.append(f'objectName={name}')
@@ -553,6 +701,7 @@ class MainApp(QtWidgets.QMainWindow):
                 debug_fn=self.msg,
                 finished_fn=lambda x: self.update_status_bar(data=x)
             )
+
         if name[:6] == 'action':
             if parent_name.lower() == 'menu_llxamp':
                 if text.lower() == 'exit':
@@ -561,19 +710,24 @@ class MainApp(QtWidgets.QMainWindow):
                 file = data
                 if file in self.files:
                     file = self.files.get(file)
-                self.msg(f'Editing {file}')
+                if DEBUG:
+                    self.msg(f'Editing {file}')
                 self.new_tab(file)
                 pass
 
         if name[:6] == 'button':
+            button = MyQtStaticUtils.findObject(self,name)
+            if button:
+                button = button[0]
             cmd = name.split('_')[1]
             scriptname = f'llxamp-{cmd}'
             args = []
             prepend=''
             if cmd == 'clear':
-                txt=self.find('textarea')
-                if txt:
-                    txt[0].clear()
+                txt=MyQtStaticUtils.findObject(self,'textarea')
+                if not txt:
+                    return
+                txt[0].clear()
                 return
             if cmd == 'status':
                 args = ['-a','-m','-p','-n']
@@ -589,39 +743,26 @@ class MainApp(QtWidgets.QMainWindow):
                     txt = f'{txt}{llxconfig.print_content(content2,False,False)}'
                     self.msg(txt,prepend)
                     return
+
+            # Common "output" parameter for button actions
             def output(x):
-                if x.get('err'):
-                    self.msg(f"Error config button: {x.get('err')}")
-                self.msg(x.get('out'),prepend)
-                self.enable_button(name)
+                if DEBUG:
+                    self.msg(f"Output from command {scriptname}:\n{x}\n",prepend)
+                button.setEnabled(True)
                 if cmd == 'status':
                     self.update_status_bar(data=x)
                 else:
                     QtCore.QTimer.singleShot(3000,lambda: self.action_triggered('status_timer'))
-        
+
             self.qtproc.executeSingletonScript(
                 scriptname, args,
-                started_fn=lambda: self.disable_button(name),
+                started_fn=lambda: button.setDisabled(True),
                 finished_fn=lambda x: output(x),
                 debug_fn=self.msg
             )
-    
-    def disable_button(self,name=None):
-        btn = self.find(name)
-        if btn:
-            btn[0].setDisabled(True)
-    
-    def enable_button(self,name=None):
-        btn = self.find(name)
-        if btn:
-            btn[0].setEnabled(True)
-    
+
     def update_status_bar(self, data = None):
         if data:
-            if data.get('err'):
-                self.msg(f"Error updating status bar: {data.get('err')}")
-                return
-            data = data.get('out')
             data = { item[0]:item[1] for item in [line.upper().split('=') for line in data.split('\n')] }
             msg = []
             if data.get('APACHE_RUNNING') == '0':
@@ -643,10 +784,7 @@ class MainApp(QtWidgets.QMainWindow):
             btn.pressed.connect(self.action_triggered)
             self.centralWidget().layout().addWidget(btn)
         pass
-    
-    def find(self,name=''):
-        return self.findChildren(QtWidgets.QWidget,QtCore.QRegularExpression(name,QtCore.QRegularExpression.CaseInsensitiveOption))
-    
+
     def create_timers(self):
         timer = QtCore.QTimer()
         self.timers.setdefault('status',timer)
@@ -654,34 +792,8 @@ class MainApp(QtWidgets.QMainWindow):
         timer.timeout.connect(lambda : self.action_triggered('status_timer'))
         timer.start(STATUS_TIMER)
 
-    def create_text(self):
-        text = QtWidgets.QPlainTextEdit()
-        doc = text.document()
-        doc.setMaximumBlockCount(MAX_LINES)
-        font = QtGui.QFont()
-        font.setFamilies(['Hack','Courier New','monospace'])
-        text.setFont(font)
-        Highlighter(doc)
-        text.setReadOnly(True)
-        text.setObjectName('textarea')
-        text.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.MinimumExpanding))
-        self.split.addWidget(text)
-
-    def msg(self,txt,prepend=''):
-        if txt:
-            textarea=self.find('textarea')
-            if textarea:
-                textarea = textarea[0]
-            else:
-                return
-            txtlines=[]
-            if isinstance(txt,str):
-                txt=txt.strip()
-                txtlines = txt.split('\n')
-            if isinstance(txt,list):
-                txtlines=txt
-            for line in txtlines:
-                textarea.appendPlainText(f'{prepend}{line.capitalize()}')
+    def msg(self, txt='', prepend=''):
+        self.logviewer.msg(txt,prepend)
 
 def main():
     global app, exitting
