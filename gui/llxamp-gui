@@ -586,7 +586,11 @@ class MainApp(QtWidgets.QMainWindow):
         self.create_timers()
         self.create_systray()
         self.action_triggered('status_timer')
-        pass
+        if DEBUG:
+            msg = []
+            for k in os.environ.keys():
+                msg.append(f'{k} = {os.environ.get(k)}')
+            self.msg('\n'.join(msg))
 
     def changed_tab(self,idx):
         if DEBUG:
@@ -923,13 +927,16 @@ class MainApp(QtWidgets.QMainWindow):
         self.logviewer.msg(txt,prepend)
 
 def main():
-    global app, exitting
+    global app, exitting, DEBUG
     try:
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.bind('\0llxamp')
     except Exception as e:
         print(_("Already running"))
         sys.exit(0)
+    for arg in sys.argv:
+        if arg.lower() == '-d':
+            DEBUG=True
     app = QtWidgets.QApplication(sys.argv)
     window = MainApp(app)
     window.show()
