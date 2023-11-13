@@ -119,6 +119,7 @@ class Editor(QtWidgets.QWidget):
         if os.path.exists(filename):
             with open(filename,'r') as fp:
                 self.setInitialText(fp.read())
+        self._make_restore_file()
 
     def setData(self, data):
         self._data = data
@@ -165,15 +166,20 @@ class Editor(QtWidgets.QWidget):
             return False
         return True
 
+    def _make_restore_file(self):
+        dirname = os.path.dirname(self._filename)
+        filename = os.path.basename(self._filename)
+        restorefile = f'{dirname}/.{filename}.initial'
+        if not self.hasRestore():
+            with open(restorefile,'w') as fp:
+                fp.write(self._initialText)
+
     def _savefile(self):
         dirname = os.path.dirname(self._filename)
         backupdir = f'{dirname}/backups'
         filename = os.path.basename(self._filename)
         timestamp = MyPyStaticUtils.getTimestamp()
-        restorefile = f'{dirname}/.{filename}.initial'
-        if not self.hasRestore():
-            with open(restorefile,'w') as fp:
-                fp.write(self._initialText)
+        self._make_restore_file()
         if not os.path.exists(backupdir):
             os.mkdir(backupdir)
         with open(f'{backupdir}/{filename}.bkp.{timestamp}','w') as fp:
@@ -291,17 +297,19 @@ class LogViewer(QtWidgets.QWidget):
     def follow(self, filename):
         file = self._files_followed.get(filename)
         if not file:
-            if os.path.exists(filename):
-                file = open(filename,'r')
-                file.seek(0,2)
-                self._files_followed.setdefault(filename,{'fp':file})
-                timer = QtCore.QTimer(self)
-                timer.timeout.connect(lambda: self._read_logfile(filename))
-                timer.start(READLOG_TIMER)
-                self._files_followed[filename].setdefault('timer',timer)
-                if DEBUG:
-                    self.msg(_("Following logfile") + f' {filename}')
-                return
+            if not os.path.exists(filename):
+                with open(filename,'w') as fp:
+                    fp.write('')
+            file = open(filename,'r')
+            file.seek(0,2)
+            self._files_followed.setdefault(filename,{'fp':file})
+            timer = QtCore.QTimer(self)
+            timer.timeout.connect(lambda: self._read_logfile(filename))
+            timer.start(READLOG_TIMER)
+            self._files_followed[filename].setdefault('timer',timer)
+            if DEBUG:
+                self.msg(_("Following logfile") + f' {filename}')
+            return
         fp=file['fp']
         while self._follow_files:
             # lines = []
