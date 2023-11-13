@@ -352,7 +352,10 @@ class MyAppConfigFiles():
         self.php_confs = []
         self.php_logs = []
         if txt:
-            self.set_from_output(txt)
+            if isinstance(txt,(list,str)):
+                self.set_from_output(txt)
+            if isinstance(txt,dict):
+                self.set_from_config(txt)
 
     def to_config(self):
         data={
@@ -414,6 +417,9 @@ class MyAppConfigFiles():
 
     def set_from_output(self, text=[]):
         cfg = self.output_to_config(text)
+        self.set_from_config(cfg)
+
+    def set_from_config(self, cfg={}):
         self.apache_confs = cfg.get(self.APACHE_TAG).get(self.CONFIGFILES_TAG)
         self.apache_logs = cfg.get(self.APACHE_TAG).get(self.LOGFILES_TAG)
         self.php_confs = cfg.get(self.PHP_TAG).get(self.CONFIGFILES_TAG)
@@ -618,10 +624,17 @@ class MainApp(QtWidgets.QMainWindow):
         tabs.setVisible(False)
 
     def begin_build_menubar(self):
+        menu_context_items = ['Llxamp', 'Exit' ]
+        menu_context = MyQtStaticUtils.create_menu(
+            items=menu_context_items,
+            receiver=self.action_triggered,
+            parent=self.menuBar()
+        )
+        self.menuBar().addMenu(menu_context)
+
         def post_actions(x):
+            x = MyAppConfigFiles(x)
             self.update_menu_bar(data=x)
-            if isinstance(x,(list,str)):
-                x = MyAppConfigFiles(x)
             if x:
                 self.file_mappings = x.get_mappings()
                 for f in x.get_logfiles():
@@ -630,11 +643,11 @@ class MainApp(QtWidgets.QMainWindow):
         if llxconfig:
             cfg = MyAppConfigFiles()
             llxconfig.set_mode_apache()
-            includes,content,logs=llxconfig.process()
+            hierarchy, includes, content, logs=llxconfig.process()
             cfg.apache_confs = includes
             cfg.apache_logs = logs
             llxconfig.set_mode_php()
-            tree2,includes2,content2,logs2=llxconfig.process()
+            hierarchy2, includes2, content2, logs2=llxconfig.process()
             cfg.php_confs = includes2
             cfg.php_logs = logs2
             post_actions(cfg.to_config())
@@ -645,14 +658,6 @@ class MainApp(QtWidgets.QMainWindow):
                 finished_fn=post_actions,
                 debug_fn=self.msg
             )
-
-        menu_context_items = ['Llxamp', 'Exit' ]
-        menu_context = MyQtStaticUtils.create_menu(
-            items=menu_context_items,
-            receiver=self.action_triggered,
-            parent=self.menuBar()
-        )
-        self.menuBar().addMenu(menu_context)
 
     def closeEvent(self,ev=None,*args):
         for tabs in MyQtStaticUtils.findObject(self,'tabs'):
@@ -706,8 +711,9 @@ class MainApp(QtWidgets.QMainWindow):
 
     def update_menu_bar(self, data=None):
         items = []
-
-        items = MyAppConfigFiles(data.splitlines()).get_menu()
+        if not isinstance(data,MyAppConfigFiles):
+            data = MyAppConfigFiles(data)
+        items = data.get_menu()
 
         # items_example = [
         #     ['File', ['Action1',['SubFile', 'Action2'], 'Action3'] ],
