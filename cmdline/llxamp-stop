@@ -1,3 +1,4 @@
 #!/bin/bash
+export PATH="$HOME/llxamp/scripts:$PATH"
 llxamp-stop-mysql
 llxamp-stop-apache

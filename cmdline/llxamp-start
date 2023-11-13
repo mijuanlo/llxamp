@@ -1,3 +1,4 @@
 #!/bin/bash
+export PATH="$HOME/llxamp/scripts:$PATH"
 llxamp-start-mysql
 llxamp-start-apache
