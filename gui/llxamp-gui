@@ -23,7 +23,7 @@ try:
     llxconfig=__import__('llxamp-config')
 except:
     llxconfig=None
-    print(f"{_('Can not import')} llxamp-config")
+    print(_("Can't import") + ' llxamp-config')
 
 app = None
 exitting = False
@@ -125,7 +125,7 @@ class Editor(QtWidgets.QWidget):
     def _iconPressed(self):
         action = self.sender()
         data = action.data()
-        print(f'{_("Editor button pressed")} {data}')
+        print(_("Editor button pressed")+f' {data}')
         if data == 'restore':
             self.restoreFile()
         if data == 'undo':
@@ -139,8 +139,8 @@ class Editor(QtWidgets.QWidget):
         if self.isChanged() or forced:
             dialog = QtWidgets.QMessageBox.question(
                 self,
-                f'{_("Save file")} "{self._filename}"',
-                f'{_("Do you want to save?")} {self._filename}',
+                _("Save file") + f' "{self._filename}"',
+                _("Do you want to save?") + f' {self._filename}',
                 QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
             )
             if dialog == QtWidgets.QMessageBox.Yes:
@@ -153,8 +153,8 @@ class Editor(QtWidgets.QWidget):
     def askRestore(self):
         dialog = QtWidgets.QMessageBox.question(
             self,
-            f'{_("Restore file")} "{self._filename}"',
-            f'{_("Do you want restore original file?")} {self._filename}',
+            _("Restore file") + f' "{self._filename}"',
+            _("Do you want restore original file?") + f' {self._filename}',
             QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
         )
         if dialog == QtWidgets.QMessageBox.No:
@@ -178,7 +178,7 @@ class Editor(QtWidgets.QWidget):
         with open(self._filename,'w') as fp:
             fp.write(contents)
         self.setInitialText(contents)
-        print(f'{_("File")} {self._filename} {_("saved")}')
+        print(_("File") + f' {self._filename} ' + _("saved"))
 
     def hasRestore(self):
         if self._restore_content:
@@ -296,7 +296,7 @@ class LogViewer(QtWidgets.QWidget):
                 timer.start(READLOG_TIMER)
                 self._files_followed[filename].setdefault('timer',timer)
                 if DEBUG:
-                    self.msg(f'{_("Following logfile")} {filename}')
+                    self.msg(_("Following logfile") + f' {filename}')
                 return
         fp=file['fp']
         while self._follow_files:
@@ -508,7 +508,7 @@ class QtProc():
             finished_fn = debug_finish_fn
 
         if self.process.get(scriptname):
-            debug_fn(f'{_("Already running")} {scriptname}')
+            debug_fn(_("Already running") + f' {scriptname}')
             return
 
         process = QtCore.QProcess()
@@ -523,7 +523,7 @@ class QtProc():
             out = process_stdout(scriptname)
             err = process_stderr(scriptname)
             if err:
-                debug_finish_fn(f'{_("Error executing script")} {scriptname}')
+                debug_finish_fn(_("Error executing script") + f' {scriptname}')
             debug_finish_fn({'out': out, 'err': err})
             finished_fn(out)
             if scriptname in self.process:
@@ -589,14 +589,14 @@ class MainApp(QtWidgets.QMainWindow):
         if forced == False:
             dialog = QtWidgets.QMessageBox.question(
                 self,
-                f'{_("Close tab")}',
-                f'{_("Do you want close the tab?")} "{widget.data()}"',
+                _("Close tab"),
+                _("Do you want close the tab?") + f' "{widget.data()}"',
                 QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
             )
             if dialog == QtWidgets.QMessageBox.No:
                 return False
         if DEBUG:
-            self.msg(f'{_("TAB CLOSE")} {idx}')
+            self.msg(_("TAB CLOSE") + f' {idx}')
 
         if hasattr(widget,'askSave'):
             ret = widget.askSave()
@@ -776,7 +776,7 @@ class MainApp(QtWidgets.QMainWindow):
             tabs.addTab(text,name)
             tabs.setCurrentIndex(tabs.count()-1)
             if DEBUG:
-                self.msg(f'{_("Tab created")} {tabs.count()}')
+                self.msg(_("Tab created") + f' {tabs.count()}')
         else:
             idx = tabs.indexOf(tab[0])
             tabs.setCurrentIndex(idx)
@@ -822,7 +822,7 @@ class MainApp(QtWidgets.QMainWindow):
             else:
                 file = data
                 if DEBUG:
-                    self.msg(f'{_("Editing")} {file}')
+                    self.msg(_("Editing") + f' {file}')
                 self.new_tab(file)
                 pass
 
@@ -858,7 +858,7 @@ class MainApp(QtWidgets.QMainWindow):
             # Common "output" parameter for button actions
             def output(x):
                 if DEBUG:
-                    self.msg(f"{_('Output from command')} {scriptname}:\n{x}\n",prepend)
+                    self.msg(_('Output from command') + f' {scriptname}:\n{x}\n',prepend)
                 else:
                     self.msg(x)
                 button.setEnabled(True)
@@ -878,12 +878,13 @@ class MainApp(QtWidgets.QMainWindow):
         if data:
             data = { item[0]:item[1] for item in [line.upper().split('=') for line in data.split('\n')] }
             msg = []
+            notrunstr = _("Not running")
             if data.get('APACHE_RUNNING') == '0':
-                msg.append(f'[Apache: {_("Not running")}]')
+                msg.append(f'[Apache: {notrunstr}]')
             else:
                 msg.append(f"[Apache: ports={data.get('APACHE_PORTS')} {len(data.get('APACHE_PROCS','').split(','))} procs]")
             if data.get('MYSQL_RUNNING') == '0':
-                msg.append(f'[MySQL: {_("Not running")}]')
+                msg.append(f'[MySQL: {notrunstr}]')
             else:
                 msg.append(f"[MySQL: ports={data.get('MYSQL_PORTS')} {len(data.get('MYSQL_PROCS','').split(','))} procs]")
             #self.statusBar().showMessage(' '.join(msg))
@@ -915,7 +916,7 @@ def main():
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.bind('\0llxamp')
     except Exception as e:
-        print(f'{_("Already running")}')
+        print(_("Already running"))
         sys.exit(0)
     app = QtWidgets.QApplication(sys.argv)
     window = MainApp(app)
