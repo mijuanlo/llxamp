@@ -7,101 +7,125 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 18:03+0100\n"
-"PO-Revision-Date: 2023-11-13 18:13+0100\n"
+"POT-Creation-Date: 2023-11-14 20:04+0100\n"
+"PO-Revision-Date: 2023-11-14 20:06+0100\n"
+"Last-Translator: \n"
 "Language-Team: \n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 2.3\n"
-"Last-Translator: \n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: es\n"
 
-#: llxamp-gui:26
+#: llxamp-gui:30
 msgid "Can't import"
 msgstr "No se puede importar"
 
-#: llxamp-gui:34
+#: llxamp-gui:38
 msgid "Ending QApplication"
 msgstr "Terminando aplicación"
 
-#: llxamp-gui:78
+#: llxamp-gui:86
 msgid "Empty filename"
 msgstr "Nombre de fichero vacio"
 
-#: llxamp-gui:128
+#: llxamp-gui:137
 msgid "Editor button pressed"
 msgstr "Botón de edición pulsado"
 
-#: llxamp-gui:142
+#: llxamp-gui:151
 msgid "Save file"
 msgstr "Guardar fichero"
 
-#: llxamp-gui:143
+#: llxamp-gui:152
 msgid "Do you want to save?"
 msgstr "¿Desea guardar?"
 
-#: llxamp-gui:156
+#: llxamp-gui:165
 msgid "Restore file"
 msgstr "Restaurar fichero"
 
-#: llxamp-gui:157
+#: llxamp-gui:166
 msgid "Do you want restore original file?"
 msgstr "¿Desea restaurar el fichero original?"
 
-#: llxamp-gui:181
+#: llxamp-gui:195
 msgid "File"
 msgstr "Archivo"
 
-#: llxamp-gui:181
+#: llxamp-gui:195
 msgid "saved"
 msgstr "guardado"
 
-#: llxamp-gui:259
+#: llxamp-gui:273
 msgid "Log viewer"
 msgstr "Visor de logs"
 
-#: llxamp-gui:299
+#: llxamp-gui:278
+msgid "Clear"
+msgstr "Limpiar"
+
+#: llxamp-gui:283 llxamp-gui:316
+msgid "Hide"
+msgstr "Esconder"
+
+#: llxamp-gui:314
+msgid "Show"
+msgstr "Mostrar"
+
+#: llxamp-gui:353
 msgid "Following logfile"
 msgstr "Siguiendo log"
 
-#: llxamp-gui:511 llxamp-gui:919
+#: llxamp-gui:563 llxamp-gui:1026
 msgid "Already running"
 msgstr "Ya funcionando"
 
-#: llxamp-gui:526
+#: llxamp-gui:578
 msgid "Error executing script"
 msgstr "Error ejecutando script"
 
-#: llxamp-gui:592
+#: llxamp-gui:648
+msgid "Not running"
+msgstr "Parado"
+
+#: llxamp-gui:718
 msgid "Close tab"
 msgstr "Cerrar pestaña"
 
-#: llxamp-gui:593
+#: llxamp-gui:719
 msgid "Do you want close the tab?"
 msgstr "¿Desea cerrar la pestaña?"
 
-#: llxamp-gui:599
+#: llxamp-gui:725
 msgid "TAB CLOSE"
 msgstr "Pestaña cerrada"
 
-#: llxamp-gui:674
+#: llxamp-gui:805
 msgid "Exit"
 msgstr "Salir"
 
-#: llxamp-gui:779
+#: llxamp-gui:912
 msgid "Tab created"
 msgstr "Pestaña creada"
 
-#: llxamp-gui:825
+#: llxamp-gui:951
 msgid "Editing"
 msgstr "Editando"
 
-#: llxamp-gui:861
+#: llxamp-gui:981
 msgid "Output from command"
 msgstr "Salida del comando"
 
-#: llxamp-gui:881
-msgid "Not running"
-msgstr "Parado"
+#: llxamp-gui:1004
+msgid "Open browser"
+msgstr "Abrir navegador"
+
+#: llxamp-gui:1004
+msgid "Open Secure Browser"
+msgstr "Abrir navegador seguro"
+
+#: llxamp-gui:1004
+msgid "PhpMyAdmin"
+msgstr "PhpMyAdmin"
