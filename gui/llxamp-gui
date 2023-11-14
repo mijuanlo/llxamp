@@ -370,14 +370,23 @@ class MyPyStaticUtils():
 class MyAppConfigFiles():
     APACHE_TAG = 'APACHE'
     PHP_TAG = 'PHP'
+    MYSQL_TAG = 'MYSQL'
     CONFIGFILES_TAG = 'CONFFILES'
     LOGFILES_TAG= 'LOGFILES'
 
     def __init__(self,txt=[]):
-        self.apache_confs = []
-        self.apache_logs = []
-        self.php_confs = []
-        self.php_logs = []
+        self.tags = [self.APACHE_TAG,self.PHP_TAG,self.MYSQL_TAG]
+        self.types = [self.CONFIGFILES_TAG,self.LOGFILES_TAG]
+        self.lists = {}
+        for tag in self.tags:
+            for type in self.types:
+                self.lists.setdefault(f'{tag}_{type}',[])
+        # self.apache_confs = []
+        # self.apache_logs = []
+        # self.php_confs = []
+        # self.php_logs = []
+        # self.mysql_confs = []
+        # self.mysql_logs = []
         if txt:
             if isinstance(txt,(list,str)):
                 self.set_from_output(txt)
@@ -385,16 +394,25 @@ class MyAppConfigFiles():
                 self.set_from_config(txt)
 
     def to_config(self):
-        data={
-            self.APACHE_TAG: {
-                self.CONFIGFILES_TAG: self.apache_confs,
-                self.LOGFILES_TAG: self.apache_logs
-            },
-            self.PHP_TAG: {
-                self.CONFIGFILES_TAG: self.php_confs,
-                self.LOGFILES_TAG: self.php_logs
-            }
-        }
+        # data={
+        #     self.APACHE_TAG: {
+        #         self.CONFIGFILES_TAG: self.apache_confs,
+        #         self.LOGFILES_TAG: self.apache_logs
+        #     },
+        #     self.PHP_TAG: {
+        #         self.CONFIGFILES_TAG: self.php_confs,
+        #         self.LOGFILES_TAG: self.php_logs
+        #     }
+        #     self.MYSQL_TAG: {
+        #         self.CONFIGFILES_TAG: self.mysql_confs,
+        #         self.LOGFILES_TAG: self.mysql_logs
+        #     }
+        # }
+        data = {}
+        for tag in self.tags:
+            for type in self.types:
+                data.setdefault(tag,{})
+                data[tag].setdefault(type,self.lists.get(f'{tag}_{type}'))
         return data
 
     def get_mappings(self):
@@ -447,10 +465,15 @@ class MyAppConfigFiles():
         self.set_from_config(cfg)
 
     def set_from_config(self, cfg={}):
-        self.apache_confs = cfg.get(self.APACHE_TAG).get(self.CONFIGFILES_TAG)
-        self.apache_logs = cfg.get(self.APACHE_TAG).get(self.LOGFILES_TAG)
-        self.php_confs = cfg.get(self.PHP_TAG).get(self.CONFIGFILES_TAG)
-        self.php_logs = cfg.get(self.PHP_TAG).get(self.LOGFILES_TAG)
+        for tag in self.tags:
+            for type in self.types:
+                self.lists[f'{tag}_{type}'] = cfg.get(tag).get(type)
+        # self.apache_confs = cfg.get(self.APACHE_TAG).get(self.CONFIGFILES_TAG)
+        # self.apache_logs = cfg.get(self.APACHE_TAG).get(self.LOGFILES_TAG)
+        # self.php_confs = cfg.get(self.PHP_TAG).get(self.CONFIGFILES_TAG)
+        # self.php_logs = cfg.get(self.PHP_TAG).get(self.LOGFILES_TAG)
+        # self.mysql_confs = cfg.get(self.MYSQL_TAG).get(self.CONFIGFILES_TAG)
+        # self.mysql_logs = cfg.get(self.MYSQL_TAG).get(self.LOGFILES_TAG)
 
     def output_to_config(self, text=[]):
         if isinstance(text,str):
@@ -460,22 +483,39 @@ class MyAppConfigFiles():
             hint = item.split(':')[0]
             filepath = item.split(':')[1]
             filepath = filepath.strip()
-            if self.APACHE_TAG in hint:
-                config.setdefault(self.APACHE_TAG,{})
-                if 'CONFIG' in hint:
-                    config[self.APACHE_TAG].setdefault(self.CONFIGFILES_TAG, [])
-                    config[self.APACHE_TAG][self.CONFIGFILES_TAG].append(filepath)
-                if 'LOG' in hint:
-                    config[self.APACHE_TAG].setdefault(self.LOGFILES_TAG, [])
-                    config[self.APACHE_TAG][self.LOGFILES_TAG].append(filepath)
-            if self.PHP_TAG in hint:
-                config.setdefault(self.PHP_TAG,{})
-                if 'CONFIG' in hint:
-                    config[self.PHP_TAG].setdefault(self.CONFIGFILES_TAG, [])
-                    config[self.PHP_TAG][self.CONFIGFILES_TAG].append(filepath)
-                if 'LOG' in hint:
-                    config[self.PHP_TAG].setdefault(self.LOGFILES_TAG, [])
-                    config[self.PHP_TAG][self.LOGFILES_TAG].append(filepath)
+            for tag in self.tags:
+                if tag in hint:
+                    config.setdefault(tag,{})
+                    if 'CONFIG' in hint:
+                        config[tag].setdefault(self.CONFIGFILES_TAG,[])
+                        config[tag][self.CONFIGFILES_TAG].append(filepath)
+                    if 'LOG' in hint:
+                        config[tag].setdefault(self.LOGFILES_TAG,[])
+                        config[tag][self.LOGFILES_TAG].append(filepath)
+            # if self.APACHE_TAG in hint:
+            #     config.setdefault(self.APACHE_TAG,{})
+            #     if 'CONFIG' in hint:
+            #         config[self.APACHE_TAG].setdefault(self.CONFIGFILES_TAG, [])
+            #         config[self.APACHE_TAG][self.CONFIGFILES_TAG].append(filepath)
+            #     if 'LOG' in hint:
+            #         config[self.APACHE_TAG].setdefault(self.LOGFILES_TAG, [])
+            #         config[self.APACHE_TAG][self.LOGFILES_TAG].append(filepath)
+            # if self.PHP_TAG in hint:
+            #     config.setdefault(self.PHP_TAG,{})
+            #     if 'CONFIG' in hint:
+            #         config[self.PHP_TAG].setdefault(self.CONFIGFILES_TAG, [])
+            #         config[self.PHP_TAG][self.CONFIGFILES_TAG].append(filepath)
+            #     if 'LOG' in hint:
+            #         config[self.PHP_TAG].setdefault(self.LOGFILES_TAG, [])
+            #         config[self.PHP_TAG][self.LOGFILES_TAG].append(filepath)
+            # if self.MYSQL_TAG in hint:
+            #     config.setdefault(self.MYSQL_TAG,{})
+            #     if 'CONFIG' in hint:
+            #         config[self.MYSQL_TAG].setdefault(self.CONFIGFILES_TAG, [])
+            #         config[self.MYSQL_TAG][self.CONFIGFILES_TAG].append(filepath)
+            #     if 'LOG' in hint:
+            #         config[self.MYSQL_TAG].setdefault(self.LOGFILES_TAG, [])
+            #         config[self.MYSQL_TAG][self.LOGFILES_TAG].append(filepath)
         return config
 
 class MyQtStaticUtils():
@@ -746,19 +786,26 @@ class MainApp(QtWidgets.QMainWindow):
 
         if llxconfig:
             cfg = MyAppConfigFiles()
+
             llxconfig.set_mode_apache()
             hierarchy, includes, content, logs=llxconfig.process()
             cfg.apache_confs = includes
             cfg.apache_logs = logs
+
             llxconfig.set_mode_php()
             hierarchy2, includes2, content2, logs2=llxconfig.process()
             cfg.php_confs = includes2
             cfg.php_logs = logs2
+
+            llxconfig.set_mode_mysql()
+            hierarchy3, includes3, content3, logs3=llxconfig.process()
+            cfg.mysql_confs = includes2
+            cfg.mysql_logs = logs2
             post_actions(cfg.to_config())
         else:
 
             self.qtproc.executeSingletonScript(
-                'llxamp-config',['-a','-p','-t','-i','-l'],
+                'llxamp-config',['-a','-p','-m','-t','-i','-l'],
                 finished_fn=post_actions,
                 debug_fn=self.msg
             )
