@@ -267,14 +267,29 @@ class LogViewer(QtWidgets.QWidget):
         self._files_followed = {}
         self._textedit = self._create_text_edit(self)
         self._label = QtWidgets.QLabel(_('Log viewer'),self)
+        self._head_container = QtWidgets.QWidget(self)
+        self._clear_button = QtWidgets.QPushButton(self._head_container)
+        self._clear_button.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Minimum)
+        self._clear_button.setText(_('Clear'))
+        self._clear_button.setObjectName('button_clear')
+        self._clear_button.pressed.connect(self.clear)
+        if not self._head_container.layout():
+            self._head_container.setLayout(QtWidgets.QHBoxLayout(self._head_container))
+            self._head_container.layout().setMargin(0)
+
+        self._head_container.layout().addWidget(self._label)
+        self._head_container.layout().addWidget(self._clear_button)
 
         if not self.layout():
             self.setLayout(QtWidgets.QVBoxLayout(self))
         self.layout().setMargin(0)
 
-        self.layout().addWidget(self._label)
+        self.layout().addWidget(self._head_container)
         self.layout().addWidget(self._textedit)
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.MinimumExpanding))
+
+    def clear(self):
+        self._textedit.clear()
 
     def terminate(self):
         self._follow_files = False
@@ -501,8 +516,11 @@ class QtProc():
             return ''
 
         def process_stderr(process):
-            data = bytes(self.process.get(process)[0].readAllStandardError()).decode('utf8').strip()
-            return data
+            p = self.process.get(process)
+            if p:
+                data = bytes(p[0].readAllStandardError()).decode('utf8').strip()
+                return data
+            return ''
 
         if not DEBUG:
             debug_fn = lambda x: None
@@ -549,12 +567,90 @@ class QtProc():
 
         process.start(MyPyStaticUtils.getScriptFullPath(scriptname),arguments)
 
+class Monitor(QtWidgets.QWidget):
+
+    tickData = QtCore.Signal(str)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args)
+        if not self.layout():
+            self.setLayout(QtWidgets.QHBoxLayout(self))
+        self.layout().setMargin(0)
+
+        self.timeout = kwargs.get('timeout',30000)
+        self._debug_fn = kwargs.get('debug_fn',print)
+        self._proc = QtProc()
+        self._timer = QtCore.QTimer()
+        self._timer.timeout.connect(self.makeTick)
+        self._contents = {}
+        self._labels = ['apache','mysql']
+
+        self._add_labels(self._labels)
+        self._add_content_to_layout()
+
+    def _add_labels(self, labels):
+        if not isinstance(labels,list):
+            labels = [labels]
+        for label in labels:
+            labelobj = QtWidgets.QLabel('[no data yet]',self)
+            labelobj.setIndent(8)
+            labelobj.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Fixed)
+            font = QtGui.QFont()
+            font.setFamilies(['Hack','Courier New','monospace'])
+            font.setPointSize(10)
+            labelobj.setFont(font)
+            self._contents.setdefault(f'label_{label}',labelobj)
+
+    def _add_content_to_layout(self):
+        for k,v in self._contents.items():
+            self.layout().addWidget(v)
+
+    def start(self):
+        self.makeTick()
+        self._timer.start(self.timeout)
+
+    def makeTick(self):
+        self._proc.executeSingletonScript(
+                'llxamp-status', ['-a','-m','-p','-n'],
+                debug_fn=self._debug_fn,
+                finished_fn=self._tick_process_result
+            )
+
+    def _tick_process_result(self, result=None):
+        if result:
+            data = { item[0]:item[1] for item in [line.upper().split('=') for line in result.splitlines()] }
+            red_palette = QtGui.QPalette()
+            red_palette.setColor(QtGui.QPalette.WindowText,QtCore.Qt.red)
+            green_palette = QtGui.QPalette()
+            green_palette.setColor(QtGui.QPalette.WindowText,QtCore.Qt.darkGreen)
+            notrunstr = _("Not running")
+            if data.get('APACHE_RUNNING') == '0':
+                label = self._contents.get('label_apache')
+                label.setText(f'[Apache: {notrunstr}]')
+                label.setPalette(red_palette)
+            else:
+                label = self._contents.get('label_apache')
+                label.setText(f"[Apache: ports={data.get('APACHE_PORTS')} {len(data.get('APACHE_PROCS','').split(','))} procs]")
+                label.setPalette(green_palette)
+            if data.get('MYSQL_RUNNING') == '0':
+                label = self._contents.get('label_mysql')
+                label.setText(f'[MySQL: {notrunstr}]')
+                label.setPalette(red_palette)
+            else:
+                label = self._contents.get('label_mysql')
+                label.setText(f"[MySQL: ports={data.get('MYSQL_PORTS')} {len(data.get('MYSQL_PROCS','').split(','))} procs]")
+                label.setPalette(green_palette)
+            self.tickData.emit(result)
+
 class MainApp(QtWidgets.QMainWindow):
     def __init__(self, app, *args, **kwargs):
         super().__init__()
         self.app = app
         self.qtproc = QtProc()
         self.logviewer = LogViewer(self)
+        self.monitor = Monitor(self,timeout=STATUS_TIMER,debug_fn=self.msg)
+        self.statusBar().addWidget(self.monitor)
+        self.monitor.start()
         self.timers = {}
         self.file_mappings = {}
 
@@ -571,21 +667,13 @@ class MainApp(QtWidgets.QMainWindow):
         self.centralWidget().setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         self.begin_build_menubar()
-        self.msglabel = QtWidgets.QLabel()
-        self.msglabel.setIndent(8)
-        font = QtGui.QFont()
-        font.setFamilies(['Hack','Courier New','monospace'])
-        font.setPointSize(10)
-        self.msglabel.setFont(font)
-        self.statusBar().addPermanentWidget(self.msglabel,100)
-        self.statusBar().setVisible(True)
         self.create_layout()
         self.create_tabs()
         self.create_buttons()
         self.split.addWidget(self.logviewer)
-        self.create_timers()
+        # self.create_timers()
         self.create_systray()
-        self.action_triggered('status_timer')
+        #self.action_triggered('status_timer')
         if DEBUG:
             msg = []
             for k in os.environ.keys():
@@ -824,12 +912,12 @@ class MainApp(QtWidgets.QMainWindow):
         if txt:
             txt = ','.join(txt)
 
-        if name == 'status_timer':
-            self.qtproc.executeSingletonScript(
-                'llxamp-status', ['-a','-m','-p','-n'],
-                debug_fn=self.msg,
-                finished_fn=lambda x: self.update_status_bar(data=x)
-            )
+        # if name == 'status_timer':
+        #     self.qtproc.executeSingletonScript(
+        #         'llxamp-status', ['-a','-m','-p','-n'],
+        #         debug_fn=self.msg,
+        #         finished_fn=lambda x: self.update_status_bar(data=x)
+        #     )
 
         if name[:6] == 'action':
             if parent_name.lower() == 'menu_llxamp':
@@ -850,12 +938,6 @@ class MainApp(QtWidgets.QMainWindow):
             scriptname = f'llxamp-{cmd}'
             args = []
             prepend=''
-            if cmd == 'clear':
-                txt=MyQtStaticUtils.findObject(self,'textarea')
-                if not txt:
-                    return
-                txt[0].clear()
-                return
             if cmd == 'status':
                 args = ['-a','-m','-p','-n']
             if cmd == 'config':
@@ -881,7 +963,7 @@ class MainApp(QtWidgets.QMainWindow):
                 if cmd == 'status':
                     self.update_status_bar(data=x)
                 else:
-                    QtCore.QTimer.singleShot(3000,lambda: self.action_triggered('status_timer'))
+                    QtCore.QTimer.singleShot(3000,self.monitor.makeTick)
 
             self.qtproc.executeSingletonScript(
                 scriptname, args,
@@ -890,38 +972,67 @@ class MainApp(QtWidgets.QMainWindow):
                 debug_fn=self.msg
             )
 
-    def update_status_bar(self, data = None):
-        if data:
-            data = { item[0]:item[1] for item in [line.upper().split('=') for line in data.split('\n')] }
-            msg = []
-            notrunstr = _("Not running")
-            if data.get('APACHE_RUNNING') == '0':
-                msg.append(f'[Apache: {notrunstr}]')
-            else:
-                msg.append(f"[Apache: ports={data.get('APACHE_PORTS')} {len(data.get('APACHE_PROCS','').split(','))} procs]")
-            if data.get('MYSQL_RUNNING') == '0':
-                msg.append(f'[MySQL: {notrunstr}]')
-            else:
-                msg.append(f"[MySQL: ports={data.get('MYSQL_PORTS')} {len(data.get('MYSQL_PROCS','').split(','))} procs]")
-            #self.statusBar().showMessage(' '.join(msg))
-            self.msglabel.setText(' '.join(msg))
+    # def update_status_bar(self, data = None):
+    #     child = self.statusBar().children()
+    #     if len(child) < 3:
+    #         self.msglabel_apache = QtWidgets.QLabel()
+    #         self.msglabel_mysql = QtWidgets.QLabel()
+    #         self.msglabel_apache.setIndent(8)
+    #         self.msglabel_apache.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Fixed)
+    #         self.msglabel_mysql.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Fixed)
+    #         font = QtGui.QFont()
+    #         font.setFamilies(['Hack','Courier New','monospace'])
+    #         font.setPointSize(10)
+    #         self.msglabel_apache.setFont(font)
+    #         self.msglabel_mysql.setFont(font)
+    #         self.statusBar().addPermanentWidget(self.msglabel_apache,100)
+    #         self.statusBar().addPermanentWidget(self.msglabel_mysql,100)
+    #         self.statusBar().setVisible(True)
+
+    #     if data:
+    #         data = { item[0]:item[1] for item in [line.upper().split('=') for line in data.split('\n')] }
+    #         msg1 = []
+    #         msg2 = []
+    #         red_palette = QtGui.QPalette()
+    #         red_palette.setColor(QtGui.QPalette.WindowText,QtCore.Qt.red)
+    #         green_palette = QtGui.QPalette()
+    #         green_palette.setColor(QtGui.QPalette.WindowText,QtCore.Qt.darkGreen)
+    #         notrunstr = _("Not running")
+    #         if data.get('APACHE_RUNNING') == '0':
+    #             msg1.append(f'[Apache: {notrunstr}]')
+    #         else:
+    #             msg1.append(f"[Apache: ports={data.get('APACHE_PORTS')} {len(data.get('APACHE_PROCS','').split(','))} procs]")
+    #         if data.get('MYSQL_RUNNING') == '0':
+    #             msg2.append(f'[MySQL: {notrunstr}]')
+    #         else:
+    #             msg2.append(f"[MySQL: ports={data.get('MYSQL_PORTS')} {len(data.get('MYSQL_PROCS','').split(','))} procs]")
+    #         #self.statusBar().showMessage(' '.join(msg))
+    #         self.msglabel_apache.setText(' '.join(msg1))
+    #         #self.msglabel_apache.setPalette(red_palette)
+    #         self.msglabel_mysql.setText(' '.join(msg2))
+    #         #self.msglabel_mysql.setPalette(green_palette)
 
     def create_buttons(self):
-        buttons = ["#status","start","stop","#config","clear","open-browser","open-browser-ssl"]
+        container = QtWidgets.QWidget(self.split)
+        if not container.layout():
+            container.setLayout(QtWidgets.QHBoxLayout(container))
+        container.layout().setMargin(0)
+
+        buttons = ["#status","start","stop","#config","open-browser","open-browser-ssl"]
         for txt in buttons:
             if txt[0] != '#':
-                btn = QtWidgets.QPushButton(txt.capitalize(),parent=self.split)
+                btn = QtWidgets.QPushButton(txt.capitalize(),parent=container)
                 btn.setObjectName('button_'+txt)
                 btn.pressed.connect(self.action_triggered)
-                self.centralWidget().layout().addWidget(btn)
-        pass
+                container.layout().addWidget(btn)
+        self.centralWidget().layout().addWidget(container)
 
-    def create_timers(self):
-        timer = QtCore.QTimer()
-        self.timers.setdefault('status',timer)
-        timer.setObjectName('status')
-        timer.timeout.connect(lambda : self.action_triggered('status_timer'))
-        timer.start(STATUS_TIMER)
+    # def create_timers(self):
+    #     timer = QtCore.QTimer()
+    #     self.timers.setdefault('status',timer)
+    #     timer.setObjectName('status')
+    #     timer.timeout.connect(lambda : self.action_triggered('status_timer'))
+    #     timer.start(STATUS_TIMER)
 
     def msg(self, txt='', prepend=''):
         self.logviewer.msg(txt,prepend)
