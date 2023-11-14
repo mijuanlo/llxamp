@@ -11,8 +11,18 @@ COMMENT_PHP = ';'
 CONFIG_PHP = f'{BASEPATH}/php/lib/php.ini'
 COMMENT_APACHE = '#'
 CONFIG_APACHE = f'{BASEPATH}/httpd/conf/httpd.conf'
+COMMENT_MYSQL = '#'
+LOG_PHP_REGEXP = r'^\s*error_log\s*='
+INCLUDE_PHP_REGEXP = None
+INCLUDE_MYSQL_REGEXP = r'^\s*!include(dir)?'
+LOG_MYSQL_REGEXP = r'^\s*(log[_-]error|general[_-]log[_-]file|log[_-]slow[_-]queries)\s*='
+INCLUDE_APACHE_REGEXP = r'^\s*include'
+LOG_APACHE_REGEXP = r'^\s*(error|transfer|custom)log'
+CONFIG_MYSQL = f'{BASEPATH}/mysql/conf/my.cnf'
 COMMENT = None
 CONFIG = None
+INCLUDE_REGEXP = None
+LOG_REGEXP = None
 TAB=' '*4
 
 
@@ -38,29 +48,45 @@ def filter_comments(txtlist):
 
 def filter_includes(txtlist):
     filtered=[]
+    if not INCLUDE_REGEXP:
+        return txtlist
     for line in txtlist:
-        if not re.match(r'^\s*include',line,re.IGNORECASE):
+        if not re.match(INCLUDE_REGEXP,line,re.IGNORECASE):
             filtered.append(line)
     return filtered
 
 def filter_not_includes(txtlist):
     filtered=[]
+    if not INCLUDE_REGEXP:
+        return []
     for line in txtlist:
-        if re.match(r'^\s*include',line,re.IGNORECASE):
+        if re.match(INCLUDE_REGEXP,line,re.IGNORECASE):
             filtered.append(line)
     return filtered
 
 def filter_not_logs(txtlist):
     filtered=[]
     for line in txtlist:
-        if re.match(r'^\s*(error|transfer|custom)log',line,re.IGNORECASE):
+        if re.match(LOG_REGEXP,line,re.IGNORECASE):
             filtered.append(line.strip())
     return filtered
 
 def get_first_param(txtlist):
     params=[]
+    skip_separators = ['=']
     for line in txtlist:
-        params.append(line.split()[1].replace('"','').replace("'",''))
+        parts = line.split()
+        for part in parts[1:]:
+            param = part.replace('"','').replace("'",'')
+            aborted = False
+            for sep in skip_separators:
+                if param == sep:
+                    aborted = True
+                    break
+            if aborted:
+                continue
+            params.append(param)
+            break
     return params
 
 def expand_includes(txtlist):
@@ -118,14 +144,16 @@ def process_includes(filename,hierarchy={},includes=[],content=[],logs=[]):
 def print_hierarchy(hierarchy={},comments=False,level=0):
     if CONFIG == CONFIG_APACHE:
         label='CONFIG_APACHE:'
-    else:
+    elif CONFIG == CONFIG_PHP:
         label='CONFIG_PHP:'
+    elif CONFIG == CONFIG_MYSQL:
+        label='CONFIG_MYSQL:'
     pad=''
     txt=''
     if level:
         pad=TAB*level
     if comments:
-        pad=f'{COMMENT}{label}{pad}'
+        pad=f'#{label}{pad}'
     for key,value in hierarchy.items():
         txt = f"{txt}{pad}{key}\n"
         if value:
@@ -162,8 +190,10 @@ def print_content(content,comments=False,llxamp_comments=True):
 def print_logs(loglist,comments=False):
     if CONFIG == CONFIG_APACHE:
         label='LOG_APACHE:'
-    else:
+    elif CONFIG == CONFIG_PHP:
         label='LOG_PHP:'
+    elif CONFIG == CONFIG_MYSQL:
+        label='LOG_MYSQL:'
     pad=''
     if comments:
         pad=COMMENT+label
@@ -172,10 +202,11 @@ def print_logs(loglist,comments=False):
 def help_menu():
     filename = os.path.basename(__file__)
     print(f'''{filename} usage:
-{filename} [ -a [-c|-t] |-p [-c|-t] |-h ] [-r] [-i]
+{filename} [ -a [-c|-t] | -p [-c|-t] | -m [ -c|-t ] | -h ] [-r] [-i]
 Options:
     -a: Select Apache mode
     -p: Select PHP mode
+    -m: Select MySQL mode
     -h: This help
 
     -c: Show configfiles content
@@ -212,22 +243,36 @@ def process(params=[]):
         llxamp_comments = False
 
     if '-t' in params:
-        print(print_hierarchy(hierarchy,llxamp_comments).rstrip())
+        if hierarchy:
+            print(print_hierarchy(hierarchy,llxamp_comments).rstrip())
     if '-c' in params:
-        print(print_content(content,comments,llxamp_comments))
+        if content:
+            print(print_content(content,comments,llxamp_comments))
     if '-l' in params:
-        print(print_logs(logs,llxamp_comments))
+        if logs:
+            print(print_logs(logs,llxamp_comments))
     return hierarchy,includes,content,logs
 
 def set_mode_apache():
-    global COMMENT, CONFIG, COMMENT_APACHE, CONFIG_APACHE
+    global COMMENT, CONFIG, LOG_REGEXP, INCLUDE_REGEXP
     COMMENT=COMMENT_APACHE
     CONFIG=CONFIG_APACHE
+    LOG_REGEXP=LOG_APACHE_REGEXP
+    INCLUDE_REGEXP=INCLUDE_APACHE_REGEXP
 
 def set_mode_php():
-    global COMMENT, CONFIG, COMMENT_PHP, CONFIG_PHP
+    global COMMENT, CONFIG, LOG_REGEXP, INCLUDE_REGEXP
     COMMENT=COMMENT_PHP
     CONFIG=CONFIG_PHP
+    LOG_REGEXP=LOG_PHP_REGEXP
+    INCLUDE_REGEXP=INCLUDE_PHP_REGEXP
+
+def set_mode_mysql():
+    global COMMENT, CONFIG, LOG_REGEXP, INCLUDE_REGEXP
+    COMMENT=COMMENT_MYSQL
+    CONFIG=CONFIG_MYSQL
+    LOG_REGEXP=LOG_MYSQL_REGEXP
+    INCLUDE_REGEXP=INCLUDE_MYSQL_REGEXP
 
 if __name__ == '__main__':
     params = sys.argv
@@ -242,6 +287,10 @@ if __name__ == '__main__':
 
     if '-p' in params:
         set_mode_php()
+        process(params)
+
+    if '-m' in params:
+        set_mode_mysql()
         process(params)
 
     sys.exit(0)
