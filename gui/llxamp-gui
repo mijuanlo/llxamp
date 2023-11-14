@@ -69,8 +69,12 @@ class Highlighter(QtGui.QSyntaxHighlighter):
         return format
 
     def highlightBlock(self, text):
-        if 'error' in text.lower():
-            self.setFormat(0,len(text),self._format('red','bold'))
+        if text:
+            idx = 0
+            if text[0] == '[':
+                idx = text.index(']') + 1
+            if 'error' in text[idx:].lower():
+                self.setFormat(0,len(text),self._format('red','bold'))
 
 class Editor(QtWidgets.QWidget):
     editorModified = QtCore.Signal(bool)
@@ -267,29 +271,52 @@ class LogViewer(QtWidgets.QWidget):
         self._files_followed = {}
         self._textedit = self._create_text_edit(self)
         self._label = QtWidgets.QLabel(_('Log viewer'),self)
+
         self._head_container = QtWidgets.QWidget(self)
         self._clear_button = QtWidgets.QPushButton(self._head_container)
-        self._clear_button.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Minimum)
+        self._clear_button.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Fixed)
         self._clear_button.setText(_('Clear'))
         self._clear_button.setObjectName('button_clear')
         self._clear_button.pressed.connect(self.clear)
+        self._showhide_button = QtWidgets.QPushButton(self._head_container)
+        self._showhide_button.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Fixed)
+        self._showhide_button.setText(_('Hide'))
+        self._showhide_button.setObjectName('button_showhide')
+        self._showhide_button.pressed.connect(self.show_hide)
+
         if not self._head_container.layout():
             self._head_container.setLayout(QtWidgets.QHBoxLayout(self._head_container))
             self._head_container.layout().setMargin(0)
+            self._head_container.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Fixed)
 
         self._head_container.layout().addWidget(self._label)
+        self._head_container.layout().addItem(QtWidgets.QSpacerItem(0,0,QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding))
         self._head_container.layout().addWidget(self._clear_button)
-
+        self._head_container.layout().addWidget(self._showhide_button)
         if not self.layout():
             self.setLayout(QtWidgets.QVBoxLayout(self))
         self.layout().setMargin(0)
-
         self.layout().addWidget(self._head_container)
+        self.layout().setAlignment(QtCore.Qt.AlignBottom)
+        # sizep = self._textedit.sizePolicy()
+        # sizep.setRetainSizeWhenHidden(True)
+        # self._textedit.setSizePolicy(sizep)
         self.layout().addWidget(self._textedit)
-        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.MinimumExpanding))
+        self.setMinimumSize(0,0)
 
     def clear(self):
         self._textedit.clear()
+
+    def show_hide(self):
+        visible = self._textedit.isVisible()
+        self._textedit.setVisible( not visible)
+        if visible:
+            text = _('Show')
+        else:
+            text = _('Hide')
+        self._showhide_button.setText(text)
+        self.updateGeometry()
+
 
     def terminate(self):
         self._follow_files = False
@@ -306,7 +333,7 @@ class LogViewer(QtWidgets.QWidget):
         Highlighter(doc)
         text.setReadOnly(True)
         text.setObjectName('textarea')
-        text.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.MinimumExpanding))
+        #text.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.MinimumExpanding))
         return text
 
     def follow(self, filename):
@@ -337,7 +364,8 @@ class LogViewer(QtWidgets.QWidget):
 
     def _read_logfile(self, filename):
         lines = self.follow(filename)
-        self.msg(lines,f'[{filename.split("/")[-1]}]')
+        printname = f'[{filename.split("/")[-1]}]'
+        self.msg(lines,f'{printname:<25}')
 
     def msg(self,txt='',prepend=''):
         if txt:
@@ -348,11 +376,13 @@ class LogViewer(QtWidgets.QWidget):
             if isinstance(txt,list):
                 txtlines=txt
             for line in txtlines:
-                self._textedit.appendPlainText(f'{prepend}{line.capitalize()}')
+                if line:
+                    self._textedit.appendPlainText(f'{prepend}{line.capitalize()}')
 
 class MyPyStaticUtils():
     def getTime():
-        return time.strftime("[%Y-%m-%d %H:%M:%S]", time.gmtime())
+        printtime = time.strftime("[%Y-%m-%d %H:%M:%S]", time.gmtime())
+        return f'{printtime:<25}'
 
     def getTimestamp():
         return time.strftime("%Y%m%d%H%M%S", time.gmtime())
@@ -371,7 +401,7 @@ class MyAppConfigFiles():
     APACHE_TAG = 'APACHE'
     PHP_TAG = 'PHP'
     MYSQL_TAG = 'MYSQL'
-    CONFIGFILES_TAG = 'CONFFILES'
+    CONFIGFILES_TAG = 'CONFIGFILES'
     LOGFILES_TAG= 'LOGFILES'
 
     def __init__(self,txt=[]):
@@ -381,12 +411,7 @@ class MyAppConfigFiles():
         for tag in self.tags:
             for type in self.types:
                 self.lists.setdefault(f'{tag}_{type}',[])
-        # self.apache_confs = []
-        # self.apache_logs = []
-        # self.php_confs = []
-        # self.php_logs = []
-        # self.mysql_confs = []
-        # self.mysql_logs = []
+
         if txt:
             if isinstance(txt,(list,str)):
                 self.set_from_output(txt)
@@ -394,20 +419,6 @@ class MyAppConfigFiles():
                 self.set_from_config(txt)
 
     def to_config(self):
-        # data={
-        #     self.APACHE_TAG: {
-        #         self.CONFIGFILES_TAG: self.apache_confs,
-        #         self.LOGFILES_TAG: self.apache_logs
-        #     },
-        #     self.PHP_TAG: {
-        #         self.CONFIGFILES_TAG: self.php_confs,
-        #         self.LOGFILES_TAG: self.php_logs
-        #     }
-        #     self.MYSQL_TAG: {
-        #         self.CONFIGFILES_TAG: self.mysql_confs,
-        #         self.LOGFILES_TAG: self.mysql_logs
-        #     }
-        # }
         data = {}
         for tag in self.tags:
             for type in self.types:
@@ -468,12 +479,6 @@ class MyAppConfigFiles():
         for tag in self.tags:
             for type in self.types:
                 self.lists[f'{tag}_{type}'] = cfg.get(tag).get(type)
-        # self.apache_confs = cfg.get(self.APACHE_TAG).get(self.CONFIGFILES_TAG)
-        # self.apache_logs = cfg.get(self.APACHE_TAG).get(self.LOGFILES_TAG)
-        # self.php_confs = cfg.get(self.PHP_TAG).get(self.CONFIGFILES_TAG)
-        # self.php_logs = cfg.get(self.PHP_TAG).get(self.LOGFILES_TAG)
-        # self.mysql_confs = cfg.get(self.MYSQL_TAG).get(self.CONFIGFILES_TAG)
-        # self.mysql_logs = cfg.get(self.MYSQL_TAG).get(self.LOGFILES_TAG)
 
     def output_to_config(self, text=[]):
         if isinstance(text,str):
@@ -492,30 +497,7 @@ class MyAppConfigFiles():
                     if 'LOG' in hint:
                         config[tag].setdefault(self.LOGFILES_TAG,[])
                         config[tag][self.LOGFILES_TAG].append(filepath)
-            # if self.APACHE_TAG in hint:
-            #     config.setdefault(self.APACHE_TAG,{})
-            #     if 'CONFIG' in hint:
-            #         config[self.APACHE_TAG].setdefault(self.CONFIGFILES_TAG, [])
-            #         config[self.APACHE_TAG][self.CONFIGFILES_TAG].append(filepath)
-            #     if 'LOG' in hint:
-            #         config[self.APACHE_TAG].setdefault(self.LOGFILES_TAG, [])
-            #         config[self.APACHE_TAG][self.LOGFILES_TAG].append(filepath)
-            # if self.PHP_TAG in hint:
-            #     config.setdefault(self.PHP_TAG,{})
-            #     if 'CONFIG' in hint:
-            #         config[self.PHP_TAG].setdefault(self.CONFIGFILES_TAG, [])
-            #         config[self.PHP_TAG][self.CONFIGFILES_TAG].append(filepath)
-            #     if 'LOG' in hint:
-            #         config[self.PHP_TAG].setdefault(self.LOGFILES_TAG, [])
-            #         config[self.PHP_TAG][self.LOGFILES_TAG].append(filepath)
-            # if self.MYSQL_TAG in hint:
-            #     config.setdefault(self.MYSQL_TAG,{})
-            #     if 'CONFIG' in hint:
-            #         config[self.MYSQL_TAG].setdefault(self.CONFIGFILES_TAG, [])
-            #         config[self.MYSQL_TAG][self.CONFIGFILES_TAG].append(filepath)
-            #     if 'LOG' in hint:
-            #         config[self.MYSQL_TAG].setdefault(self.LOGFILES_TAG, [])
-            #         config[self.MYSQL_TAG][self.LOGFILES_TAG].append(filepath)
+
         return config
 
 class MyQtStaticUtils():
@@ -711,9 +693,9 @@ class MainApp(QtWidgets.QMainWindow):
         self.create_tabs()
         self.create_buttons()
         self.split.addWidget(self.logviewer)
-        # self.create_timers()
+        self.split.setStretchFactor(self.split.count()-1,1)
+
         self.create_systray()
-        #self.action_triggered('status_timer')
         if DEBUG:
             msg = []
             for k in os.environ.keys():
@@ -761,10 +743,8 @@ class MainApp(QtWidgets.QMainWindow):
         # text = QtWidgets.QPlainTextEdit()
         # text.setObjectName('tab_exampletab1')
         # tabs.addTab(text,'exampletab1')
-        # text2 = QtWidgets.QPlainTextEdit()
-        # text2.setObjectName('tab_exampletab2')
-        # tabs.addTab(text2,'exampletab2')
         self.split.addWidget(tabs)
+        self.split.setStretchFactor(self.split.count()-1,10)
         tabs.setVisible(False)
 
     def begin_build_menubar(self):
@@ -789,18 +769,18 @@ class MainApp(QtWidgets.QMainWindow):
 
             llxconfig.set_mode_apache()
             hierarchy, includes, content, logs=llxconfig.process()
-            cfg.apache_confs = includes
-            cfg.apache_logs = logs
+            cfg.lists[f'{cfg.APACHE_TAG}_{cfg.CONFIGFILES_TAG}'] = includes
+            cfg.lists[f'{cfg.APACHE_TAG}_{cfg.LOGFILES_TAG}'] = logs
 
             llxconfig.set_mode_php()
             hierarchy2, includes2, content2, logs2=llxconfig.process()
-            cfg.php_confs = includes2
-            cfg.php_logs = logs2
+            cfg.lists[f'{cfg.PHP_TAG}_{cfg.CONFIGFILES_TAG}'] = includes2
+            cfg.lists[f'{cfg.PHP_TAG}_{cfg.LOGFILES_TAG}'] = logs2
 
             llxconfig.set_mode_mysql()
             hierarchy3, includes3, content3, logs3=llxconfig.process()
-            cfg.mysql_confs = includes2
-            cfg.mysql_logs = logs2
+            cfg.lists[f'{cfg.MYSQL_TAG}_{cfg.CONFIGFILES_TAG}'] = includes3
+            cfg.lists[f'{cfg.MYSQL_TAG}_{cfg.LOGFILES_TAG}'] = logs3
             post_actions(cfg.to_config())
         else:
 
@@ -859,6 +839,8 @@ class MainApp(QtWidgets.QMainWindow):
         self.split.setOrientation(QtCore.Qt.Vertical)
         self.split.setChildrenCollapsible(False)
         l.addWidget(self.split)
+        self.split.setMinimumSize(0,0)
+        self.split.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.MinimumExpanding)
 
     def update_menu_bar(self, data=None):
         items = []
@@ -959,13 +941,6 @@ class MainApp(QtWidgets.QMainWindow):
         if txt:
             txt = ','.join(txt)
 
-        # if name == 'status_timer':
-        #     self.qtproc.executeSingletonScript(
-        #         'llxamp-status', ['-a','-m','-p','-n'],
-        #         debug_fn=self.msg,
-        #         finished_fn=lambda x: self.update_status_bar(data=x)
-        #     )
-
         if name[:6] == 'action':
             if parent_name.lower() == 'menu_llxamp':
                 if text.lower() == 'exit':
@@ -1019,48 +994,9 @@ class MainApp(QtWidgets.QMainWindow):
                 debug_fn=self.msg
             )
 
-    # def update_status_bar(self, data = None):
-    #     child = self.statusBar().children()
-    #     if len(child) < 3:
-    #         self.msglabel_apache = QtWidgets.QLabel()
-    #         self.msglabel_mysql = QtWidgets.QLabel()
-    #         self.msglabel_apache.setIndent(8)
-    #         self.msglabel_apache.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Fixed)
-    #         self.msglabel_mysql.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Fixed)
-    #         font = QtGui.QFont()
-    #         font.setFamilies(['Hack','Courier New','monospace'])
-    #         font.setPointSize(10)
-    #         self.msglabel_apache.setFont(font)
-    #         self.msglabel_mysql.setFont(font)
-    #         self.statusBar().addPermanentWidget(self.msglabel_apache,100)
-    #         self.statusBar().addPermanentWidget(self.msglabel_mysql,100)
-    #         self.statusBar().setVisible(True)
-
-    #     if data:
-    #         data = { item[0]:item[1] for item in [line.upper().split('=') for line in data.split('\n')] }
-    #         msg1 = []
-    #         msg2 = []
-    #         red_palette = QtGui.QPalette()
-    #         red_palette.setColor(QtGui.QPalette.WindowText,QtCore.Qt.red)
-    #         green_palette = QtGui.QPalette()
-    #         green_palette.setColor(QtGui.QPalette.WindowText,QtCore.Qt.darkGreen)
-    #         notrunstr = _("Not running")
-    #         if data.get('APACHE_RUNNING') == '0':
-    #             msg1.append(f'[Apache: {notrunstr}]')
-    #         else:
-    #             msg1.append(f"[Apache: ports={data.get('APACHE_PORTS')} {len(data.get('APACHE_PROCS','').split(','))} procs]")
-    #         if data.get('MYSQL_RUNNING') == '0':
-    #             msg2.append(f'[MySQL: {notrunstr}]')
-    #         else:
-    #             msg2.append(f"[MySQL: ports={data.get('MYSQL_PORTS')} {len(data.get('MYSQL_PROCS','').split(','))} procs]")
-    #         #self.statusBar().showMessage(' '.join(msg))
-    #         self.msglabel_apache.setText(' '.join(msg1))
-    #         #self.msglabel_apache.setPalette(red_palette)
-    #         self.msglabel_mysql.setText(' '.join(msg2))
-    #         #self.msglabel_mysql.setPalette(green_palette)
-
     def create_buttons(self):
         container = QtWidgets.QWidget(self.split)
+        container.setObjectName('container_buttons')
         if not container.layout():
             container.setLayout(QtWidgets.QHBoxLayout(container))
         container.layout().setMargin(0)
@@ -1073,13 +1009,6 @@ class MainApp(QtWidgets.QMainWindow):
                 btn.pressed.connect(self.action_triggered)
                 container.layout().addWidget(btn)
         self.centralWidget().layout().addWidget(container)
-
-    # def create_timers(self):
-    #     timer = QtCore.QTimer()
-    #     self.timers.setdefault('status',timer)
-    #     timer.setObjectName('status')
-    #     timer.timeout.connect(lambda : self.action_triggered('status_timer'))
-    #     timer.start(STATUS_TIMER)
 
     def msg(self, txt='', prepend=''):
         self.logviewer.msg(txt,prepend)
