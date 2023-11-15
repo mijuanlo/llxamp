@@ -577,7 +577,7 @@ class QtProc():
             if err:
                 debug_finish_fn(_("Error executing script") + f' {scriptname}')
             debug_finish_fn({'out': out, 'err': err})
-            finished_fn(out)
+            finished_fn(out,err)
             if scriptname in self.process:
                 del self.process[scriptname]
 
@@ -638,7 +638,7 @@ class Monitor(QtWidgets.QWidget):
                 finished_fn=self._tick_process_result
             )
 
-    def _tick_process_result(self, result=None):
+    def _tick_process_result(self, result=None, err=None):
         if result:
             data = { item[0]:item[1] for item in [line.upper().split('=') for line in result.splitlines()] }
             red_palette = QtGui.QPalette()
@@ -756,7 +756,7 @@ class MainApp(QtWidgets.QMainWindow):
         )
         self.menuBar().addMenu(menu_context)
 
-        def post_actions(x):
+        def post_actions(x,err):
             x = MyAppConfigFiles(x)
             self.update_menu_bar(data=x)
             if x:
@@ -781,7 +781,7 @@ class MainApp(QtWidgets.QMainWindow):
             hierarchy3, includes3, content3, logs3=llxconfig.process()
             cfg.lists[f'{cfg.MYSQL_TAG}_{cfg.CONFIGFILES_TAG}'] = includes3
             cfg.lists[f'{cfg.MYSQL_TAG}_{cfg.LOGFILES_TAG}'] = logs3
-            post_actions(cfg.to_config())
+            post_actions(cfg.to_config(),None)
         else:
 
             self.qtproc.executeSingletonScript(
@@ -976,7 +976,9 @@ class MainApp(QtWidgets.QMainWindow):
                     return
 
             # Common "output" parameter for button actions
-            def output(x):
+            def output(x,err):
+                if err:
+                    self.msg(_('Error Output') + f'---> "{err}"')
                 if DEBUG:
                     self.msg(_('Output from command') + f' {scriptname}:\n{x}\n',prepend)
                 else:
@@ -990,7 +992,7 @@ class MainApp(QtWidgets.QMainWindow):
             self.qtproc.executeSingletonScript(
                 scriptname, args,
                 started_fn=lambda: button.setDisabled(True),
-                finished_fn=lambda x: output(x),
+                finished_fn=lambda x,y: output(x,y),
                 debug_fn=self.msg
             )
     def toggle(self):
