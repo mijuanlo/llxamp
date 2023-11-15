@@ -146,3 +146,9 @@ My main reason for setting this up was to facilitate easier simulation of django
 Caveats
 
 My only disappointment is that the windows implementation of Bonjour/Avahi does not support the aliases that this implementation announces, it will only see the main avahi hostname normally announced (ie server.local in our example above).
+
+
+
+
+
+# https://github.com/scott-ainsworth/avahi-aliases
