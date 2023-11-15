@@ -993,26 +993,95 @@ class MainApp(QtWidgets.QMainWindow):
                 finished_fn=lambda x: output(x),
                 debug_fn=self.msg
             )
+    def toggle(self):
+        button = self.sender()
+        print(f'Checked={button.isChecked()}')
+        buttons = [ child for child in button.parent().children() if isinstance(child,QtWidgets.QToolButton) and child.objectName()[:7] == 'button_' ]
+        if button.isChecked():
+            for btn in buttons:
+                btn.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
+            button.setIcon(self._iconBack)
+            button.setChecked(False)
+        else:
+            for btn in buttons:
+                btn.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+            button.setIcon(self._iconForward)
+            button.setChecked(True)
 
     def create_buttons(self):
-        container = QtWidgets.QWidget(self.split)
-        container.setObjectName('container_buttons')
-        if not container.layout():
-            container.setLayout(QtWidgets.QHBoxLayout(container))
-        container.layout().setMargin(0)
+        if not hasattr(self,'_iconBack'):
+            self._iconBack = self.style().standardIcon(getattr(QtWidgets.QStyle,'SP_ArrowBack'))
+        if not hasattr(self,'_iconForward'):
+            self._iconForward = self.style().standardIcon(getattr(QtWidgets.QStyle,'SP_ArrowForward'))
 
-        buttons = ["#status","start","stop","#config",("open-browser",_('Open browser')),("open-browser-ssl",_('Open Secure Browser')),("open-phpmyadmin",_("PhpMyAdmin"))]
+        toolbar = QtWidgets.QToolBar(self.centralWidget().parent())
+        toolbar.setFloatable(False)
+        toolbar.setMovable(False)
+        toolbar.setOrientation(QtCore.Qt.Vertical)
+        toolbar.setStyleSheet('border:none;')
+        toolbar.setIconSize(QtCore.QSize(32,32))
+
+        button = QtWidgets.QToolButton(toolbar)
+        button.setObjectName('toggle_button')
+        button.setIcon(self._iconBack)
+        button.setCheckable(True)
+        button.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
+        button.pressed.connect(self.toggle)
+        toolbar.addWidget(button)
+        toolbar.setContentsMargins(10,10,10,10)
+
+        buttons = [
+            ("start","Start",("media-playback-start","SP_MediaPlay")),
+            ("stop","Stop",("media-player-stop","SP_MediaStop")),
+            ("open-browser",_("Browser"),("internet-web-browser","SP_DriveNetIcon")),
+            ("open-browser-ssl",_("Secure browser"),("preferences-web-browser-ssl","SP_DriveNetIcon")),
+            ("open-phpmyadmin",_("PhpMyAdmin"),("server-database","SP_FileDialogInfoView"))
+        ]
+        maxsize=max([ len(button[2]) for button in buttons])
         for txt in buttons:
             if isinstance(txt,tuple):
-                cmd,txt = txt
+                cmd,txt,icons = txt
+                themeicon,fallback = icons
             else:
                 cmd = txt
+                themeicon = 'SP_TitleBarContextHelpButton'
+                fallback = 'SP_TitleBarContextHelpButton'
             if txt[0] != '#':
-                btn = QtWidgets.QPushButton(txt.capitalize(),parent=container)
+                btn = QtWidgets.QToolButton(toolbar)
+                i = QtGui.QIcon.fromTheme(themeicon,self.style().standardIcon(getattr(QtWidgets.QStyle,fallback)))
+                if i.isNull():
+                    i = self.style().standardIcon(getattr(QtWidgets.QStyle,fallback))
+                btn.setIcon(i)
+                btn.setText(txt.capitalize())
+                btn.setCheckable(True)
+                btn.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
                 btn.setObjectName('button_'+cmd)
+                btn.setToolTip(txt.capitalize())
                 btn.pressed.connect(self.action_triggered)
-                container.layout().addWidget(btn)
-        self.centralWidget().layout().addWidget(container)
+                btn.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Fixed)
+                toolbar.addWidget(btn)
+
+        self.centralWidget().parent().addToolBar(QtCore.Qt.RightToolBarArea,toolbar)
+
+    # def create_buttons2(self):
+    #     container = QtWidgets.QWidget(self.split)
+    #     container.setObjectName('container_buttons')
+    #     if not container.layout():
+    #         container.setLayout(QtWidgets.QHBoxLayout(container))
+    #     container.layout().setMargin(0)
+
+    #     buttons = ["#status","start","stop","#config",("open-browser",_('Open browser')),("open-browser-ssl",_('Open Secure Browser')),("open-phpmyadmin",_("PhpMyAdmin"))]
+    #     for txt in buttons:
+    #         if isinstance(txt,tuple):
+    #             cmd,txt = txt
+    #         else:
+    #             cmd = txt
+    #         if txt[0] != '#':
+    #             btn = QtWidgets.QPushButton(txt.capitalize(),parent=container)
+    #             btn.setObjectName('button_'+cmd)
+    #             btn.pressed.connect(self.action_triggered)
+    #             container.layout().addWidget(btn)
+    #     self.centralWidget().layout().addWidget(container)
 
     def msg(self, txt='', prepend=''):
         self.logviewer.msg(txt,prepend)
