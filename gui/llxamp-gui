@@ -1061,6 +1061,9 @@ class MainApp(QtWidgets.QMainWindow):
                 btn.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Fixed)
                 toolbar.addWidget(btn)
 
+        # Needed for align items on old pyside versions
+        # Breaks full size button until qtoolbar width
+        # test with btn.setStyleSheet('background-color: green')
         layout = toolbar.layout()
         for i in range(layout.count()):
             item = layout.itemAt(i)
