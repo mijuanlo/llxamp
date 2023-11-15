@@ -1,0 +1,2 @@
+#!/bin/bash
+/usr/bin/llxamp-config -p -c -i -r
