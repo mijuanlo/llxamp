@@ -1028,7 +1028,7 @@ class MainApp(QtWidgets.QMainWindow):
         button.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         button.pressed.connect(self.toggle)
         toolbar.addWidget(button)
-        toolbar.setContentsMargins(10,10,10,10)
+        #toolbar.setContentsMargins(10,10,10,10)
 
         buttons = [
             ("start","Start",("media-playback-start","SP_MediaPlay")),
@@ -1060,6 +1060,11 @@ class MainApp(QtWidgets.QMainWindow):
                 btn.pressed.connect(self.action_triggered)
                 btn.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Fixed)
                 toolbar.addWidget(btn)
+
+        layout = toolbar.layout()
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+            item.setAlignment(QtCore.Qt.AlignLeft)
 
         self.centralWidget().parent().addToolBar(QtCore.Qt.RightToolBarArea,toolbar)
 
