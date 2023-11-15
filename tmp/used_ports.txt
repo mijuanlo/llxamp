@@ -1,0 +1,2 @@
+ss -Htpnle | awk '{print $4}'|rev|cut -d':' -f1|rev|sort -n|uniq|awk '{if ($1 <= 1024) print $1}'
+ss -Htpnle | awk '{print $4}'|rev|cut -d':' -f1|rev|sort -n|uniq|awk '{if ($1 > 1024) print $1}'
