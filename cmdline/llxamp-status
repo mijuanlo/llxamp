@@ -1,4 +1,20 @@
 #!/bin/bash
+
+program=$(basename "${BASH_SOURCE[0]}")
+
+show_help(){
+    echo
+    echo "Usage:"
+    echo
+    echo "$program [ -a | -m ] [ -p | -n ] [ -h ]"
+    echo "  -a: select apache status"
+    echo "  -m: select mysql status"
+    echo "  -n: show using procs"
+    echo "  -u: show using ports"
+    echo "  -h: this help"
+    echo
+}
+
 has_opts=
 apache=
 mysql=
@@ -22,6 +38,9 @@ for param in "$@"; do
             show_ports='yes'
             has_opts='yes'
         ;;
+        -h*)
+            show_help
+        ;;
     esac
 done
 
@@ -29,7 +48,7 @@ function check_running(){
     ss -Htpnle |grep "uid:$(id -u)"|grep $1
 }
 function check_ports(){
-    ss -Htpnle |grep "uid:$(id -u)"|grep $1|awk '{split($4,port,":"); print port[2];}'|xargs|tr ' ' ','
+    ss -Htpnle |grep "uid:$(id -u)"|grep $1|awk '{print $4}'|rev|cut -d':' -f1|rev|sort -n|xargs|tr ' ' ','
 }
 function check_procs(){
     ss -Htpnle |grep "uid:$(id -u)"|grep $1|awk '{print $6}'|egrep -o 'pid=[0-9]+'|cut -d'=' -f2|xargs|tr ' ' ','

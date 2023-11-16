@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+
+import os, avahi, dbus, signal
+from encodings.idna import ToASCII
+
+exit = False
+def exit_now(*args):
+    global exit
+    exit = True
+    print("Exiting")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT,exit_now)
+
+# Got these from /usr/include/avahi-common/defs.h
+CLASS_IN = 0x01
+TYPE_CNAME = 0x05
+
+TTL = 60
+
+def get_names():
+    bus = dbus.SystemBus()
+    server = dbus.Interface(bus.get_object(avahi.DBUS_NAME, avahi.DBUS_PATH_SERVER),
+            avahi.DBUS_INTERFACE_SERVER)
+    return { 'domain': str(server.GetDomainName()), 'fqdn': str(server.GetHostNameFqdn()) }
+
+names = get_names()
+
+def show_help():
+    filename = os.path.basename(__file__)
+    print(f'''Usage:
+    {filename} [<alias> ...]
+        <alias> = <hostname>.<avahi_domain>
+        <avahi_domain> = {names.get('domain')}
+        <hostname> : any string
+''')
+
+def publish_cname(cname):
+    bus = dbus.SystemBus()
+    server = dbus.Interface(bus.get_object(avahi.DBUS_NAME, avahi.DBUS_PATH_SERVER),
+            avahi.DBUS_INTERFACE_SERVER)
+    group = dbus.Interface(bus.get_object(avahi.DBUS_NAME, server.EntryGroupNew()),
+            avahi.DBUS_INTERFACE_ENTRY_GROUP)
+
+    rdata = createRR(server.GetHostNameFqdn())
+    cname = encode_dns(cname)
+
+    group.AddRecord(avahi.IF_UNSPEC, avahi.PROTO_UNSPEC, dbus.UInt32(0),
+        cname, CLASS_IN, TYPE_CNAME, TTL, rdata)
+    group.Commit()
+
+
+def encode_dns(name):
+    out = []
+    for part in name.split('.'):
+        if len(part) == 0:
+            continue
+        out.append(ToASCII(part))
+    return b'.'.join(out)
+
+def createRR(name):
+    out = []
+    for part in name.split('.'):
+        if len(part) == 0:
+            continue
+        out.append(bytes([len(part)]))
+        out.append(ToASCII(part))
+    out.append(b'\0')
+    return b''.join(out)
+
+if __name__ == '__main__':
+    import time, sys, locale
+    if not sys.argv[1:] or '-h' in sys.argv:
+        show_help()
+        sys.exit(0)
+    for arg in sys.argv[1:]:
+        parts = arg.split('.')
+        if parts[-1] != names.get('domain'):
+            print(f"DOMAIN_NAME_NOT_SUPPORTED ({arg} is not in .{parts[-1]})")
+            sys.exit(1)
+        publish_cname(arg)
+        print(f"DOMAIN_ALIAS_ADDED ({arg} --> {names.get('fqdn')})")
+    while not exit:
+        time.sleep(60)

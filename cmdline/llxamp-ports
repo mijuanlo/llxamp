@@ -1,0 +1,64 @@
+#!/bin/bash
+
+program=$(basename "${BASH_SOURCE[0]}")
+
+show_help(){
+    echo "Usage:"
+    echo "    $program [ -a | -p | -n | -u ] [ -h ]"
+    echo "        -a: show all listening"
+    echo "        -p: show privileged listening"
+    echo "        -n: show unprivileged listening"
+    echo "        -u: show user ports listening"
+    echo "        -h: this help"
+    echo
+}
+
+all=
+privileged=
+non_privileged=
+user_ports=
+need_help='yes'
+for param in "$@"; do
+    case "$param" in
+        -a*)
+            all='yes'
+            need_help=
+        ;;
+        -p*)
+            privileged='yes'
+            need_help=
+        ;;
+        -n*)
+            non_privileged='yes'
+            need_help=
+        ;;
+        -u*)
+            user_ports='yes'
+            need_help=
+        ;;
+        -h*)
+            show_help
+        ;;
+    esac
+done
+
+[ -n "$need_help" ] && show_help && exit 0
+
+if [ -n "$non_privileged" -a -n "$privileged" ]; then
+    non_privileged=
+    privileged=
+    all='yes'
+fi
+
+if [ -n "$all" ]; then
+    ss -Htpnle | awk '{print $4}'|rev|cut -d':' -f1|rev|sort -n|uniq|xargs|tr ' ' ','
+fi
+if [ -n "$privileged" ]; then
+    ss -Htpnle | awk '{print $4}'|rev|cut -d':' -f1|rev|sort -n|uniq|awk '{if ($1 <= 1024) print $1}'|xargs|tr ' ' ','
+fi
+if [ -n "$non_privileged" ]; then
+    ss -Htpnle | awk '{print $4}'|rev|cut -d':' -f1|rev|sort -n|uniq|awk '{if ($1 > 1024) print $1}'|xargs|tr ' ' ','
+fi
+if [ -n "$user_ports" ]; then
+    ss -Htpnle |grep "uid:$(id -u)"|awk '{print $4}'|rev|cut -d':' -f1|rev|sort -n|uniq|xargs|tr ' ' ','
+fi
