@@ -4,8 +4,8 @@ output=
 for param in "$@"; do
     case "$param" in
         -o*)
-            shift 2
-            output=$param
+            shift
+            output=$1
         ;;
         -h*)
             show_help
