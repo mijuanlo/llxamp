@@ -40,6 +40,7 @@ for param in "$@"; do
         ;;
         -h*)
             show_help
+            exit 0
         ;;
     esac
 done
