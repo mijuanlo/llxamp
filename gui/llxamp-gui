@@ -980,6 +980,7 @@ class MainApp(QtWidgets.QMainWindow):
             scriptname = f'llxamp-{cmd}'
             args = []
             prepend=''
+            print_output_to=self.msg
             if cmd == 'status':
                 args = ['-a','-m','-p','-n']
             if cmd == 'config':
@@ -994,15 +995,17 @@ class MainApp(QtWidgets.QMainWindow):
                     txt = f'{txt}{llxconfig.print_content(content2,False,False)}'
                     self.msg(txt,prepend)
                     return
+            if cmd == 'show-available-ports':
+                # print_output_to = lambda x: (self.infodialog(title=_("Available ports"),txt=x),self.msg(x))
+                print_output_to = lambda x: self.infodialog(title=_("Available ports"),txt=x)
 
             # Common "output" parameter for button actions
             def output(x,err):
-                if err:
-                    self.msg(_('Error Output') + f'---> "{err}"')
                 if DEBUG:
-                    self.msg(_('Output from command') + f' {scriptname}:\n{x}\n',prepend)
-                else:
-                    self.msg(x)
+                    self.msg(_('Output from command') + f' {scriptname}:\nSTDOUT\n{x}\nSTDERR{err}\n',prepend)
+                if err:
+                    print_output_to(_('Error Output') + f'---> "{err}"')
+                print_output_to(x)
                 button.setEnabled(True)
                 if cmd == 'status':
                     self.update_status_bar(data=x)
@@ -1015,6 +1018,21 @@ class MainApp(QtWidgets.QMainWindow):
                 finished_fn=lambda x,y: output(x,y),
                 debug_fn=self.msg
             )
+    def infodialog(self, *args, **kwargs):
+        title=kwargs.get('title','')
+        txt=kwargs.get('txt','')
+
+        txt=txt.split(',')
+        txt=', '.join(txt)
+
+        dialog = QtWidgets.QMessageBox()
+        dialog.setText(f'<h3>{txt}</h3>')
+        dialog.setWindowTitle(title)
+        dialog.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        dialog.setIcon(QtWidgets.QMessageBox.Information)
+
+        dialog.exec_()
+
     def toggle(self):
         button = self.sender()
         print(f'Checked={button.isChecked()}')
