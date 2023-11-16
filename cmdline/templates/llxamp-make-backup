@@ -1,10 +1,12 @@
 #!/bin/bash
+set -e
 basepath=@@LLXAMP_BASEPATH@@
-dirs="httpd/conf httpd/htdocs php/lib/php.ini* "
+dirs="httpd/conf httpd/htdocs php/lib/php.ini*"
+filename=llxamp-backup
 
 tmp=$(mktemp -d)
 
-pushd $tmp
+cd $tmp
 
 export $(llxamp-status -m)
 if [ "x$MYSQL_RUNNING" == "x1" ];then
@@ -14,14 +16,25 @@ if [ "x$MYSQL_RUNNING" == "x1" ];then
 fi
 
 @@LLXAMP_BASEPATH@@/mysql/bin/mysqld --defaults-file=@@LLXAMP_BASEPATH@@/mysql/conf/my.cnf --skip-grant-tables > /dev/null 2>&1 &
-while ! @@LLXAMP_BASEPATH@@/mysql/bin/mysql --defaults-file=@@LLXAMP_BASEPATH@@/mysql/conf/my.cnf --user=root -e 'status'; do
+while ! @@LLXAMP_BASEPATH@@/mysql/bin/mysql --defaults-file=@@LLXAMP_BASEPATH@@/mysql/conf/my.cnf --user=root -e 'status' >/dev/null 2>&1; do
     sleep 1;
 done;
 
-llxamp-mysqldump --all-databases --system=all --add-drop-database --add-drop-table --add-drop-trigger --add-locks --all-tablespaces --comments --complete-insert --dump-date --extended-insert --flush-logs --flush-privileges --routines --triggers --user root > backup-mysql.sql
+llxamp-mysqldump --all-databases --add-drop-database --add-drop-table --add-locks --all-tablespaces --comments --complete-insert --dump-date --extended-insert --flush-logs --flush-privileges --routines --triggers --user root > backup-mysql.sql
 
-kill $(cat @@LLXAMP_BASEPATH@@/mysql/temp/mysql.pid)
+kill $(cat /home/lliurex/llxamp/mysql/temp/mysql.pid)
 
 if [ "x$MYSQL_RUNNING" == "x1" ];then
     llxamp-start-mysql
 fi
+
+cd $basepath
+
+tar -c -f $tmp/$filename.tar -C $basepath $dirs
+tar --append -f $tmp/$filename.tar -C $tmp backup-mysql.sql
+
+cd $tmp
+
+gzip -9 $tmp/$filename.tar
+
+echo "Backup saved in '$tmp/$filename.tar.gz'"
