@@ -76,7 +76,7 @@ if __name__ == '__main__':
     for arg in sys.argv[1:]:
         parts = arg.split('.')
         if parts[-1] != names.get('domain'):
-            print(f"DOMAIN_NAME_NOT_SUPPORTED ({arg} is not in .{parts[-1]})")
+            print(f"DOMAIN_NAME_NOT_SUPPORTED ({arg} is not in .{names.get('domain')})")
             sys.exit(1)
         publish_cname(arg)
         print(f"DOMAIN_ALIAS_ADDED ({arg} --> {names.get('fqdn')})")
