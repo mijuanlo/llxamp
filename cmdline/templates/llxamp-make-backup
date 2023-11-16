@@ -1,17 +1,27 @@
 #!/bin/bash
-pass="$1"
+basepath=@@LLXAMP_BASEPATH@@
+dirs="httpd/conf httpd/htdocs php/lib/php.ini* "
+
+tmp=$(mktemp -d)
+
+pushd $tmp
+
 export $(llxamp-status -m)
 if [ "x$MYSQL_RUNNING" == "x1" ];then
     llxamp-stop-mysql
     sleep 1
     llxamp-kill-mysql
 fi
+
 @@LLXAMP_BASEPATH@@/mysql/bin/mysqld --defaults-file=@@LLXAMP_BASEPATH@@/mysql/conf/my.cnf --skip-grant-tables > /dev/null 2>&1 &
 while ! @@LLXAMP_BASEPATH@@/mysql/bin/mysql --defaults-file=@@LLXAMP_BASEPATH@@/mysql/conf/my.cnf --user=root -e 'status'; do
     sleep 1;
 done;
-@@LLXAMP_BASEPATH@@/mysql/bin/mysql --defaults-file=@@LLXAMP_BASEPATH@@/mysql/conf/my.cnf --user=root -e \"UPDATE mysql.user SET Password = PASSWORD('\$pass') WHERE User = 'root';FLUSH PRIVILEGES;\"
+
+llxamp-mysqldump --all-databases --system=all --add-drop-database --add-drop-table --add-drop-trigger --add-locks --all-tablespaces --comments --complete-insert --dump-date --extended-insert --flush-logs --flush-privileges --routines --triggers --user root > backup-mysql.sql
+
 kill $(cat @@LLXAMP_BASEPATH@@/mysql/temp/mysql.pid)
+
 if [ "x$MYSQL_RUNNING" == "x1" ];then
     llxamp-start-mysql
 fi
