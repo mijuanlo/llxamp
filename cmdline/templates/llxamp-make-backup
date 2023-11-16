@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+here=$(realpath .)
 output=
 for param in "$@"; do
     case "$param" in
@@ -52,6 +53,7 @@ cd $tmp
 gzip -9 $tmp/$filename.tar
 
 if [ -n "$output" ]; then
+    cd $here
     d=$(dirname "$output")
     f=$(basename "$output")
     mkdir -p "$d"
