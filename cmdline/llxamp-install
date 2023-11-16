@@ -257,7 +257,7 @@ fix_missing_php_ini(){
     IFS=' '
     php_files="php.ini-development php.ini-production"
     main_file="php.ini-development"
-    for inifile in "$php_files"; do
+    for inifile in $php_files; do
         if [ ! -e "$rptarget/php/lib/$inifile" ]; then
             if [ -e "$TEMPLATES_DIR/$inifile" ]; then
                 echo Fixing "$rptarget/php/lib/$inifile"
