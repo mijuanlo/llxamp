@@ -21,6 +21,8 @@ echo "Remember remove manually '$BUILDDIR' !!!"
 echo "Remember remove manually '$DECOMPRESSED_DIR' !!!"
 echo "Remember remove manually '$SOURCE_DIR' !!!"
 echo
+size=$(du -ms "$BUILDDIR" "$DECOMPRESSED_DIR" "$SOURCE_DIR"|awk '{print $1}'|xargs|tr ' ' '+'|bc)
+echo "$size Mb freed with:"
 echo "# sudo rm -rf '$BUILDDIR' '$DECOMPRESSED_DIR' '$SOURCE_DIR'"
 echo
 echo Finished;
