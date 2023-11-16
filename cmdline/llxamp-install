@@ -253,7 +253,8 @@ gen_openssl_certs(){
 
 fix_missing_php_ini(){
     [ ! -e "$rptarget" ] && error_menu "invalid target"
-
+    oFS=$IFS
+    IFS=' '
     php_files="php.ini-development php.ini-production"
     main_file="php.ini-development"
     for inifile in "$php_files"; do
@@ -270,6 +271,7 @@ fix_missing_php_ini(){
             cp "$TEMPLATES_DIR/$main_file" "$rptarget/php/lib/php.ini"
         fi
     fi
+    IFS=$oFS
 }
 
 print_info(){
