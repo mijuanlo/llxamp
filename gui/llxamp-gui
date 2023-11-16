@@ -271,6 +271,7 @@ class LogViewer(QtWidgets.QWidget):
         self._files_followed = {}
         self._textedit = self._create_text_edit(self)
         self._label = QtWidgets.QLabel(_('Log viewer'),self)
+        self._label.setIndent(8)
 
         self._head_container = QtWidgets.QWidget(self)
         self._clear_button = QtWidgets.QPushButton(self._head_container)
@@ -1037,7 +1038,8 @@ class MainApp(QtWidgets.QMainWindow):
             ("stop","Stop",("media-player-stop","SP_MediaStop")),
             ("open-browser",_("Browser"),("internet-web-browser","SP_DriveNetIcon")),
             ("open-browser-ssl",_("Secure browser"),("preferences-web-browser-ssl","SP_DriveNetIcon")),
-            ("open-phpmyadmin",_("PhpMyAdmin"),("server-database","SP_FileDialogInfoView"))
+            ("open-phpmyadmin",_("PhpMyAdmin"),("server-database","SP_FileDialogInfoView")),
+            ("show-available-ports",_("Available ports"),("port","SP_TitleBarNormalButton"))
         ]
         maxsize=max([ len(button[2]) for button in buttons])
         for txt in buttons:

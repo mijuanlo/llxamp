@@ -9,6 +9,8 @@ show_help(){
     echo "        -p: show privileged listening"
     echo "        -n: show unprivileged listening"
     echo "        -u: show user ports listening"
+    echo "        -F: show available ports"
+    echo "        -f: show user available ports"
     echo "        -h: this help"
     echo
 }
@@ -17,6 +19,8 @@ all=
 privileged=
 non_privileged=
 user_ports=
+free_user=
+free=
 need_help='yes'
 for param in "$@"; do
     case "$param" in
@@ -36,13 +40,20 @@ for param in "$@"; do
             user_ports='yes'
             need_help=
         ;;
+        -F*)
+            free='yes'
+            need_help=
+        ;;
+        -f*)
+            free_user='yes'
+            need_help=
+        ;;
         -h*)
             show_help
+            exit 0
         ;;
     esac
 done
-
-[ -n "$need_help" ] && show_help && exit 0
 
 if [ -n "$non_privileged" -a -n "$privileged" ]; then
     non_privileged=
@@ -50,15 +61,44 @@ if [ -n "$non_privileged" -a -n "$privileged" ]; then
     all='yes'
 fi
 
+port_ranges(){
+    min=$1
+    shift
+    str=''
+    old=0
+    sep=''
+    for p in $@; do
+        [ $p -lt $min ] && old=1024 && continue
+        [ -n "$str" ] && sep=','
+        if [ $p -ne $(($old+1)) ]; then
+            if [ $(($p-1)) -ne $old ]; then
+                if [ $(($p-2)) -ne $old ]; then
+                    str="$str$sep$(($old+1))-$(($p-1))"
+                else
+                    str="$str$sep$(($p-1))"
+                fi
+            fi
+        fi
+        old=$p
+    done
+    if [ "$old" != "65535" ]; then
+        str="$str,$(($old+1))-65535"
+    fi
+    echo $str
+}
+
 if [ -n "$all" ]; then
     ss -Htpnle | awk '{print $4}'|rev|cut -d':' -f1|rev|sort -n|uniq|xargs|tr ' ' ','
-fi
-if [ -n "$privileged" ]; then
+elif [ -n "$privileged" ]; then
     ss -Htpnle | awk '{print $4}'|rev|cut -d':' -f1|rev|sort -n|uniq|awk '{if ($1 <= 1024) print $1}'|xargs|tr ' ' ','
-fi
-if [ -n "$non_privileged" ]; then
+elif [ -n "$non_privileged" ]; then
     ss -Htpnle | awk '{print $4}'|rev|cut -d':' -f1|rev|sort -n|uniq|awk '{if ($1 > 1024) print $1}'|xargs|tr ' ' ','
-fi
-if [ -n "$user_ports" ]; then
+elif [ -n "$user_ports" ]; then
     ss -Htpnle |grep "uid:$(id -u)"|awk '{print $4}'|rev|cut -d':' -f1|rev|sort -n|uniq|xargs|tr ' ' ','
+elif [ -n "$free" ]; then
+    used=$(ss -Htpnle | awk '{print $4}'|rev|cut -d':' -f1|rev|sort -n|uniq)
+    echo $(port_ranges 1 $used)
+elif [ -n "$free_user" ]; then
+    used=$(ss -Htpnle | awk '{print $4}'|rev|cut -d':' -f1|rev|sort -n|uniq)
+    echo $(port_ranges 1024 $used)
 fi
