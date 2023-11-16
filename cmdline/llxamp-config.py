@@ -1,5 +1,24 @@
 #!/usr/bin/env python3
 
+"""
+ Copyright (C) 2023 M.Angel Juan
+
+ This file is part of LLXAMP.
+
+ LLXAMP is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ LLXAMP is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with LLXAMP.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 import sys, os, re, glob
 
 BASEPATH=os.path.expanduser('~')+'/llxamp'
@@ -24,8 +43,6 @@ CONFIG = None
 INCLUDE_REGEXP = None
 LOG_REGEXP = None
 TAB=' '*4
-
-
 
 cache={}
 
