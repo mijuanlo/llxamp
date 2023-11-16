@@ -1,5 +1,19 @@
 #!/bin/bash
 set -e
+output=
+for param in "$@"; do
+    case "$param" in
+        -o*)
+            shift
+            output=$param
+        ;;
+        -h*)
+            show_help
+            exit 0
+        ;;
+    esac
+done
+
 basepath=@@LLXAMP_BASEPATH@@
 dirs="httpd/conf httpd/htdocs php/lib/php.ini*"
 filename=llxamp-backup
@@ -37,4 +51,12 @@ cd $tmp
 
 gzip -9 $tmp/$filename.tar
 
-echo "Backup saved in '$tmp/$filename.tar.gz'"
+if [ -n "$output" ]; then
+    d=$(dirname "$output")
+    f=$(basename "$output")
+    mkdir -p "$d"
+    mv $tmp/$filename.tar.gz "$d"/"$f"
+    echo "Backup saved in '$d/$f'"
+else
+    echo "Backup saved in '$tmp/$filename.tar.gz'"
+fi
