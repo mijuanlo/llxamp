@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+source $1
+
+BUILDDIR=${BUILDDIR:=/LLXXAMP}
+TAG=${TAG:=$BUILDDIR/123456789123456789123456789123456789123456789}
+PREFIX=$TAG/php/lib
+
+echo Copying PHP ini files
+
+cp -LR $DECOMPRESSED_DIR/php/php.ini-production $PREFIX
+cp -LR $DECOMPRESSED_DIR/php/php.ini-development $PREFIX
+cp -LR $DECOMPRESSED_DIR/php/php.ini-production $PREFIX/php.ini
+
