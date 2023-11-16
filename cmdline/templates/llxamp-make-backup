@@ -4,7 +4,7 @@ output=
 for param in "$@"; do
     case "$param" in
         -o*)
-            shift
+            shift 2
             output=$param
         ;;
         -h*)
