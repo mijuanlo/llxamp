@@ -184,13 +184,19 @@ test_install_pack(){
 decompress_pack(){
     #[ ! -e "$rptarget" -o ! -e "$rpfile_pack" ] && error_menu "invalid target or install-pack"
     [ ! -e "$rptarget" -o ! -e "$PACK_DIR" ] && error_menu "invalid target or install-pack"
-    echo "Decompressing archive into '$rptarget'"
+    # echo "Decompressing archive into '$rptarget'"
     # execute tar -zxf "$rpfile_pack" -C "$rptarget"
+    echo "Mounting archive into '$rptarget' with copy-on-write"
     mounted=$(findmnt -l -o TARGET | grep "$rptarget")
     if [ -n "$mounted" ];then
-        fuser -mk "$rptarget"
-        fusermount -u "$rptarget"
-        [ -e "$HOME/.llxamp/upper" ] && rm -rf $HOME/.llxamp/upper
+        echo "Remount '$rptarget' needed"
+        echo "Killing procs using '$rptarget'"
+        fuser -mk "$rptarget" > /dev/null 2>&1
+        sleep 2
+        echo "Mounting '$rptarget'"
+        fusermount -uz "$rptarget"
+        sleep 2
+        [ -e "$HOME/.llxamp/upper" ] && echo "Removing previous cow " && rm -rf $HOME/.llxamp/upper
         mkdir -p $HOME/.llxamp/upper
     fi
     mounted=$(findmnt -l -o TARGET | grep "$rptarget")
@@ -226,6 +232,27 @@ gen_openssl_certs(){
     [ ! -e "$rptarget" ] && error_menu "invalid target"
     echo Generating OpenSSL certificates
     execute_silent openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout "$rptarget"/httpd/conf/server.key -out "$rptarget"/httpd/conf/server.crt -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname"
+}
+
+fix_missing_php_ini(){
+    [ ! -e "$rptarget" ] && error_menu "invalid target"
+
+    php_files="php.ini-development php.ini-production"
+    main_file="php.ini-development"
+    for inifile in "$php_files"; do
+        if [ ! -e "$rptarget/php/lib/$inifile" ]; then
+            if [ -e "$TEMPLATES_DIR/$inifile" ]; then
+                echo Fixing "$rptarget/php/lib/$inifile"
+                cp "$TEMPLATES_DIR/$inifile" "$rptarget/php/lib/$inifile"
+            fi
+        fi
+    done
+    if [ ! -e "$rptarget/php/lib/php.ini" ]; then
+        if [ -e "$TEMPLATES_DIR/$main_file" ]; then
+            echo Fixing "$rptarget/php/lib/php.ini"
+            cp "$TEMPLATES_DIR/$main_file" "$rptarget/php/lib/php.ini"
+        fi
+    fi
 }
 
 print_info(){
@@ -317,6 +344,7 @@ write_start_scripts
 configure_mysql2
 configure_user_path
 gen_openssl_certs
+fix_missing_php_ini
 print_info
 
 source $HOME/.bashrc
