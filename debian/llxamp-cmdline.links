@@ -13,4 +13,4 @@
 /usr/lib/llxamp/llxamp-show-php-config /usr/bin/llxamp-show-php-config
 /usr/lib/llxamp/llxamp-show-mysql-config /usr/bin/llxamp-show-mysql-config
 /usr/lib/llxamp/avahi-publish-domain-alias /usr/bin/avahi-publish-domain-alias
-
+/usr/lib/llxamp/llxamp-show-available-ports /usr/bin/llxamp-show-available-ports
