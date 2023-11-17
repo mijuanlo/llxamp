@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-17 15:29+0100\n"
-"PO-Revision-Date: 2023-11-17 15:53+0100\n"
+"POT-Creation-Date: 2023-11-17 16:04+0100\n"
+"PO-Revision-Date: 2023-11-17 16:10+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -48,7 +48,7 @@ msgstr "Guardar"
 
 #: gui/llxamp-gui:116
 msgid "Open with system editor"
-msgstr "Obrir amb editor de sistema"
+msgstr "Obrir amb editor extern"
 
 #: gui/llxamp-gui:159
 msgid "Editor button pressed"
@@ -98,6 +98,14 @@ msgstr "Mostrar"
 msgid "Following logfile"
 msgstr "Seguint log"
 
+#: gui/llxamp-gui:435
+msgid "Config files"
+msgstr "Fitxers configuració"
+
+#: gui/llxamp-gui:436
+msgid "Log files"
+msgstr "Fitxers log"
+
 #: gui/llxamp-gui:594 gui/llxamp-gui:1177
 msgid "Already running"
 msgstr "Ja funcionant"
@@ -122,7 +130,7 @@ msgstr "Desitja tancar la pestanya?"
 msgid "TAB CLOSE"
 msgstr "Pestanya tancada"
 
-#: gui/llxamp-gui:839
+#: gui/llxamp-gui:785 gui/llxamp-gui:839
 msgid "Exit"
 msgstr "Eixir"
 
@@ -140,7 +148,7 @@ msgstr "Fitxers comprimits"
 
 #: gui/llxamp-gui:1007
 msgid "File to save"
-msgstr "Arxiu per a guardar"
+msgstr "Arxiu per a guardat"
 
 #: gui/llxamp-gui:1035
 msgid "Output from command"
@@ -164,7 +172,7 @@ msgstr "PhpMyAdmin"
 
 #: gui/llxamp-gui:1110
 msgid "Used ports"
-msgstr "Ports utilitzats"
+msgstr "Ports en ús"
 
 #: gui/llxamp-gui:1111
 msgid "Available ports"
@@ -172,4 +180,4 @@ msgstr "Ports disponibles"
 
 #: gui/llxamp-gui:1112
 msgid "Make backup"
-msgstr "Fer còpia de seguretat"
+msgstr "Còpia de seguretat"

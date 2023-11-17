@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-14 20:04+0100\n"
-"PO-Revision-Date: 2023-11-14 20:07+0100\n"
+"POT-Creation-Date: 2023-11-17 16:04+0100\n"
+"PO-Revision-Date: 2023-11-17 16:09+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -18,114 +18,166 @@ msgstr ""
 "X-Generator: Poedit 2.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: llxamp-gui:30
+#: gui/llxamp-gui:49
 msgid "Can't import"
 msgstr "No se puede importar"
 
-#: llxamp-gui:38
+#: gui/llxamp-gui:57
 msgid "Ending QApplication"
 msgstr "Terminando aplicación"
 
-#: llxamp-gui:86
+#: gui/llxamp-gui:106
 msgid "Empty filename"
 msgstr "Nombre de fichero vacio"
 
-#: llxamp-gui:137
+#: gui/llxamp-gui:116
+msgid "Restore initial file"
+msgstr "Restaurar fichero inicial"
+
+#: gui/llxamp-gui:116
+msgid "Undo"
+msgstr "Deshacer"
+
+#: gui/llxamp-gui:116
+msgid "Redo"
+msgstr "Rehacer"
+
+#: gui/llxamp-gui:116
+msgid "Save"
+msgstr "Guardar"
+
+#: gui/llxamp-gui:116
+msgid "Open with system editor"
+msgstr "Abrir con editor externo"
+
+#: gui/llxamp-gui:159
 msgid "Editor button pressed"
 msgstr "Botón de edición pulsado"
 
-#: llxamp-gui:151
+#: gui/llxamp-gui:175
 msgid "Save file"
 msgstr "Guardar fichero"
 
-#: llxamp-gui:152
+#: gui/llxamp-gui:176
 msgid "Do you want to save?"
 msgstr "¿Desea guardar?"
 
-#: llxamp-gui:165
+#: gui/llxamp-gui:189
 msgid "Restore file"
 msgstr "Restaurar fichero"
 
-#: llxamp-gui:166
+#: gui/llxamp-gui:190
 msgid "Do you want restore original file?"
 msgstr "¿Desea restaurar el fichero original?"
 
-#: llxamp-gui:195
+#: gui/llxamp-gui:225
 msgid "File"
 msgstr "Archivo"
 
-#: llxamp-gui:195
+#: gui/llxamp-gui:225
 msgid "saved"
 msgstr "guardado"
 
-#: llxamp-gui:273
+#: gui/llxamp-gui:303
 msgid "Log viewer"
 msgstr "Visor de logs"
 
-#: llxamp-gui:278
+#: gui/llxamp-gui:309
 msgid "Clear"
 msgstr "Limpiar"
 
-#: llxamp-gui:283 llxamp-gui:316
+#: gui/llxamp-gui:314 gui/llxamp-gui:347
 msgid "Hide"
 msgstr "Esconder"
 
-#: llxamp-gui:314
+#: gui/llxamp-gui:345
 msgid "Show"
 msgstr "Mostrar"
 
-#: llxamp-gui:353
+#: gui/llxamp-gui:384
 msgid "Following logfile"
 msgstr "Siguiendo log"
 
-#: llxamp-gui:563 llxamp-gui:1026
+#: gui/llxamp-gui:435
+msgid "Config files"
+msgstr "Ficheros configuración"
+
+#: gui/llxamp-gui:436
+msgid "Log files"
+msgstr "Ficheros log"
+
+#: gui/llxamp-gui:594 gui/llxamp-gui:1177
 msgid "Already running"
 msgstr "Ya funcionando"
 
-#: llxamp-gui:578
+#: gui/llxamp-gui:609
 msgid "Error executing script"
 msgstr "Error ejecutando script"
 
-#: llxamp-gui:648
+#: gui/llxamp-gui:682
 msgid "Not running"
 msgstr "Parado"
 
-#: llxamp-gui:718
+#: gui/llxamp-gui:752
 msgid "Close tab"
 msgstr "Cerrar pestaña"
 
-#: llxamp-gui:719
+#: gui/llxamp-gui:753
 msgid "Do you want close the tab?"
 msgstr "¿Desea cerrar la pestaña?"
 
-#: llxamp-gui:725
+#: gui/llxamp-gui:759
 msgid "TAB CLOSE"
 msgstr "Pestaña cerrada"
 
-#: llxamp-gui:805
+#: gui/llxamp-gui:785 gui/llxamp-gui:839
 msgid "Exit"
 msgstr "Salir"
 
-#: llxamp-gui:912
+#: gui/llxamp-gui:947
 msgid "Tab created"
 msgstr "Pestaña creada"
 
-#: llxamp-gui:951
+#: gui/llxamp-gui:992
 msgid "Editing"
 msgstr "Editando"
 
-#: llxamp-gui:981
+#: gui/llxamp-gui:1006
+msgid "Archive files"
+msgstr "Ficheros comprimidos"
+
+#: gui/llxamp-gui:1007
+msgid "File to save"
+msgstr "Archivo para guardado"
+
+#: gui/llxamp-gui:1035
 msgid "Output from command"
 msgstr "Salida del comando"
 
-#: llxamp-gui:1004
-msgid "Open browser"
-msgstr "Abrir navegador"
+#: gui/llxamp-gui:1037
+msgid "Error Output"
+msgstr "Salida de error"
 
-#: llxamp-gui:1004
-msgid "Open Secure Browser"
-msgstr "Abrir navegador seguro"
+#: gui/llxamp-gui:1107
+msgid "Browser"
+msgstr "Navegador"
 
-#: llxamp-gui:1004
+#: gui/llxamp-gui:1108
+msgid "Secure browser"
+msgstr "Navegador seguro"
+
+#: gui/llxamp-gui:1109
 msgid "PhpMyAdmin"
 msgstr "PhpMyAdmin"
+
+#: gui/llxamp-gui:1110
+msgid "Used ports"
+msgstr "Puertos en uso"
+
+#: gui/llxamp-gui:1111
+msgid "Available ports"
+msgstr "Puertos disponibles"
+
+#: gui/llxamp-gui:1112
+msgid "Make backup"
+msgstr "Copia de seguridad"
