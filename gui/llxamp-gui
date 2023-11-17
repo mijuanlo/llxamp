@@ -984,6 +984,8 @@ class MainApp(QtWidgets.QMainWindow):
             if cmd == 'make-backup':
                 filter = _('Archive files')+' (*.tar.gz)'
                 path,filter_selected = QtWidgets.QFileDialog.getSaveFileName(self,_('File to save'),os.path.expanduser('~'),filter)
+                if not path:
+                    return
                 args = ['-o',path]
             if cmd == 'status':
                 args = ['-a','-m','-p','-n']
@@ -1001,8 +1003,11 @@ class MainApp(QtWidgets.QMainWindow):
                     return
             if cmd == 'show-available-ports':
                 # print_output_to = lambda x: (self.infodialog(title=_("Available ports"),txt=x),self.msg(x))
-                print_output_to = lambda x: self.infodialog(title=_("Available ports"),txt=x)
-
+                print_output_to = lambda x: self.infodialog(title=button.text(),txt=x)
+            if cmd == 'show-used-ports':
+                scriptname = 'llxamp-ports'
+                args = ['-u']
+                print_output_to = lambda x: self.infodialog(title=button.text(),txt=x)
             # Common "output" parameter for button actions
             def output(x,err):
                 if DEBUG:
@@ -1081,7 +1086,8 @@ class MainApp(QtWidgets.QMainWindow):
             ("open-browser",_("Browser"),("internet-web-browser","SP_DriveNetIcon")),
             ("open-browser-ssl",_("Secure browser"),("preferences-web-browser-ssl","SP_DriveNetIcon")),
             ("open-phpmyadmin",_("PhpMyAdmin"),("server-database","SP_FileDialogInfoView")),
-            ("show-available-ports",_("Available ports"),("port","SP_TitleBarNormalButton")),
+            ("show-used-ports",_("Used ports"),("network-wired","SP_TitleBarNormalButton")),
+            ("show-available-ports",_("Available ports"),("network-wired-disconnected","SP_TitleBarNormalButton")),
             ("make-backup",_("Make backup"),("utilities-file-archiver","SP_DriveFDIcon"))
         ]
         maxsize=max([ len(button[2]) for button in buttons])

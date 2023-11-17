@@ -1,4 +1,4 @@
 #!/bin/bash
-pid=$(cat @@LLXAMP_BASEPATH@@/mysql/temp/mysql.pid)
+pid=$(cat @@LLXAMP_BASEPATH@@/mysql/temp/mysql.pid 2>/dev/null)
 [ -n "$pid" ] && kill $pid
 

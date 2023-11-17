@@ -1,0 +1,3 @@
+#!/bin/bash
+. @@LLXAMP_BASEPATH@@/httpd/bin/envvars
+@@LLXAMP_BASEPATH@@/httpd/bin/apachectl $@
