@@ -782,7 +782,7 @@ class MainApp(QtWidgets.QMainWindow):
         tabs.setVisible(False)
 
     def begin_build_menubar(self):
-        menu_context_items = ['Llxamp', 'Exit' ]
+        menu_context_items = ['Llxamp', _('Exit') ]
         menu_context = MyQtStaticUtils.create_menu(
             items=menu_context_items,
             receiver=self.action_triggered,
