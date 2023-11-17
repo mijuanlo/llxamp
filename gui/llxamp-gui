@@ -432,8 +432,8 @@ class MyAppConfigFiles():
     APACHE_TAG = 'APACHE'
     PHP_TAG = 'PHP'
     MYSQL_TAG = 'MYSQL'
-    CONFIGFILES_TAG = 'CONFIGFILES'
-    LOGFILES_TAG= 'LOGFILES'
+    CONFIGFILES_TAG = _('Config files')
+    LOGFILES_TAG= _('Log files')
 
     def __init__(self,txt=[]):
         self.tags = [self.APACHE_TAG,self.PHP_TAG,self.MYSQL_TAG]
