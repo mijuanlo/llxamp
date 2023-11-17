@@ -1110,7 +1110,7 @@ class MainApp(QtWidgets.QMainWindow):
             ("show-used-ports",_("Used ports"),("network-wired","SP_TitleBarNormalButton")),
             ("show-available-ports",_("Available ports"),("network-wired-disconnected","SP_TitleBarNormalButton")),
             ("make-backup",_("Make backup"),("utilities-file-archiver","SP_DriveFDIcon")),
-            ("show-apache-config",_("Show Apache config"),("/usr/lib/llxamp/resources/llxamp-apache.svg","description","SP_FileIcon"))
+            ("show-apache-config",_("Show Apache config"),("/usr/share/applications/llxamp-apache.svg","description","SP_FileIcon"))
         ]
         maxsize=max([ len(button[2]) for button in buttons])
         for pack in buttons:
