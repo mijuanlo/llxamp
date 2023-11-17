@@ -1002,6 +1002,8 @@ class MainApp(QtWidgets.QMainWindow):
             args = []
             prepend=''
             print_output_to=self.msg
+            if cmd == 'show-apache-config':
+                print_output_to=self.textdialog
             if cmd == 'make-backup':
                 filter = _('Archive files')+' (*.tar.gz)'
                 path,filter_selected = QtWidgets.QFileDialog.getSaveFileName(self,_('File to save'),os.path.expanduser('~'),filter)
@@ -1048,6 +1050,23 @@ class MainApp(QtWidgets.QMainWindow):
                 finished_fn=lambda x,y: output(x,y),
                 debug_fn=self.msg
             )
+    def textdialog(self, *args, **kwargs):
+        txt = args[0]
+        w = QtWidgets.QWizard(self)
+        tw = QtWidgets.QWizardPage(w)
+        tw.setTitle(_('Apache configuration'))
+        l = QtWidgets.QPlainTextEdit(txt,tw)
+        l.setReadOnly(True)
+        lay = QtWidgets.QVBoxLayout()
+        lay.addWidget(l)
+        tw.setLayout(lay)
+        w.addPage(tw)
+        w.setWindowTitle(_('Apache configuration'))
+        w.setButtonLayout([QtWidgets.QWizard.CustomButton1])
+        w.setButtonText(QtWidgets.QWizard.CustomButton1,_('Close'))
+        w.setOption(QtWidgets.QWizard.HaveCustomButton1,True)
+        w.customButtonClicked.connect(lambda: w.close())
+        w.show()
 
     def infodialog(self, *args, **kwargs):
         title=kwargs.get('title','')
