@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-11-17 15:29+0100\n"
-"PO-Revision-Date: 2023-11-17 15:32+0100\n"
+"PO-Revision-Date: 2023-11-17 15:37+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -20,27 +20,27 @@ msgstr ""
 
 #: gui/llxamp-gui:49
 msgid "Can't import"
-msgstr "No se puede importar"
+msgstr "No es pot importar"
 
 #: gui/llxamp-gui:57
 msgid "Ending QApplication"
-msgstr "Terminando aplicación"
+msgstr "Acabant aplicació"
 
 #: gui/llxamp-gui:106
 msgid "Empty filename"
-msgstr "Nombre de fichero vacio"
+msgstr "Nom de fitxer vacio"
 
 #: gui/llxamp-gui:116
 msgid "Restore initial file"
-msgstr "Restaurar fichero inicial"
+msgstr "Restaurar fitxer inicial"
 
 #: gui/llxamp-gui:116
 msgid "Undo"
-msgstr "Deshacer"
+msgstr "Desfer"
 
 #: gui/llxamp-gui:116
 msgid "Redo"
-msgstr "Rehacer"
+msgstr "Refer"
 
 #: gui/llxamp-gui:116
 msgid "Save"
@@ -48,35 +48,35 @@ msgstr "Guardar"
 
 #: gui/llxamp-gui:116
 msgid "Open with system editor"
-msgstr "Abrir con editor de sistema"
+msgstr "Obrir amb editor de sistema"
 
 #: gui/llxamp-gui:159
 msgid "Editor button pressed"
-msgstr "Botón de edición pulsado"
+msgstr "Botó d'edició premut"
 
 #: gui/llxamp-gui:175
 msgid "Save file"
-msgstr "Guardar fichero"
+msgstr "Guardar fitxer"
 
 #: gui/llxamp-gui:176
 msgid "Do you want to save?"
-msgstr "¿Desea guardar?"
+msgstr "Desitja guardar?"
 
 #: gui/llxamp-gui:189
 msgid "Restore file"
-msgstr "Restaurar fichero"
+msgstr "Restaurar fitxer"
 
 #: gui/llxamp-gui:190
 msgid "Do you want restore original file?"
-msgstr "¿Desea restaurar el fichero original?"
+msgstr "Desitja restaurar el fitxer original?"
 
 #: gui/llxamp-gui:225
 msgid "File"
-msgstr "Archivo"
+msgstr "Arxiu"
 
 #: gui/llxamp-gui:225
 msgid "saved"
-msgstr "guardado"
+msgstr "guardat"
 
 #: gui/llxamp-gui:303
 msgid "Log viewer"
@@ -84,11 +84,11 @@ msgstr "Visor de logs"
 
 #: gui/llxamp-gui:309
 msgid "Clear"
-msgstr "Limpiar"
+msgstr "Netejar"
 
 #: gui/llxamp-gui:314 gui/llxamp-gui:347
 msgid "Hide"
-msgstr "Esconder"
+msgstr "Amagar"
 
 #: gui/llxamp-gui:345
 msgid "Show"
@@ -96,59 +96,59 @@ msgstr "Mostrar"
 
 #: gui/llxamp-gui:384
 msgid "Following logfile"
-msgstr "Siguiendo log"
+msgstr "Seguint log"
 
 #: gui/llxamp-gui:594 gui/llxamp-gui:1177
 msgid "Already running"
-msgstr "Ya funcionando"
+msgstr "Ja funcionant"
 
 #: gui/llxamp-gui:609
 msgid "Error executing script"
-msgstr "Error ejecutando script"
+msgstr "Error executant script"
 
 #: gui/llxamp-gui:682
 msgid "Not running"
-msgstr "Parado"
+msgstr "Parat"
 
 #: gui/llxamp-gui:752
 msgid "Close tab"
-msgstr "Cerrar pestaña"
+msgstr "Tancar pestanya"
 
 #: gui/llxamp-gui:753
 msgid "Do you want close the tab?"
-msgstr "¿Desea cerrar la pestaña?"
+msgstr "Desitja tancar la pestanya?"
 
 #: gui/llxamp-gui:759
 msgid "TAB CLOSE"
-msgstr "Pestaña cerrada"
+msgstr "Pestanya tancada"
 
 #: gui/llxamp-gui:839
 msgid "Exit"
-msgstr "Salir"
+msgstr "Eixir"
 
 #: gui/llxamp-gui:947
 msgid "Tab created"
-msgstr "Pestaña creada"
+msgstr "Pestanya creada"
 
 #: gui/llxamp-gui:992
 msgid "Editing"
-msgstr "Editando"
+msgstr "Editant"
 
 #: gui/llxamp-gui:1006
 msgid "Archive files"
-msgstr "Ficheros comprimidos"
+msgstr "Fitxers comprimits"
 
 #: gui/llxamp-gui:1007
 msgid "File to save"
-msgstr "Archivo para guardar"
+msgstr "Arxiu per a guardar"
 
 #: gui/llxamp-gui:1035
 msgid "Output from command"
-msgstr "Salida del comando"
+msgstr "Eixida del comando"
 
 #: gui/llxamp-gui:1037
 msgid "Error Output"
-msgstr "Salida de error"
+msgstr "Eixida d'error"
 
 #: gui/llxamp-gui:1107
 msgid "Browser"
@@ -156,7 +156,7 @@ msgstr "Navegador"
 
 #: gui/llxamp-gui:1108
 msgid "Secure browser"
-msgstr "Navegador seguro"
+msgstr "Navegador segur"
 
 #: gui/llxamp-gui:1109
 msgid "PhpMyAdmin"
@@ -164,12 +164,12 @@ msgstr "PhpMyAdmin"
 
 #: gui/llxamp-gui:1110
 msgid "Used ports"
-msgstr "Puertos utilizados"
+msgstr "Ports utilitzats"
 
 #: gui/llxamp-gui:1111
 msgid "Available ports"
-msgstr "Puertos disponibles"
+msgstr "Ports disponibles"
 
 #: gui/llxamp-gui:1112
 msgid "Make backup"
-msgstr "Hacer copia de seguridad"
+msgstr "Fer còpia de seguretat"
