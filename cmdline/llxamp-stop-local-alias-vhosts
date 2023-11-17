@@ -17,4 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with LLXAMP.  If not, see <http://www.gnu.org/licenses/>.
 
-/usr/bin/llxamp-ports -u
+pids=$(pgrep -f avahi-publish-domain-alias -u $(id -u))
+
+[ -n "$pids" ] && kill -9 $pids > /dev/null 2>&1

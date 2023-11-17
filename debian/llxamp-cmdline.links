@@ -15,3 +15,4 @@
 /usr/lib/llxamp/avahi-publish-domain-alias /usr/bin/avahi-publish-domain-alias
 /usr/lib/llxamp/llxamp-show-available-ports /usr/bin/llxamp-show-available-ports
 /usr/lib/llxamp/llxamp-show-vhosts /usr/bin/llxamp-show-vhosts
+/usr/lib/llxamp/llxamp-start-local-alias-vhosts /usr/bin/llxamp-start-local-alias-vhosts

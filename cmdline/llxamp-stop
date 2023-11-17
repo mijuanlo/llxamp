@@ -18,5 +18,6 @@
 # along with LLXAMP.  If not, see <http://www.gnu.org/licenses/>.
 
 export PATH="$HOME/llxamp/scripts:$PATH"
+llxamp-stop-local-alias-vhosts
 llxamp-stop-mysql
 llxamp-stop-apache

@@ -17,4 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with LLXAMP.  If not, see <http://www.gnu.org/licenses/>.
 
-/usr/bin/llxamp-ports -u
+export $(/usr/bin/avahi-publish-domain-alias -i)
+
+DOMAIN=${DOMAIN:=local}
+
+domains=$(/usr/bin/llxamp-show-vhosts | sed -nr "/[.]${DOMAIN}$/p" | xargs)
+
+[ -n "$domains" ] && ( /usr/bin/avahi-publish-domain-alias ${domains} >/dev/null & )
