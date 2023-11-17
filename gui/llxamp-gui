@@ -699,9 +699,12 @@ class Monitor(QtWidgets.QWidget):
             self.tickData.emit(result)
 
 class MainApp(QtWidgets.QMainWindow):
+    reRun = QtCore.Signal(QtCore.QObject)
+
     def __init__(self, app, *args, **kwargs):
         super().__init__()
         self.app = app
+        self._no_quit_app = False
         self.qtproc = QtProc()
         self.logviewer = LogViewer(self)
         self.monitor = Monitor(self,timeout=STATUS_TIMER,debug_fn=self.msg)
@@ -837,8 +840,9 @@ class MainApp(QtWidgets.QMainWindow):
         self.logviewer.terminate()
 
         print(_('Exit'))
-        super().closeEvent(ev)
-        self.app.quit()
+        if not self._no_quit_app:
+            super().closeEvent(ev)
+            self.app.quit()
 
     def systray_activation(self,reason):
         mode = reason.name.decode().lower()
@@ -1010,6 +1014,14 @@ class MainApp(QtWidgets.QMainWindow):
                 if not path:
                     return
                 args = ['-o',path]
+            if cmd == 'install':
+                is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp")
+                if is_installed:
+                    reinstall = self.askReinstall()
+                    if reinstall:
+                        self._no_quit_app = True
+                        self.reRun.emit(self)
+                    return
             if cmd == 'status':
                 args = ['-a','-m','-p','-n']
             if cmd == 'config':
@@ -1023,7 +1035,7 @@ class MainApp(QtWidgets.QMainWindow):
                     tree2,includes2,content2,logs = llxconfig.process()
                     txt = f'{txt}{llxconfig.print_content(content2,False,False)}'
                     self.msg(txt,prepend)
-                    return
+                    self
             if cmd == 'show-available-ports':
                 # print_output_to = lambda x: (self.infodialog(title=_("Available ports"),txt=x),self.msg(x))
                 print_output_to = lambda x: self.infodialog(title=button.text(),txt=x)
@@ -1050,6 +1062,17 @@ class MainApp(QtWidgets.QMainWindow):
                 finished_fn=lambda x,y: output(x,y),
                 debug_fn=self.msg
             )
+    def askReinstall(self):
+        path = f"{os.path.expanduser('~')}/llxamp"
+        dialog = QtWidgets.QMessageBox.critical(
+            self,
+            _('Reinstall LLXAMP'),
+            '<h3>'+_('Do you want reinstall LLXAMP?')+'</h3><h3>'+_("All content from:"+"</h3><h2>'<b>"+path+"</b>'</h2><h2>"+_('Will be removed!')+'</h2>'),
+            QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
+        )
+        if dialog == QtWidgets.QMessageBox.Yes:
+            return True
+        return False
 
     def textdialog(self, *args, **kwargs):
         cmd = kwargs.get('cmd')
@@ -1141,8 +1164,10 @@ class MainApp(QtWidgets.QMainWindow):
             ("show-available-ports",_("Available ports"),("network-wired-disconnected","SP_TitleBarNormalButton")),
             ("make-backup",_("Make backup"),("utilities-file-archiver","SP_DriveFDIcon")),
             ("show-apache-config",_("Show Apache config"),("/usr/share/applications/llxamp-apache.svg","description","SP_FileIcon")),
-            ("show-php-config",_("Show PHP config"),("/usr/share/applications/llxamp-php.svg","description","SP_FileIcon"))
+            ("show-php-config",_("Show PHP config"),("/usr/share/applications/llxamp-php.svg","description","SP_FileIcon")),
+            ("install",_("Install"),("llxamp","SP_TitleBarMenuButton"))
         ]
+        is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp")
         maxsize=max([ len(button[2]) for button in buttons])
         for pack in buttons:
             if isinstance(pack,tuple):
@@ -1181,6 +1206,8 @@ class MainApp(QtWidgets.QMainWindow):
                     btn.setToolTip(txt.capitalize())
                     btn.pressed.connect(self.action_triggered)
                     btn.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Fixed)
+                    if not is_installed and cmd != 'install':
+                        btn.setDisabled(True)
                     toolbar.addWidget(btn)
 
         # Needed for align items on old pyside versions
@@ -1216,8 +1243,86 @@ class MainApp(QtWidgets.QMainWindow):
     def msg(self, txt='', prepend=''):
         self.logviewer.msg(txt,prepend)
 
+class SpinDialog(QtWidgets.QDialog):
+    def __init__(self,*args):
+        global app
+        super().__init__(*args)
+        self.scr = QtGui.QGuiApplication.screens()
+        if self.scr:
+            self.scr = self.scr[0].geometry()
+        self.setModal(True)
+        self.setLayout(QtWidgets.QHBoxLayout(self))
+        self.label = QtWidgets.QLabel('<h1>'+_("Please wait")+'...</h1>')
+        self.wizard = QtWidgets.QWizard(self)
+        self.wizard.setModal(True)
+        self.wizard.setMinimumSize(QtCore.QSize(800,600))
+        self.page = QtWidgets.QWizardPage(self.wizard)
+        self.page.setTitle(_('Reinstalling')+'...')
+        self.textedit = QtWidgets.QPlainTextEdit()
+        self.textedit.setReadOnly(True)
+        font = QtGui.QFont()
+        font.setFamilies(['Hack','Courier New','monospace'])
+        font.setPointSize(10)
+        self.textedit.setFont(font)
+        self.layout_page = QtWidgets.QVBoxLayout()
+        #self.layout_page.addWidget(self.label)
+        #self.layout_page.addWidget(self.textedit)
+        #self.textedit.hide()
+        self.label.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding)
+        self.textedit.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding)
+        self.page.setLayout(self.layout_page)
+        self.wizard.addPage(self.page)
+        self.wizard.setWindowTitle(_('Reinstalling'))
+        self.wizard.setButtonLayout([QtWidgets.QWizard.CustomButton1])
+        self.wizard.setButtonText(QtWidgets.QWizard.CustomButton1,_('Close'))
+        self.wizard.setOption(QtWidgets.QWizard.HaveCustomButton1,True)
+        self.wizard.customButtonClicked.connect(lambda: self._closed())
+        self.proc = QtCore.QProcess()
+        self.proc.finished.connect(self._finished)
+
+    def _finished(self):
+        self.page.setTitle(_('Output:'))
+        data_out = bytes(self.proc.readAllStandardOutput()).decode('utf8').strip()
+        data_err = bytes(self.proc.readAllStandardError()).decode('utf8').strip()
+        if data_out:
+            self.textedit.appendPlainText(data_out)
+        if data_err:
+            self.textedit.appendPlainText(data_err)
+
+        self.layout_page.replaceWidget(self.label,self.textedit)
+
+        if data_out or data_err:
+            self.textedit.show()
+
+    def _closed(self):
+        global app, window
+
+        # remove all widgets from layout
+        self.layout_page.removeWidget(self.textedit)
+        self.textedit.clear()
+        self.wizard.hide()
+
+        window2 = MainApp(app)
+        window2.reRun.connect(self.start)
+        window2.show()
+        window=window2
+
+    def start(self,ptr_app):
+        global app, window
+
+        ptr_app.closeEvent()
+        ptr_app.destroy(True,True)
+
+        self.layout_page.addWidget(self.label)
+        self.label.show()
+        self.textedit.hide()
+        self.wizard.move( self.scr.center() - self.wizard.rect().center() )
+        self.wizard.show()
+        self.proc.start('/usr/bin/llxamp-install',['-f'])
+
 def main():
-    global app, exitting, DEBUG
+    global app, exitting, DEBUG, spin
     try:
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.bind('\0llxamp')
@@ -1228,7 +1333,9 @@ def main():
         if arg.lower() == '-d':
             DEBUG=True
     app = QtWidgets.QApplication(sys.argv)
+    spin = SpinDialog()
     window = MainApp(app)
+    window.reRun.connect(spin.start)
     window.show()
     exitLoopTimer = QtCore.QTimer()
     exitLoopTimer.timeout.connect(lambda: None)
