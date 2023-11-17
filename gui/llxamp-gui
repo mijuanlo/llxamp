@@ -98,6 +98,7 @@ class Highlighter(QtGui.QSyntaxHighlighter):
 class Editor(QtWidgets.QWidget):
     editorModified = QtCore.Signal(bool)
     editorSaved = QtCore.Signal(bool)
+    editorExternal = QtCore.Signal(str)
 
     def __init__(self,filename=None,*args, **kwargs):
         super().__init__(*args)
@@ -112,8 +113,8 @@ class Editor(QtWidgets.QWidget):
         self._restore_content = None
         if not self.layout():
             self.setLayout(QtWidgets.QVBoxLayout(self))
-        icons = [['document-revert','restore'],['edit-undo','undo'],['edit-redo','redo'],['document-save','save']]
-        for (name,data) in icons:
+        icons = [['document-revert','restore',_('Restore initial file')],['edit-undo','undo',_('Undo')],['edit-redo','redo',_('Redo')],['document-save','save',_('Save')],['open-for-editing','external-edit',_('Open with system editor')]]
+        for (name,data,txt) in icons:
             qt_default = None
             if hasattr(QtWidgets.QStyle,name):
                 qt_default = getattr(QtWidgets.QStyle,name)
@@ -127,8 +128,9 @@ class Editor(QtWidgets.QWidget):
                 action = QtWidgets.QAction(data.capitalize(),self._toolbar)
             action.setData(data)
             action.setObjectName(data)
-            action.setToolTip(data)
-            action.setDisabled(True)
+            action.setToolTip(txt)
+            if data not in ['external-edit']:
+                action.setDisabled(True)
             self._toolbar.addAction(action)
             self._actions.setdefault(data,action)
             action.triggered.connect(self._iconPressed)
@@ -153,7 +155,8 @@ class Editor(QtWidgets.QWidget):
     def _iconPressed(self):
         action = self.sender()
         data = action.data()
-        print(_("Editor button pressed")+f' {data}')
+        if DEBUG:
+            print(_("Editor button pressed")+f' {data}')
         if data == 'restore':
             self.restoreFile()
         if data == 'undo':
@@ -162,6 +165,8 @@ class Editor(QtWidgets.QWidget):
             self._qplaintext.redo()
         if data == 'save':
             self.askSave()
+        if data == 'external-edit':
+            self.editorExternal.emit(data)
 
     def askSave(self, forced=False):
         if self.isChanged() or forced:
@@ -548,7 +553,7 @@ class QtProc():
     def __init__(self):
         self.process = {}
 
-    def executeSingletonScript(self, scriptname, arguments, started_fn=None, finished_fn=None, debug_fn=None):
+    def executeSingletonScript(self, scriptname, arguments, started_fn=None, finished_fn=None, debug_fn=None, detached=False):
 
         def process_stdout(process):
             p = self.process.get(process)
@@ -571,7 +576,7 @@ class QtProc():
             debug_fn = print
 
         debug_start_fn = lambda: debug_fn(f'{MyPyStaticUtils.getTime()} Started {scriptname}')
-        debug_finish_fn = lambda x: debug_fn(f'{MyPyStaticUtils.getTime()} Finished {scriptname}\n{x}\n')
+        debug_finish_fn = lambda x,y: debug_fn(f'{MyPyStaticUtils.getTime()} Finished {scriptname}\n{x}\n')
 
         if not started_fn:
             started_fn = debug_start_fn
@@ -595,8 +600,8 @@ class QtProc():
             out = process_stdout(scriptname)
             err = process_stderr(scriptname)
             if err:
-                debug_finish_fn(_("Error executing script") + f' {scriptname}')
-            debug_finish_fn({'out': out, 'err': err})
+                debug_finish_fn(_("Error executing script") + f' {scriptname}',None)
+            debug_finish_fn(out,err)
             finished_fn(out,err)
             if scriptname in self.process:
                 del self.process[scriptname]
@@ -607,7 +612,10 @@ class QtProc():
         process.finished.connect(fn_finish)
         process.started.connect(fn_start)
 
-        process.start(MyPyStaticUtils.getScriptFullPath(scriptname),arguments)
+        if detached:
+            process.startDetached(MyPyStaticUtils.getScriptFullPath(scriptname),arguments)
+        else:
+            process.start(MyPyStaticUtils.getScriptFullPath(scriptname),arguments)
 
 class Monitor(QtWidgets.QWidget):
 
@@ -926,6 +934,7 @@ class MainApp(QtWidgets.QMainWindow):
             text.setData(filename)
             text.editorModified.connect(self.modification_slot)
             text.editorSaved.connect(self.editor_save_slot)
+            text.editorExternal.connect(self.action_triggered)
             tabs.addTab(text,name)
             tabs.setCurrentIndex(tabs.count()-1)
             if DEBUG:
@@ -961,6 +970,12 @@ class MainApp(QtWidgets.QMainWindow):
         if txt:
             txt = ','.join(txt)
 
+        if name == 'external-edit':
+            self.qtproc.executeSingletonScript(
+                'xdg-open', [action_sender._filename],
+                debug_fn=self.msg,
+                detached=True
+            )
         if name[:6] == 'action':
             if parent_name.lower() == 'menu_llxamp':
                 if text.lower() == 'exit':
