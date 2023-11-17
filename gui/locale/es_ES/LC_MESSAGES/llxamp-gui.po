@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-17 16:04+0100\n"
-"PO-Revision-Date: 2023-11-17 16:09+0100\n"
+"POT-Creation-Date: 2023-11-17 21:40+0100\n"
+"PO-Revision-Date: 2023-11-17 21:45+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -106,7 +106,7 @@ msgstr "Ficheros configuración"
 msgid "Log files"
 msgstr "Ficheros log"
 
-#: gui/llxamp-gui:594 gui/llxamp-gui:1177
+#: gui/llxamp-gui:594 gui/llxamp-gui:1307
 msgid "Already running"
 msgstr "Ya funcionando"
 
@@ -118,66 +118,114 @@ msgstr "Error ejecutando script"
 msgid "Not running"
 msgstr "Parado"
 
-#: gui/llxamp-gui:752
+#: gui/llxamp-gui:755
 msgid "Close tab"
 msgstr "Cerrar pestaña"
 
-#: gui/llxamp-gui:753
+#: gui/llxamp-gui:756
 msgid "Do you want close the tab?"
 msgstr "¿Desea cerrar la pestaña?"
 
-#: gui/llxamp-gui:759
+#: gui/llxamp-gui:762
 msgid "TAB CLOSE"
 msgstr "Pestaña cerrada"
 
-#: gui/llxamp-gui:785 gui/llxamp-gui:839
+#: gui/llxamp-gui:788 gui/llxamp-gui:842
 msgid "Exit"
 msgstr "Salir"
 
-#: gui/llxamp-gui:947
+#: gui/llxamp-gui:951
 msgid "Tab created"
 msgstr "Pestaña creada"
 
-#: gui/llxamp-gui:992
+#: gui/llxamp-gui:996
 msgid "Editing"
 msgstr "Editando"
 
-#: gui/llxamp-gui:1006
+#: gui/llxamp-gui:1012
 msgid "Archive files"
 msgstr "Ficheros comprimidos"
 
-#: gui/llxamp-gui:1007
+#: gui/llxamp-gui:1013
 msgid "File to save"
 msgstr "Archivo para guardado"
 
-#: gui/llxamp-gui:1035
+#: gui/llxamp-gui:1049
 msgid "Output from command"
 msgstr "Salida del comando"
 
-#: gui/llxamp-gui:1037
+#: gui/llxamp-gui:1051
 msgid "Error Output"
 msgstr "Salida de error"
 
-#: gui/llxamp-gui:1107
+#: gui/llxamp-gui:1069
+msgid "Reinstall LLXAMP"
+msgstr "Reinstalar LLXAMP"
+
+#: gui/llxamp-gui:1070
+msgid "Do you want reinstall LLXAMP?"
+msgstr "¿Desea reinstalar el entorno LLXAMPl?"
+
+#: gui/llxamp-gui:1070
+msgid "Will be removed!"
+msgstr "Será borrado!"
+
+#: gui/llxamp-gui:1070
+msgid "All content from:</h3><h2>'<b>"
+msgstr "Todo el contenido de:</h3><h2>'<b>"
+
+#: gui/llxamp-gui:1088 gui/llxamp-gui:1098
+msgid "configuration"
+msgstr "configuración"
+
+#: gui/llxamp-gui:1100 gui/llxamp-gui:1255
+msgid "Close"
+msgstr "Cerrar"
+
+#: gui/llxamp-gui:1160
 msgid "Browser"
 msgstr "Navegador"
 
-#: gui/llxamp-gui:1108
+#: gui/llxamp-gui:1161
 msgid "Secure browser"
 msgstr "Navegador seguro"
 
-#: gui/llxamp-gui:1109
+#: gui/llxamp-gui:1162
 msgid "PhpMyAdmin"
 msgstr "PhpMyAdmin"
 
-#: gui/llxamp-gui:1110
+#: gui/llxamp-gui:1163
 msgid "Used ports"
 msgstr "Puertos en uso"
 
-#: gui/llxamp-gui:1111
+#: gui/llxamp-gui:1164
 msgid "Available ports"
 msgstr "Puertos disponibles"
 
-#: gui/llxamp-gui:1112
+#: gui/llxamp-gui:1165
 msgid "Make backup"
 msgstr "Copia de seguridad"
+
+#: gui/llxamp-gui:1166
+msgid "Show Apache config"
+msgstr "Mostrar configuración Apache"
+
+#: gui/llxamp-gui:1167
+msgid "Show PHP config"
+msgstr "Mostrar configuración PHP"
+
+#: gui/llxamp-gui:1168
+msgid "Install"
+msgstr "Instalar"
+
+#: gui/llxamp-gui:1235
+msgid "Please wait"
+msgstr "Espera por favor"
+
+#: gui/llxamp-gui:1240 gui/llxamp-gui:1253
+msgid "Reinstalling"
+msgstr "Reinstalando"
+
+#: gui/llxamp-gui:1262
+msgid "Output:"
+msgstr "Salida:"

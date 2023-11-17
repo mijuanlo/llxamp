@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-17 16:04+0100\n"
-"PO-Revision-Date: 2023-11-17 16:10+0100\n"
+"POT-Creation-Date: 2023-11-17 21:40+0100\n"
+"PO-Revision-Date: 2023-11-17 21:45+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -60,7 +60,7 @@ msgstr "Guardar fitxer"
 
 #: gui/llxamp-gui:176
 msgid "Do you want to save?"
-msgstr "Desitja guardar?"
+msgstr "¿Desea guardar?"
 
 #: gui/llxamp-gui:189
 msgid "Restore file"
@@ -68,7 +68,7 @@ msgstr "Restaurar fitxer"
 
 #: gui/llxamp-gui:190
 msgid "Do you want restore original file?"
-msgstr "Desitja restaurar el fitxer original?"
+msgstr "¿Desea restaurar el fichero original?"
 
 #: gui/llxamp-gui:225
 msgid "File"
@@ -106,7 +106,7 @@ msgstr "Fitxers configuració"
 msgid "Log files"
 msgstr "Fitxers log"
 
-#: gui/llxamp-gui:594 gui/llxamp-gui:1177
+#: gui/llxamp-gui:594 gui/llxamp-gui:1307
 msgid "Already running"
 msgstr "Ja funcionant"
 
@@ -118,66 +118,114 @@ msgstr "Error executant script"
 msgid "Not running"
 msgstr "Parat"
 
-#: gui/llxamp-gui:752
+#: gui/llxamp-gui:755
 msgid "Close tab"
 msgstr "Tancar pestanya"
 
-#: gui/llxamp-gui:753
+#: gui/llxamp-gui:756
 msgid "Do you want close the tab?"
 msgstr "Desitja tancar la pestanya?"
 
-#: gui/llxamp-gui:759
+#: gui/llxamp-gui:762
 msgid "TAB CLOSE"
 msgstr "Pestanya tancada"
 
-#: gui/llxamp-gui:785 gui/llxamp-gui:839
+#: gui/llxamp-gui:788 gui/llxamp-gui:842
 msgid "Exit"
 msgstr "Eixir"
 
-#: gui/llxamp-gui:947
+#: gui/llxamp-gui:951
 msgid "Tab created"
 msgstr "Pestanya creada"
 
-#: gui/llxamp-gui:992
+#: gui/llxamp-gui:996
 msgid "Editing"
 msgstr "Editant"
 
-#: gui/llxamp-gui:1006
+#: gui/llxamp-gui:1012
 msgid "Archive files"
 msgstr "Fitxers comprimits"
 
-#: gui/llxamp-gui:1007
+#: gui/llxamp-gui:1013
 msgid "File to save"
 msgstr "Arxiu per a guardat"
 
-#: gui/llxamp-gui:1035
+#: gui/llxamp-gui:1049
 msgid "Output from command"
 msgstr "Eixida del comando"
 
-#: gui/llxamp-gui:1037
+#: gui/llxamp-gui:1051
 msgid "Error Output"
 msgstr "Eixida d'error"
 
-#: gui/llxamp-gui:1107
+#: gui/llxamp-gui:1069
+msgid "Reinstall LLXAMP"
+msgstr "Reinstal·lar LLXAMP"
+
+#: gui/llxamp-gui:1070
+msgid "Do you want reinstall LLXAMP?"
+msgstr "¿Desea reinstalar el entorno LLXAMPl?"
+
+#: gui/llxamp-gui:1070
+msgid "Will be removed!"
+msgstr "Serà esborrat!"
+
+#: gui/llxamp-gui:1070
+msgid "All content from:</h3><h2>'<b>"
+msgstr "Tot el contingut de:</h3><h2>'<b>"
+
+#: gui/llxamp-gui:1088 gui/llxamp-gui:1098
+msgid "configuration"
+msgstr "configuració"
+
+#: gui/llxamp-gui:1100 gui/llxamp-gui:1255
+msgid "Close"
+msgstr "Tancar"
+
+#: gui/llxamp-gui:1160
 msgid "Browser"
 msgstr "Navegador"
 
-#: gui/llxamp-gui:1108
+#: gui/llxamp-gui:1161
 msgid "Secure browser"
 msgstr "Navegador segur"
 
-#: gui/llxamp-gui:1109
+#: gui/llxamp-gui:1162
 msgid "PhpMyAdmin"
 msgstr "PhpMyAdmin"
 
-#: gui/llxamp-gui:1110
+#: gui/llxamp-gui:1163
 msgid "Used ports"
 msgstr "Ports en ús"
 
-#: gui/llxamp-gui:1111
+#: gui/llxamp-gui:1164
 msgid "Available ports"
 msgstr "Ports disponibles"
 
-#: gui/llxamp-gui:1112
+#: gui/llxamp-gui:1165
 msgid "Make backup"
 msgstr "Còpia de seguretat"
+
+#: gui/llxamp-gui:1166
+msgid "Show Apache config"
+msgstr "Mostrar configuració Apatxe"
+
+#: gui/llxamp-gui:1167
+msgid "Show PHP config"
+msgstr "Mostrar configuració PHP"
+
+#: gui/llxamp-gui:1168
+msgid "Install"
+msgstr "Instal·lar"
+
+#: gui/llxamp-gui:1235
+msgid "Please wait"
+msgstr "Espera per favor"
+
+#: gui/llxamp-gui:1240 gui/llxamp-gui:1253
+msgid "Reinstalling"
+msgstr "Reinstal·lant"
+
+#: gui/llxamp-gui:1262
+msgid "Output:"
+msgstr "Eixida:"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-17 16:04+0100\n"
+"POT-Creation-Date: 2023-11-17 21:40+0100\n"
 "PO-Revision-Date: 2023-11-13 18:22+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -106,7 +106,7 @@ msgstr ""
 msgid "Log files"
 msgstr ""
 
-#: gui/llxamp-gui:594 gui/llxamp-gui:1177
+#: gui/llxamp-gui:594 gui/llxamp-gui:1307
 msgid "Already running"
 msgstr ""
 
@@ -118,66 +118,114 @@ msgstr ""
 msgid "Not running"
 msgstr ""
 
-#: gui/llxamp-gui:752
+#: gui/llxamp-gui:755
 msgid "Close tab"
 msgstr ""
 
-#: gui/llxamp-gui:753
+#: gui/llxamp-gui:756
 msgid "Do you want close the tab?"
 msgstr ""
 
-#: gui/llxamp-gui:759
+#: gui/llxamp-gui:762
 msgid "TAB CLOSE"
 msgstr ""
 
-#: gui/llxamp-gui:785 gui/llxamp-gui:839
+#: gui/llxamp-gui:788 gui/llxamp-gui:842
 msgid "Exit"
 msgstr ""
 
-#: gui/llxamp-gui:947
+#: gui/llxamp-gui:951
 msgid "Tab created"
 msgstr ""
 
-#: gui/llxamp-gui:992
+#: gui/llxamp-gui:996
 msgid "Editing"
 msgstr ""
 
-#: gui/llxamp-gui:1006
+#: gui/llxamp-gui:1012
 msgid "Archive files"
 msgstr ""
 
-#: gui/llxamp-gui:1007
+#: gui/llxamp-gui:1013
 msgid "File to save"
 msgstr ""
 
-#: gui/llxamp-gui:1035
+#: gui/llxamp-gui:1049
 msgid "Output from command"
 msgstr ""
 
-#: gui/llxamp-gui:1037
+#: gui/llxamp-gui:1051
 msgid "Error Output"
 msgstr ""
 
-#: gui/llxamp-gui:1107
+#: gui/llxamp-gui:1069
+msgid "Reinstall LLXAMP"
+msgstr ""
+
+#: gui/llxamp-gui:1070
+msgid "Do you want reinstall LLXAMP?"
+msgstr ""
+
+#: gui/llxamp-gui:1070
+msgid "Will be removed!"
+msgstr ""
+
+#: gui/llxamp-gui:1070
+msgid "All content from:</h3><h2>'<b>"
+msgstr ""
+
+#: gui/llxamp-gui:1088 gui/llxamp-gui:1098
+msgid "configuration"
+msgstr ""
+
+#: gui/llxamp-gui:1100 gui/llxamp-gui:1255
+msgid "Close"
+msgstr ""
+
+#: gui/llxamp-gui:1160
 msgid "Browser"
 msgstr ""
 
-#: gui/llxamp-gui:1108
+#: gui/llxamp-gui:1161
 msgid "Secure browser"
 msgstr ""
 
-#: gui/llxamp-gui:1109
+#: gui/llxamp-gui:1162
 msgid "PhpMyAdmin"
 msgstr ""
 
-#: gui/llxamp-gui:1110
+#: gui/llxamp-gui:1163
 msgid "Used ports"
 msgstr ""
 
-#: gui/llxamp-gui:1111
+#: gui/llxamp-gui:1164
 msgid "Available ports"
 msgstr ""
 
-#: gui/llxamp-gui:1112
+#: gui/llxamp-gui:1165
 msgid "Make backup"
+msgstr ""
+
+#: gui/llxamp-gui:1166
+msgid "Show Apache config"
+msgstr ""
+
+#: gui/llxamp-gui:1167
+msgid "Show PHP config"
+msgstr ""
+
+#: gui/llxamp-gui:1168
+msgid "Install"
+msgstr ""
+
+#: gui/llxamp-gui:1235
+msgid "Please wait"
+msgstr ""
+
+#: gui/llxamp-gui:1240 gui/llxamp-gui:1253
+msgid "Reinstalling"
+msgstr ""
+
+#: gui/llxamp-gui:1262
+msgid "Output:"
 msgstr ""
