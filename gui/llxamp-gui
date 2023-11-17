@@ -1002,8 +1002,8 @@ class MainApp(QtWidgets.QMainWindow):
             args = []
             prepend=''
             print_output_to=self.msg
-            if cmd == 'show-apache-config':
-                print_output_to=self.textdialog
+            if cmd in ['show-apache-config','show-php-config']:
+                print_output_to=lambda x : self.textdialog(cmd=cmd,txt=x)
             if cmd == 'make-backup':
                 filter = _('Archive files')+' (*.tar.gz)'
                 path,filter_selected = QtWidgets.QFileDialog.getSaveFileName(self,_('File to save'),os.path.expanduser('~'),filter)
@@ -1050,18 +1050,29 @@ class MainApp(QtWidgets.QMainWindow):
                 finished_fn=lambda x,y: output(x,y),
                 debug_fn=self.msg
             )
+
     def textdialog(self, *args, **kwargs):
-        txt = args[0]
+        cmd = kwargs.get('cmd')
+        title = ''
+        if cmd:
+            if 'apache' in cmd:
+                title='Apache'
+            if 'php' in cmd:
+                title='PHP'
+        txt = kwargs.get('txt')
         w = QtWidgets.QWizard(self)
         tw = QtWidgets.QWizardPage(w)
-        tw.setTitle(_('Apache configuration'))
-        l = QtWidgets.QPlainTextEdit(txt,tw)
-        l.setReadOnly(True)
+        tw.setTitle(f'{title} '+_('configuration'))
+        te = QtWidgets.QPlainTextEdit(txt,tw)
+        font = QtGui.QFont()
+        font.setFamilies(['Hack','Courier New','monospace'])
+        te.setFont(font)
+        te.setReadOnly(True)
         lay = QtWidgets.QVBoxLayout()
-        lay.addWidget(l)
+        lay.addWidget(te)
         tw.setLayout(lay)
         w.addPage(tw)
-        w.setWindowTitle(_('Apache configuration'))
+        w.setWindowTitle(f'{title} '+_('configuration'))
         w.setButtonLayout([QtWidgets.QWizard.CustomButton1])
         w.setButtonText(QtWidgets.QWizard.CustomButton1,_('Close'))
         w.setOption(QtWidgets.QWizard.HaveCustomButton1,True)
@@ -1129,7 +1140,8 @@ class MainApp(QtWidgets.QMainWindow):
             ("show-used-ports",_("Used ports"),("network-wired","SP_TitleBarNormalButton")),
             ("show-available-ports",_("Available ports"),("network-wired-disconnected","SP_TitleBarNormalButton")),
             ("make-backup",_("Make backup"),("utilities-file-archiver","SP_DriveFDIcon")),
-            ("show-apache-config",_("Show Apache config"),("/usr/share/applications/llxamp-apache.svg","description","SP_FileIcon"))
+            ("show-apache-config",_("Show Apache config"),("/usr/share/applications/llxamp-apache.svg","description","SP_FileIcon")),
+            ("show-php-config",_("Show PHP config"),("/usr/share/applications/llxamp-php.svg","description","SP_FileIcon"))
         ]
         maxsize=max([ len(button[2]) for button in buttons])
         for pack in buttons:
