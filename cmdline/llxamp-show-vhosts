@@ -17,4 +17,4 @@
 # You should have received a copy of the GNU General Public License
 # along with LLXAMP.  If not, see <http://www.gnu.org/licenses/>.
 
-/usr/bin/llxamp-ports -u
+/usr/bin/llxamp-config -a -c -r | egrep -v '^\s*(#.*)?$' | egrep -i 'servername|virtualhost|serveralias' | tr -d '<>/*' | sed -r -e 's/servername|serveralias|virtualhost//gi' | cut -d':' -f1 | egrep -iv "$(hostname)|$(hostname -f)|_default_" | xargs -n1 |sed -r 's|^[.]*([^.].*)$|\1|g' | sort | uniq
