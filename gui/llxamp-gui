@@ -1109,31 +1109,48 @@ class MainApp(QtWidgets.QMainWindow):
             ("open-phpmyadmin",_("PhpMyAdmin"),("server-database","SP_FileDialogInfoView")),
             ("show-used-ports",_("Used ports"),("network-wired","SP_TitleBarNormalButton")),
             ("show-available-ports",_("Available ports"),("network-wired-disconnected","SP_TitleBarNormalButton")),
-            ("make-backup",_("Make backup"),("utilities-file-archiver","SP_DriveFDIcon"))
+            ("make-backup",_("Make backup"),("utilities-file-archiver","SP_DriveFDIcon")),
+            ("show-apache-config",_("Show Apache config"),("/usr/lib/llxamp/resources/llxamp-apache.svg","description","SP_FileIcon"))
         ]
         maxsize=max([ len(button[2]) for button in buttons])
-        for txt in buttons:
-            if isinstance(txt,tuple):
-                cmd,txt,icons = txt
-                themeicon,fallback = icons
-            else:
-                cmd = txt
-                themeicon = 'SP_TitleBarContextHelpButton'
-                fallback = 'SP_TitleBarContextHelpButton'
-            if txt[0] != '#':
-                btn = QtWidgets.QToolButton(toolbar)
-                i = QtGui.QIcon.fromTheme(themeicon,self.style().standardIcon(getattr(QtWidgets.QStyle,fallback)))
-                if i.isNull():
-                    i = self.style().standardIcon(getattr(QtWidgets.QStyle,fallback))
-                btn.setIcon(i)
-                btn.setText(txt.capitalize())
-                btn.setCheckable(True)
-                btn.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
-                btn.setObjectName('button_'+cmd)
-                btn.setToolTip(txt.capitalize())
-                btn.pressed.connect(self.action_triggered)
-                btn.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Fixed)
-                toolbar.addWidget(btn)
+        for pack in buttons:
+            if isinstance(pack,tuple):
+                if len(pack) == 3:
+                    cmd, txt, icons = pack
+                    if cmd[0] == '#':
+                        continue
+
+                    if isinstance(icons,str):
+                        theme = 'help-about'
+                        fallback = 'SP_TitleBarContextHelpButton'
+                        custom = icons
+                    else:
+                        if isinstance(icons,tuple):
+                            if len(icons) == 2:
+                                custom = None
+                                theme, fallback = icons
+                            if len(icons) == 3:
+                                custom , theme , fallback = icons
+
+                    icon = QtGui.QIcon()
+                    if custom:
+                        icon = QtGui.QIcon(custom)
+                    if icon.isNull():
+                        icon = QtGui.QIcon.fromTheme(theme,self.style().standardIcon(getattr(QtWidgets.QStyle,fallback)))
+                    if icon.isNull():
+                        icon = self.style().standardIcon(getattr(QtWidgets.QStyle,fallback))
+
+                    btn = QtWidgets.QToolButton(toolbar)
+                    if icon:
+                        btn.setIcon(icon)
+                    btn.setText(txt.capitalize())
+                    btn.setCheckable(True)
+                    btn.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
+                    btn.setObjectName('button_'+cmd)
+                    btn.setToolTip(txt.capitalize())
+                    btn.pressed.connect(self.action_triggered)
+                    btn.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Fixed)
+                    toolbar.addWidget(btn)
 
         # Needed for align items on old pyside versions
         # Breaks full size button until qtoolbar width
