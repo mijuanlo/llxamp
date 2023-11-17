@@ -41,18 +41,25 @@ def get_names():
     bus = dbus.SystemBus()
     server = dbus.Interface(bus.get_object(avahi.DBUS_NAME, avahi.DBUS_PATH_SERVER),
             avahi.DBUS_INTERFACE_SERVER)
-    return { 'domain': str(server.GetDomainName()), 'fqdn': str(server.GetHostNameFqdn()) }
+    return { 'domain': str(server.GetDomainName()), 'fqdn': str(server.GetHostNameFqdn()), 'hostname': str(server.GetHostName()) }
 
 names = get_names()
 
 def show_help():
     filename = os.path.basename(__file__)
     print(f'''Usage:
-    {filename} [<alias> ...]
-        <alias> = <hostname>.<avahi_domain>
-        <avahi_domain> = {names.get('domain')}
-        <hostname> : any string
+    {filename} [ -i ] | [<alias> ... <alias>]
+        Options:
+            -i : Show info
+            -h : This help
+        Parameters:
+            <alias> = <hostname>.<avahi_domain>
+            <hostname> : any string
+            <avahi_domain> = {names.get('domain')}
 ''')
+
+def show_info():
+    print(f'''HOSTNAME={names.get('hostname')}\nDOMAIN={names.get('domain')}\nFQDN={names.get('fqdn')}''')
 
 def publish_cname(cname):
     bus = dbus.SystemBus()
@@ -91,6 +98,9 @@ if __name__ == '__main__':
     import time, sys, locale
     if not sys.argv[1:] or '-h' in sys.argv:
         show_help()
+        sys.exit(0)
+    if '-i' in sys.argv:
+        show_info()
         sys.exit(0)
     for arg in sys.argv[1:]:
         parts = arg.split('.')
