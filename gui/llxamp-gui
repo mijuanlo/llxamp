@@ -1220,26 +1220,6 @@ class MainApp(QtWidgets.QMainWindow):
 
         self.centralWidget().parent().addToolBar(QtCore.Qt.RightToolBarArea,toolbar)
 
-    # def create_buttons2(self):
-    #     container = QtWidgets.QWidget(self.split)
-    #     container.setObjectName('container_buttons')
-    #     if not container.layout():
-    #         container.setLayout(QtWidgets.QHBoxLayout(container))
-    #     container.layout().setMargin(0)
-
-    #     buttons = ["#status","start","stop","#config",("open-browser",_('Open browser')),("open-browser-ssl",_('Open Secure Browser')),("open-phpmyadmin",_("PhpMyAdmin"))]
-    #     for txt in buttons:
-    #         if isinstance(txt,tuple):
-    #             cmd,txt = txt
-    #         else:
-    #             cmd = txt
-    #         if txt[0] != '#':
-    #             btn = QtWidgets.QPushButton(txt.capitalize(),parent=container)
-    #             btn.setObjectName('button_'+cmd)
-    #             btn.pressed.connect(self.action_triggered)
-    #             container.layout().addWidget(btn)
-    #     self.centralWidget().layout().addWidget(container)
-
     def msg(self, txt='', prepend=''):
         self.logviewer.msg(txt,prepend)
 
