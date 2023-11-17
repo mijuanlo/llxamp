@@ -168,8 +168,8 @@ class Editor(QtWidgets.QWidget):
         if data == 'external-edit':
             self.editorExternal.emit(data)
 
-    def askSave(self, forced=False):
-        if self.isChanged() or forced:
+    def askSave(self, exit_forced=False):
+        if self.isChanged() or exit_forced:
             dialog = QtWidgets.QMessageBox.question(
                 self,
                 _("Save file") + f' "{self._filename}"',
@@ -237,7 +237,7 @@ class Editor(QtWidgets.QWidget):
         restorefile = f'{dirname}/.{filename}.initial'
         if self.hasRestore():
             if self.askRestore():
-                if self.askSave(forced=True):
+                if self.askSave(exit_forced=True):
                     with open(restorefile,'r') as fprestore:
                         with open(self._filename,'w') as fpfile:
                             content = fprestore.read()
@@ -734,13 +734,13 @@ class MainApp(QtWidgets.QMainWindow):
         if DEBUG:
             self.msg(f'TAB CHANGE {idx}')
 
-    def close_tab(self,idx,forced=False):
+    def close_tab(self,idx,exit_forced=False):
         tabs = MyQtStaticUtils.findObject(self,'tabs')
         if not tabs:
             return False
         tabs = tabs[0]
         widget = tabs.widget(idx)
-        if forced == False:
+        if not exit_forced and widget.isChanged():
             dialog = QtWidgets.QMessageBox.question(
                 self,
                 _("Close tab"),
@@ -824,7 +824,7 @@ class MainApp(QtWidgets.QMainWindow):
                 for idx in range(tabs.count()):
                     widget=tabs.widget(idx)
                     if isinstance(widget,Editor):
-                        if not self.close_tab(idx,forced=True):
+                        if not self.close_tab(idx,exit_forced=True):
                             if hasattr(ev,'ignore'):
                                 ev.ignore()
                             return
