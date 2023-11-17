@@ -215,7 +215,13 @@ class Editor(QtWidgets.QWidget):
         contents = self._qplaintext.toPlainText()
         with open(self._filename,'w') as fp:
             fp.write(contents)
+        cur = self._qplaintext.textCursor()
+        pos = cur.position()
         self.setInitialText(contents)
+        cur = self._qplaintext.textCursor()
+        cur.movePosition(QtGui.QTextCursor.Start,QtGui.QTextCursor.MoveAnchor,1)
+        cur.movePosition(QtGui.QTextCursor.NextCharacter,QtGui.QTextCursor.MoveAnchor,pos-1)
+        self._qplaintext.setTextCursor(cur)
         print(_("File") + f' {self._filename} ' + _("saved"))
 
     def hasRestore(self):
