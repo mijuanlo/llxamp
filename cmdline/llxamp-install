@@ -208,7 +208,13 @@ decompress_pack(){
     if [ -n "$mounted" ];then
         echo "Remount '$rptarget' needed"
         echo "Killing procs using '$rptarget'"
-        fuser -mk "$rptarget" > /dev/null 2>&1
+        pids=$(lsof -u $(id -u)|grep "$HOME/llxamp"|awk '{print $2}'|sort|uniq|xargs)
+        if [ -n "$pids" ]; then
+            echo "Detected pids $pids"
+            kill -9 $pids
+        fi
+        # Too aggresive !
+        # fuser -mk "$rptarget" > /dev/null 2>&1
         sleep 2
         echo "Mounting '$rptarget'"
         fusermount -uz "$rptarget"
