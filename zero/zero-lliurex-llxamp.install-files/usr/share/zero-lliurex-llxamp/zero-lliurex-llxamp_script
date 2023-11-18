@@ -54,14 +54,12 @@ case $ACTION in
 
     remove)
         echo "remove phase ..."
-        set -x
         for pkg in ${PACKAGE_LIST}; do
             apt-get purge -y $pkg
             if [ "$pkg" == "llxamp-cmdline" ]; then
                 apt-get purge -y llxamp-install-pack
             fi
         done
-        set +x
     ;;
 esac
 exit 0
