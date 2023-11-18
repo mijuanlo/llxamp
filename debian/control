@@ -81,4 +81,4 @@ Package: zero-lliurex-llxamp
 Architecture: any
 Depends: ${misc:Depends},
 Description: Zero-installer for LLXAMP
- Zero-installer for LLXAMP
+ Zero-installer install button for LLXAMP
