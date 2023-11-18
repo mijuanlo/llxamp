@@ -56,6 +56,9 @@ case $ACTION in
         echo "remove phase ..."
         for pkg in ${PACKAGE_LIST}; do
             apt-get purge -y $pkg
+            if [ "$pkg" == "llxamp-cmdline" ]; then
+                apt-get purge -y llxamp-install-pack
+            fi
         done
     ;;
 esac
