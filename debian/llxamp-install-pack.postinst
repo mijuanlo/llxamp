@@ -17,7 +17,7 @@ set -e
 # for details, see https://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-PACKDIR=/tmp/llxamp-install-pack
+PACKDIR="/tmp/llxamp-install-pack"
 PACKNAME=install-pack.tgz
 PACK="$PACKDIR/$PACKNAME"
 
@@ -34,8 +34,8 @@ case "$1" in
             need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
             for n in $need; do
                 if grep -s $n $tmpfile > /dev/null 2>&1; then
-                    echo "$(basename $n) found!" 
-                else 
+                    echo "$(basename $n) found!"
+                else
                     echo "$(basename $n) not found!"
                 fi
             done
