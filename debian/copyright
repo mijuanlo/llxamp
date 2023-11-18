@@ -3,7 +3,7 @@ Upstream-Name: llxamp
 Upstream-Contact: lliurex.net
 Source: https://github.com/lliurex/llxamp
 
-Files: debian/*
+Files: *
 Copyright: 2023 M.Angel Juan <m.angel.juan@gmail.com>
 License: GPL-3.0+
 
