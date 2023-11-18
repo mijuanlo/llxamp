@@ -55,7 +55,7 @@ case $ACTION in
     remove)
         echo "remove phase ..."
         for pkg in ${PACKAGE_LIST}; do
-            apt-get remove -y $pkg
+            apt-get purge -y $pkg
         done
     ;;
 esac
