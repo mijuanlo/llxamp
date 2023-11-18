@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+xgettext -L Python --keyword --keyword=_ -o gui/locale/llxamp-gui.pot gui/llxamp-gui
+find gui -name '*.po' -exec msgmerge --update {} gui/locale/llxamp-gui.pot \; > /dev/null 2>&1
+poedit gui/locale/es_ES/LC_MESSAGES/llxamp-gui.po > /dev/null 2>&1
+python3 po-to-valencian.py gui/locale/es_ES/LC_MESSAGES/llxamp-gui.po > gui/locale/ca_ES/LC_MESSAGES/llxamp-gui.po
+poedit gui/locale/ca_ES/LC_MESSAGES/llxamp-gui.po
+

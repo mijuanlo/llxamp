@@ -1250,6 +1250,10 @@ class SpinDialog(QtWidgets.QDialog):
         self.scr = QtGui.QGuiApplication.screens()
         if self.scr:
             self.scr = self.scr[0].geometry()
+        title=_('Installing')
+        reinstall = os.path.exists(f"{os.path.expanduser('~')}/llxamp/scripts")
+        if reinstall:
+            title=_('Reinstalling')
         self.setModal(True)
         self.setLayout(QtWidgets.QHBoxLayout(self))
         self.label = QtWidgets.QLabel('<h1>'+_("Please wait")+'...</h1>')
@@ -1257,7 +1261,7 @@ class SpinDialog(QtWidgets.QDialog):
         self.wizard.setModal(True)
         self.wizard.setMinimumSize(QtCore.QSize(800,600))
         self.page = QtWidgets.QWizardPage(self.wizard)
-        self.page.setTitle(_('Reinstalling')+'...')
+        self.page.setTitle(title+'...')
         self.textedit = QtWidgets.QPlainTextEdit()
         self.textedit.setReadOnly(True)
         font = QtGui.QFont()
@@ -1270,7 +1274,7 @@ class SpinDialog(QtWidgets.QDialog):
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding)
         self.page.setLayout(self.layout_page)
         self.wizard.addPage(self.page)
-        self.wizard.setWindowTitle(_('Reinstalling'))
+        self.wizard.setWindowTitle(title)
         self.wizard.setButtonLayout([QtWidgets.QWizard.CustomButton1])
         self.wizard.setButtonText(QtWidgets.QWizard.CustomButton1,_('Close'))
         self.wizard.setOption(QtWidgets.QWizard.HaveCustomButton1,True)

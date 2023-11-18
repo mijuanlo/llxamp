@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-18 12:30+0100\n"
-"PO-Revision-Date: 2023-11-18 12:30+0100\n"
+"POT-Creation-Date: 2023-11-18 12:44+0100\n"
+"PO-Revision-Date: 2023-11-18 12:44+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -106,7 +106,7 @@ msgstr "Ficheros configuración"
 msgid "Log files"
 msgstr "Ficheros log"
 
-#: gui/llxamp-gui:594 gui/llxamp-gui:1327
+#: gui/llxamp-gui:594 gui/llxamp-gui:1331
 msgid "Already running"
 msgstr "Ya funcionando"
 
@@ -182,7 +182,7 @@ msgstr "Será borrado!"
 msgid "configuration"
 msgstr "configuración"
 
-#: gui/llxamp-gui:1120 gui/llxamp-gui:1275
+#: gui/llxamp-gui:1120 gui/llxamp-gui:1279
 msgid "Close"
 msgstr "Cerrar"
 
@@ -218,15 +218,19 @@ msgstr "Mostrar configuración Apache"
 msgid "Show PHP config"
 msgstr "Mostrar configuración PHP"
 
-#: gui/llxamp-gui:1255
-msgid "Please wait"
-msgstr "Espera por favor"
+#: gui/llxamp-gui:1253
+msgid "Installing"
+msgstr "Instalando"
 
-#: gui/llxamp-gui:1260 gui/llxamp-gui:1273
+#: gui/llxamp-gui:1256
 msgid "Reinstalling"
 msgstr "Reinstalando"
 
-#: gui/llxamp-gui:1282
+#: gui/llxamp-gui:1259
+msgid "Please wait"
+msgstr "Espera por favor"
+
+#: gui/llxamp-gui:1286
 msgid "Output:"
 msgstr "Salida:"
 

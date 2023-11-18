@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-18 12:30+0100\n"
+"POT-Creation-Date: 2023-11-18 12:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -105,7 +105,7 @@ msgstr ""
 msgid "Log files"
 msgstr ""
 
-#: gui/llxamp-gui:594 gui/llxamp-gui:1327
+#: gui/llxamp-gui:594 gui/llxamp-gui:1331
 msgid "Already running"
 msgstr ""
 
@@ -181,7 +181,7 @@ msgstr ""
 msgid "configuration"
 msgstr ""
 
-#: gui/llxamp-gui:1120 gui/llxamp-gui:1275
+#: gui/llxamp-gui:1120 gui/llxamp-gui:1279
 msgid "Close"
 msgstr ""
 
@@ -217,14 +217,18 @@ msgstr ""
 msgid "Show PHP config"
 msgstr ""
 
-#: gui/llxamp-gui:1255
-msgid "Please wait"
+#: gui/llxamp-gui:1253
+msgid "Installing"
 msgstr ""
 
-#: gui/llxamp-gui:1260 gui/llxamp-gui:1273
+#: gui/llxamp-gui:1256
 msgid "Reinstalling"
 msgstr ""
 
-#: gui/llxamp-gui:1282
+#: gui/llxamp-gui:1259
+msgid "Please wait"
+msgstr ""
+
+#: gui/llxamp-gui:1286
 msgid "Output:"
 msgstr ""
