@@ -8,7 +8,7 @@
    version="1.1"
    id="svg1900"
    inkscape:version="1.2.2 (1:1.2.2+202305151915+b0a8486541)"
-   sodipodi:docname="zero-lliurex-llxamp.svg.2023_11_18_10_14_00.0.svg"
+   sodipodi:docname="zero-lliurex-llxamp.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -26,7 +26,7 @@
      showgrid="false"
      inkscape:zoom="2.647615"
      inkscape:cx="112.93183"
-     inkscape:cy="133.32754"
+     inkscape:cy="133.70524"
      inkscape:window-width="3440"
      inkscape:window-height="1243"
      inkscape:window-x="0"
@@ -210,9 +210,9 @@
        style="color-interpolation-filters:sRGB"
        inkscape:label="Blur"
        id="filter55233"
-       x="-0.011005306"
+       x="-0.012145453"
        y="-0.02954726"
-       width="1.0220106"
+       width="1.0242909"
        height="1.0590945">
       <feGaussianBlur
          stdDeviation="0.35 0.35"
@@ -279,9 +279,9 @@
        style="color-interpolation-filters:sRGB;"
        inkscape:label="Tritone"
        id="filter6001"
-       x="-0.073759448"
+       x="-0.08140091"
        y="-0.1980308"
-       width="1.1475188"
+       width="1.1628018"
        height="1.3960616">
       <feColorMatrix
          type="hueRotate"
@@ -1120,8 +1120,9 @@
      inkscape:label="Logos"
      inkscape:groupmode="layer"
      id="layer1"
-     sodipodi:insensitive="true"
-     style="display:inline">
+     style="display:inline"
+     transform="translate(0,-2.1166667)"
+     sodipodi:insensitive="true">
     <g
        id="g6833"
        transform="matrix(0.22622005,0,0,0.22622005,62.498969,3.5726004)"
