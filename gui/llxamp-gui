@@ -1279,6 +1279,7 @@ class SpinDialog(QtWidgets.QDialog):
         self.wizard.setButtonText(QtWidgets.QWizard.CustomButton1,_('Close'))
         self.wizard.setOption(QtWidgets.QWizard.HaveCustomButton1,True)
         self.wizard.customButtonClicked.connect(lambda: self._closed())
+        self.wizard.CustomButton1.setDisabled(True)
         self.proc = QtCore.QProcess()
         self.proc.finished.connect(self._finished)
 
@@ -1290,7 +1291,7 @@ class SpinDialog(QtWidgets.QDialog):
             self.textedit.appendPlainText(data_out)
         if data_err:
             self.textedit.appendPlainText(data_err)
-
+        self.wizard.CustomButton1.setEnabled(True)
         self.layout_page.replaceWidget(self.label,self.textedit)
 
         if data_out or data_err:
