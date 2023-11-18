@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-17 21:40+0100\n"
-"PO-Revision-Date: 2023-11-17 21:45+0100\n"
+"POT-Creation-Date: 2023-11-18 12:30+0100\n"
+"PO-Revision-Date: 2023-11-18 12:30+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -106,7 +106,7 @@ msgstr "Ficheros configuración"
 msgid "Log files"
 msgstr "Ficheros log"
 
-#: gui/llxamp-gui:594 gui/llxamp-gui:1307
+#: gui/llxamp-gui:594 gui/llxamp-gui:1327
 msgid "Already running"
 msgstr "Ya funcionando"
 
@@ -150,82 +150,88 @@ msgstr "Ficheros comprimidos"
 msgid "File to save"
 msgstr "Archivo para guardado"
 
-#: gui/llxamp-gui:1049
+#: gui/llxamp-gui:1052
 msgid "Output from command"
 msgstr "Salida del comando"
 
-#: gui/llxamp-gui:1051
+#: gui/llxamp-gui:1058
 msgid "Error Output"
 msgstr "Salida de error"
 
-#: gui/llxamp-gui:1069
-msgid "Reinstall LLXAMP"
-msgstr "Reinstalar LLXAMP"
-
-#: gui/llxamp-gui:1070
-msgid "Do you want reinstall LLXAMP?"
-msgstr "¿Desea reinstalar el entorno LLXAMPl?"
-
-#: gui/llxamp-gui:1070
-msgid "Will be removed!"
-msgstr "Será borrado!"
-
-#: gui/llxamp-gui:1070
-msgid "All content from:</h3><h2>'<b>"
-msgstr "Todo el contenido de:</h3><h2>'<b>"
-
-#: gui/llxamp-gui:1088 gui/llxamp-gui:1098
-msgid "configuration"
-msgstr "configuración"
-
-#: gui/llxamp-gui:1100 gui/llxamp-gui:1255
-msgid "Close"
-msgstr "Cerrar"
-
-#: gui/llxamp-gui:1160
-msgid "Browser"
-msgstr "Navegador"
-
-#: gui/llxamp-gui:1161
-msgid "Secure browser"
-msgstr "Navegador seguro"
-
-#: gui/llxamp-gui:1162
-msgid "PhpMyAdmin"
-msgstr "PhpMyAdmin"
-
-#: gui/llxamp-gui:1163
-msgid "Used ports"
-msgstr "Puertos en uso"
-
-#: gui/llxamp-gui:1164
-msgid "Available ports"
-msgstr "Puertos disponibles"
-
-#: gui/llxamp-gui:1165
-msgid "Make backup"
-msgstr "Copia de seguridad"
-
-#: gui/llxamp-gui:1166
-msgid "Show Apache config"
-msgstr "Mostrar configuración Apache"
-
-#: gui/llxamp-gui:1167
-msgid "Show PHP config"
-msgstr "Mostrar configuración PHP"
-
-#: gui/llxamp-gui:1168
+#: gui/llxamp-gui:1075 gui/llxamp-gui:1188
 msgid "Install"
 msgstr "Instalar"
 
-#: gui/llxamp-gui:1235
+#: gui/llxamp-gui:1077
+msgid "Reinstall"
+msgstr "Reinstalar"
+
+#: gui/llxamp-gui:1083
+msgid "Do you want"
+msgstr "¿Desea"
+
+#: gui/llxamp-gui:1085
+msgid "All content from:"
+msgstr "Todo el contenido de:"
+
+#: gui/llxamp-gui:1089
+msgid "Will be removed!"
+msgstr "Será borrado!"
+
+#: gui/llxamp-gui:1108 gui/llxamp-gui:1118
+msgid "configuration"
+msgstr "configuración"
+
+#: gui/llxamp-gui:1120 gui/llxamp-gui:1275
+msgid "Close"
+msgstr "Cerrar"
+
+#: gui/llxamp-gui:1180
+msgid "Browser"
+msgstr "Navegador"
+
+#: gui/llxamp-gui:1181
+msgid "Secure browser"
+msgstr "Navegador seguro"
+
+#: gui/llxamp-gui:1182
+msgid "PhpMyAdmin"
+msgstr "PhpMyAdmin"
+
+#: gui/llxamp-gui:1183
+msgid "Used ports"
+msgstr "Puertos en uso"
+
+#: gui/llxamp-gui:1184
+msgid "Available ports"
+msgstr "Puertos disponibles"
+
+#: gui/llxamp-gui:1185
+msgid "Make backup"
+msgstr "Copia de seguridad"
+
+#: gui/llxamp-gui:1186
+msgid "Show Apache config"
+msgstr "Mostrar configuración Apache"
+
+#: gui/llxamp-gui:1187
+msgid "Show PHP config"
+msgstr "Mostrar configuración PHP"
+
+#: gui/llxamp-gui:1255
 msgid "Please wait"
 msgstr "Espera por favor"
 
-#: gui/llxamp-gui:1240 gui/llxamp-gui:1253
+#: gui/llxamp-gui:1260 gui/llxamp-gui:1273
 msgid "Reinstalling"
 msgstr "Reinstalando"
 
-#: gui/llxamp-gui:1262
+#: gui/llxamp-gui:1282
 msgid "Output:"
 msgstr "Salida:"
+
+#~ msgid "Reinstall LLXAMP"
+#~ msgstr "Reinstalar LLXAMP"
+
+#~ msgid "Do you want reinstall LLXAMP?"
+#~ msgstr "¿Desea reinstalar el entorno LLXAMPl?"
