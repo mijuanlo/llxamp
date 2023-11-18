@@ -1275,11 +1275,11 @@ class SpinDialog(QtWidgets.QDialog):
         self.page.setLayout(self.layout_page)
         self.wizard.addPage(self.page)
         self.wizard.setWindowTitle(title)
-        self.wizard.setButtonLayout([QtWidgets.QWizard.CustomButton1])
-        self.wizard.setButtonText(QtWidgets.QWizard.CustomButton1,_('Close'))
         self.wizard.setOption(QtWidgets.QWizard.HaveCustomButton1,True)
+        self.wizard.setButtonLayout([QtWidgets.QWizard.CustomButton1])
+        self._button_text = _('Close')
+        self.wizard.setButtonText(QtWidgets.QWizard.CustomButton1,self._button_text)
         self.wizard.customButtonClicked.connect(lambda: self._closed())
-        self.wizard.CustomButton1.setDisabled(True)
         self.proc = QtCore.QProcess()
         self.proc.finished.connect(self._finished)
 
@@ -1291,7 +1291,9 @@ class SpinDialog(QtWidgets.QDialog):
             self.textedit.appendPlainText(data_out)
         if data_err:
             self.textedit.appendPlainText(data_err)
-        self.wizard.CustomButton1.setEnabled(True)
+        btn = self._get_custom_button_by_text(self._button_text)
+        if btn:
+            btn.setEnabled(True)
         self.layout_page.replaceWidget(self.label,self.textedit)
 
         if data_out or data_err:
@@ -1310,18 +1312,29 @@ class SpinDialog(QtWidgets.QDialog):
         window2.show()
         window=window2
 
+    def _get_custom_button_by_text(self,text):
+        buttons = [ x for x in self.wizard.findChildren(QtWidgets.QPushButton) if text.lower() in x.text().lower() ]
+        if buttons:
+            return buttons[0]
+        else:
+            return None
+
     def start(self,ptr_app):
         global app, window
 
         ptr_app.closeEvent()
         ptr_app.destroy(True,True)
 
+        btn = self._get_custom_button_by_text(self._button_text)
+        if btn:
+            btn.setEnabled(False)
         self.layout_page.addWidget(self.label)
         self.label.show()
         self.textedit.hide()
         self.wizard.move( self.scr.center() - self.wizard.rect().center() )
         self.wizard.show()
         self.proc.start('/usr/bin/llxamp-install',['-f'])
+        # self.proc.start('/usr/bin/find',['/usr'])
 
 def main():
     global app, exitting, DEBUG, spin
