@@ -1,0 +1,17 @@
+Name=LLXAMP installer
+Name[es]=Instalador LLXAMP
+Name[en]=LLXAMP installer
+Name[qcv]=Instal·lador LLXAMP
+Name[ca_ES]=Instal·lador LLXAMP
+Comment=Install LLXAMP
+Comment[es]=Instala LLXAMP
+Comment[qcv]=Instal·la LLXAMP
+Comment[ca_ES]=Instal·la LLXAMP
+Icon=zero-lliurex-llxamp
+Groups=*;
+Category=software
+ScriptPath=zero-lliurex-llxamp.zmd
+Using=pkexec
+Service=False
+Modal=True
+Locks=zero-lliurex-llxamp

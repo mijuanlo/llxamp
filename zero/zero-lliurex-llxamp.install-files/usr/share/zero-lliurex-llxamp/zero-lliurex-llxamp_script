@@ -1,0 +1,62 @@
+#!/bin/bash
+ACTION="$1"
+shift
+PACKAGE_LIST=$@
+
+# START Define variables
+# END Define Variables
+
+status() {
+    ret=$(dpkg-query -W -f '${Status}' "$@" 2>/dev/null)
+}
+if [ -n "$ACTION" -a "$ACTION" != "getStatus" ]; then
+    echo "ACTION=${ACTION} PACKAGE_LIST=${PACKAGE_LIST}"
+fi
+case $ACTION in
+    getStatus)
+        # Warning: Nothing MUST be echoed in the script before this point
+        # Type apt MUST echo ONLY "Not found", otherwise "0" (installed) "1" (not-installed) for other types not "apt"
+        echo "Not found"
+    ;;
+
+    download)
+        echo "download phase ..."
+    ;;
+
+    preInstall)
+        echo "preInstall phase ..."
+        # for package in $PACKAGE_LIST; do
+        #     if [ "$package" == "xxx" ]; then
+        #         status "xxx"
+        #         if [ "$ret" == "install ok installed" ]; then
+        #             echo ""
+        #         else
+        #             echo ""
+        #             # apt-get install -y
+        #         fi
+        #     fi
+        # done
+    ;;
+
+    installPackage)
+        # ommited for "apt" type
+        echo "installPackage phase ..."
+    ;;
+
+    postInstall)
+        echo "postInstall phase ..."
+        # for package in $PACKAGE_LIST; do
+        #     if [ "$package" == "xxx" ]; then
+        #         user="$(id -nu $PKEXEC_UID)"
+        #     fi
+        # done
+    ;;
+
+    remove)
+        echo "remove phase ..."
+        for pkg in ${PACKAGE_LIST}; do
+            apt-get remove -y $pkg
+        done
+    ;;
+esac
+exit 0
