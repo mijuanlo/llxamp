@@ -11,11 +11,14 @@ Package: llxamp-cmdline
 Architecture: any
 Depends: ${misc:Depends},
   llxamp-install-pack,
+  base-files (>= 11),
   build-essential,
   chrpath,
   lynx,
   openssl,
   fuse-overlayfs,
+  python3,
+  python3-dbus,
   python3-avahi
 Description: LLXAMP install Apache+PHP+MariaDB+PHPMyAdmin instances in user's homedir
  This package contains cmdline scripts
@@ -29,7 +32,7 @@ Depends: ${misc:Depends},
   autoconf,
   automake,
   bison,
-  base-files,
+  base-files (>= 11),
   libtool,
   perl,
   libevent-dev,
@@ -58,21 +61,24 @@ Description: LLXAMP install Apache+PHP+MariaDB+PHPMyAdmin instances in user's ho
 
 Package: llxamp-install-pack
 Architecture: any
+Depends: ${misc:Depends},
+  base-files (>= 11),
+  curl
 Description: LLXAMP install Apache+PHP+MariaDB+PHPMyAdmin instances in user's homedir
  This package contains install-pack for LLXAMP
 
 Package: llxamp-gui
 Architecture: any
 Depends: ${misc:Depends},
- llxamp-cmdline,
- python3,
- python3-pyside2.qtcore,
- python3-pyside2.qtwidgets
+  llxamp-cmdline,
+  python3,
+  python3-pyside2.qtcore,
+  python3-pyside2.qtwidgets
 Description: LLXAMP install Apache+PHP+MariaDB+PHPMyAdmin instances in user's homedir
  This package install gui interface
 
 Package: zero-lliurex-llxamp
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends},
-Description: LLXAMP install Apache+PHP+MariaDB+PHPMyAdmin instances in user's homedir
- This package install gui interface
+Depends: ${misc:Depends},
+Description: Zero-installer for LLXAMP
+ Zero-installer for LLXAMP
