@@ -1015,7 +1015,7 @@ class MainApp(QtWidgets.QMainWindow):
                     return
                 args = ['-o',path]
             if cmd == 'install':
-                is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp")
+                is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp/scripts")
                 if is_installed:
                     reinstall = self.askReinstall()
                     if reinstall:
@@ -1167,7 +1167,7 @@ class MainApp(QtWidgets.QMainWindow):
             ("show-php-config",_("Show PHP config"),("/usr/share/applications/llxamp-php.svg","description","SP_FileIcon")),
             ("install",_("Install"),("llxamp","SP_TitleBarMenuButton"))
         ]
-        is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp")
+        is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp/scripts")
         maxsize=max([ len(button[2]) for button in buttons])
         for pack in buttons:
             if isinstance(pack,tuple):
