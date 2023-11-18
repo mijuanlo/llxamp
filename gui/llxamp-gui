@@ -1017,11 +1017,13 @@ class MainApp(QtWidgets.QMainWindow):
             if cmd == 'install':
                 is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp/scripts")
                 if is_installed:
-                    reinstall = self.askReinstall()
-                    if reinstall:
-                        self._no_quit_app = True
-                        self.reRun.emit(self)
-                    return
+                    answer_yes = self.askReinstall(True)
+                else:
+                    answer_yes = self.askReinstall()
+                if answer_yes:
+                    self._no_quit_app = True
+                    self.reRun.emit(self)
+                return
             if cmd == 'status':
                 args = ['-a','-m','-p','-n']
             if cmd == 'config':
@@ -1046,9 +1048,16 @@ class MainApp(QtWidgets.QMainWindow):
             # Common "output" parameter for button actions
             def output(x,err):
                 if DEBUG:
-                    self.msg(_('Output from command') + f' {scriptname}:\nSTDOUT\n{x}\nSTDERR{err}\n',prepend)
+                    self.msg(
+                        _('Output from command')+
+                             f' {scriptname}:\nSTDOUT\n{x}\nSTDERR{err}\n',
+                        prepend
+                    )
                 if err:
-                    print_output_to(_('Error Output') + f'---> "{err}"')
+                    print_output_to(
+                        _('Error Output')+
+                            f'---> "{err}"'
+                    )
                 print_output_to(x)
                 button.setEnabled(True)
                 if cmd == 'status':
@@ -1062,12 +1071,23 @@ class MainApp(QtWidgets.QMainWindow):
                 finished_fn=lambda x,y: output(x,y),
                 debug_fn=self.msg
             )
-    def askReinstall(self):
+    def askReinstall(self,reinstall=False):
+        title=_('Install')
+        if reinstall:
+            title=_('Reinstall')
         path = f"{os.path.expanduser('~')}/llxamp"
         dialog = QtWidgets.QMessageBox.critical(
             self,
-            _('Reinstall LLXAMP'),
-            '<h3>'+_('Do you want reinstall LLXAMP?')+'</h3><h3>'+_("All content from:"+"</h3><h2>'<b>"+path+"</b>'</h2><h2>"+_('Will be removed!')+'</h2>'),
+            title + ' LLXAMP',
+            '<h3>'+
+            _('Do you want') + f' {title.lower()} LLXAMP ?'+
+            '</h3><h3>'+
+            _("All content from:")+
+            "</h3><h2>'<b>"+
+            path+
+            "</b>'</h2><h2>"+
+            _('Will be removed!')+
+            '</h2>',
             QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No
         )
         if dialog == QtWidgets.QMessageBox.Yes:
