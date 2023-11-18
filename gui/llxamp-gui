@@ -1174,6 +1174,10 @@ class MainApp(QtWidgets.QMainWindow):
         toolbar.addWidget(button)
         #toolbar.setContentsMargins(10,10,10,10)
 
+        is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp/scripts")
+        title = _('Install')
+        if is_installed:
+            title = _('Reinstall')
         buttons = [
             ("start","Start",("media-playback-start","SP_MediaPlay")),
             ("stop","Stop",("media-player-stop","SP_MediaStop")),
@@ -1185,9 +1189,9 @@ class MainApp(QtWidgets.QMainWindow):
             ("make-backup",_("Make backup"),("utilities-file-archiver","SP_DriveFDIcon")),
             ("show-apache-config",_("Show Apache config"),("/usr/share/applications/llxamp-apache.svg","description","SP_FileIcon")),
             ("show-php-config",_("Show PHP config"),("/usr/share/applications/llxamp-php.svg","description","SP_FileIcon")),
-            ("install",_("Install"),("llxamp","SP_TitleBarMenuButton"))
+            ("install",title,("llxamp","SP_TitleBarMenuButton"))
         ]
-        is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp/scripts")
+
         maxsize=max([ len(button[2]) for button in buttons])
         for pack in buttons:
             if isinstance(pack,tuple):
