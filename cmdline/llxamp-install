@@ -160,7 +160,12 @@ include_php_samples(){
 configure_mysql(){
     [ ! -e "$rptarget" ] && error_menu "invalid target"
     echo "Configuring MariaDB"
-    mkdir -p $rptarget/mysql/{conf,temp,var/{mysql,log}}
+    if [ -n "$HAVE_MARIADB" ];then
+        suffix=mariadb
+    else
+        suffix=mysql
+    fi
+    mkdir -p $rptarget/$suffix/{conf,temp,var/{mysql,log}}
     if [ -n "$HAVE_MARIADB" ];then
         cp -R $TEMPLATES_DIR/mariadb-conf/* $rptarget/mariadb/conf/
         for fileconf in $(find "$rptarget/mariadb/conf" -type f); do
@@ -275,7 +280,7 @@ decompress_pack(){
     if [ -z "$mounted" ];then
         set -e
         if [ -e "$PACK_DIR" -a -e "$HOME/.llxamp/upper" -a -e "$HOME/.llxamp/work" ]; then
-            fuse-overlayfs -olowerdir=$PACK_DIR,upperdir=$HOME/.llxamp/upper,workdir=$HOME/.llxamp/work,squash_to_uid=$(id -u),squash_to_gid=$(id -g) "$rptarget"
+            fuse-overlayfs -olowerdir=$PACK_DIR,upperdir=$HOME/.llxamp/upper,workdir=$HOME/.llxamp/work,squash_to_uid=$(id -u),squash_to_gid=$(id -g) "$rptarget" >/dev/null 2>&1
         else
             echo "Can't mount overlay"
             exit 1
