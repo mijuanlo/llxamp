@@ -7,7 +7,7 @@
 [client]
 #password       = your_password
 port            = 13306
-socket          = @@LLXAMP_BASEPATH@@/mariadb/var/mysql/mysql.sock
+socket          = @@LLXAMP_BASEPATH@@/mariadb/var/mariadb/mariadb.sock
 
 # This group is not read by mysql client library,
 # If you use the same .cnf file for MySQL and MariaDB,
