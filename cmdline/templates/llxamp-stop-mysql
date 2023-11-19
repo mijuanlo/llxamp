@@ -23,6 +23,6 @@ else
     suffix=mysql
 fi
 
-pid=$(cat @@LLXAMP_BASEPATH@@/$suffix/temp/mysql.pid 2>/dev/null)
+pid=$(cat @@LLXAMP_BASEPATH@@/$suffix/temp/$suffix.pid 2>/dev/null)
 [ -n "$pid" ] && kill $pid
 
