@@ -19,6 +19,7 @@ else
     tar cf $name.tar -C $TAG .
     zstd --format=xz --rsyncable --ultra -22 $name.tar -o $PACKNAME
 fi
+md5sum $PACKNAME > $PACKNAME.md5
 popd >/dev/null 2>&1
 
 echo
