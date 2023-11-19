@@ -20,5 +20,12 @@
 mountpoint=$HOME/llxamp
 
 if [ -n "$(findmnt -l -o TARGET | grep -o $mountpoint)" ]; then
+    pids=$(lsof -u $(id -u)|grep "$HOME/llxamp"|awk '{print $2}'|sort|uniq|xargs)
+    if [ -n "$pids" ]; then
+        echo "Detected pids $pids"
+        kill $pids
+        sleep 5
+        kill -9 $pids
+    fi
     fusermount -u "$mountpoint"
 fi
