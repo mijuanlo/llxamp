@@ -5,10 +5,11 @@ trap 'printf "\e[31m%s: %s\e[m\n" "Error downloading llxamp-sources!" $?' ERR
 script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 script_name="$(basename ${BASH_SOURCE[0]})"
 REPO=https://svnlliurexnet.gva.es/focal/llxamp-packages
+REPO=http://192.168.1.153
 TMPDIR="$1"
 TMPDIR=${TMPDIR:=/tmp/llxamp-sources}
 TMPDIR=$(realpath "$TMPDIR")
-MD5=${MD5:=sources.md5}
+MD5=$(grep -v '#' /usr/lib/llxamp/sources/files|grep -i 'md5')
 CURL=$(which curl)
 SED=$(which sed)
 MD5SUM=$(which md5sum)
