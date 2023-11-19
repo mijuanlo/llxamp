@@ -165,8 +165,12 @@ configure_mysql(){
     else
         suffix=mysql
     fi
+
     mkdir -p $rptarget/$suffix/{conf,temp,var/{mysql,log}}
     if [ -n "$HAVE_MARIADB" ];then
+        # fix for php compiled path mysql.sock
+        mkdir -p $rptarget/mysql/var/mysql
+        ln -s $rptarget/$suffix/var/mysql/mysql.sock $rptarget/mysql/var/mysql/mysql.sock
         cp -R $TEMPLATES_DIR/mariadb-conf/* $rptarget/mariadb/conf/
         for fileconf in $(find "$rptarget/mariadb/conf" -type f); do
             cp $fileconf $fileconf.pre-change
