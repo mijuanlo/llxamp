@@ -7,7 +7,7 @@ echo Decompressing archive files
 mkdir -p $DECOMPRESSED_DIR
 for archive in $SOURCE_FILES; do
     ext=$(echo $archive|rev|cut -d. -f1|rev)
-    ext2=$(echo $archive|rev|cut -d. -f1|rev)
+    ext2=$(echo $archive|rev|cut -d. -f2|rev)
     if [ "x$ext" = "xzst" ]; then
         command_decompress="tar --zstd -xf"
     fi
