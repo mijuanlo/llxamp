@@ -27,12 +27,11 @@ ext=$(echo $PACKNAME|rev|cut -d. -f1|rev)
 if [ "x$ext" = "xzst" ]; then
     command_test="tar --zstd -tf"
     command_decompress="tar --zstd -xf"
-    need="build-tag httpd php mariadb httpd/htdocs/phpMyAdmin"
 else
     command_test="tar -ztf"
     command_decompress="tar xfz"
-    need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
 fi
+need="build-tag httpd php mysql httpd/htdocs/phpMyAdmin"
 case "$1" in
     configure)
         content=$(ls "$TARGETDIR" 2>/dev/null||true)
@@ -40,7 +39,7 @@ case "$1" in
             /usr/lib/llxamp/llxamp-download-install-pack
             echo Testing archive "$PACK"
             tmpfile=$(mktemp)
-            $command_test "$PACK" > $tmpfile
+            $command_test "$PACK" |sed -r 's|^[.]/(.*)|\1|g'  > $tmpfile
             for n in $need; do
                 if grep -s $n $tmpfile > /dev/null 2>&1; then
                     echo "$(basename $n) found!"

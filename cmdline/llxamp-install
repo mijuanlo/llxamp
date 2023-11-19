@@ -237,16 +237,16 @@ create_target_dir(){
 test_install_pack(){
     if [ -n "$HAVE_MARIADB" ];then
         suffix=mariadb
-        need="build-tag httpd php mariadb httpd/htdocs/phpMyAdmin"
     else
         suffix=mysql
-        need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
     fi
+    need="build-tag httpd php mysql httpd/htdocs/phpMyAdmin"
     [ ! -e "$rpfile_pack" ] && error_menu "invalid install-pack"
     echo Testing archive "$rpfile_pack"
     tmpfile=$(execute_to_tempfile tar -ztf "$rpfile_pack")
+    sed -r 's|^[.]/(.*)|\1|g' $tmpfile > $tmpfile.new
     for n in $need; do
-        if grep -s $n $tmpfile > /dev/null 2>&1; then
+        if grep -s $n $tmpfile.new > /dev/null 2>&1; then
             echo "$(basename $n) found!"
         else
             error_menu "$(basename $n) not found!"

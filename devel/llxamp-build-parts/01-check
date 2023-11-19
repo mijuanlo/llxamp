@@ -14,3 +14,8 @@ SOURCESMD5FILE=$(grep -v '#' /usr/lib/llxamp/sources/files|grep -i 'md5')
 pushd "$SOURCES_DIR" > /dev/null 2>&1
 md5sum -c "$SOURCES_DIR/$SOURCESMD5FILE" > /dev/null
 popd > /dev/null 2>&1
+
+if [ -e "$INSTALL_PACK_DIR/$PACKNAME" ]; then
+    echo WARNING! "$INSTALL_PACK_DIR/$PACKNAME" exists!
+    exit 1
+fi
