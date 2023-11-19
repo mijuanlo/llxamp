@@ -18,11 +18,17 @@ set -e
 # the debian-policy package
 
 PACKDIR="/tmp/llxamp-install-pack"
-PACKNAME=install-pack.tgz
+PACKNAME=install-pack-2.tar.zsd
 PACK="$PACKDIR/$PACKNAME"
 
 TARGETDIR=/usr/lib/llxamp/pack
 
+ext=$(echo $PACKNAME|rev|cut -d. -f1|rev)
+if [ "x$ext" == "tgz" ]; then
+    command="tar -ztf"
+else
+    command="tar --zstd -tf"
+fi
 case "$1" in
     configure)
         content=$(ls "$TARGETDIR" 2>/dev/null||true)
@@ -30,7 +36,7 @@ case "$1" in
             /usr/lib/llxamp/llxamp-download-install-pack
             echo Testing archive "$PACK"
             tmpfile=$(mktemp)
-            tar -ztf "$PACK" > $tmpfile
+            $command "$PACK" > $tmpfile
             need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
             for n in $need; do
                 if grep -s $n $tmpfile > /dev/null 2>&1; then
