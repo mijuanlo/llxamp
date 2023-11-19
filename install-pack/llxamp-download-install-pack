@@ -26,7 +26,7 @@ REPO=https://svnlliurexnet.gva.es/focal/llxamp-packages
 TMPDIR="$1"
 TMPDIR=${TMPDIR:=/tmp/llxamp-install-pack}
 TMPDIR=$(realpath "$TMPDIR")
-MD5=${MD5:=install-pack.md5}
+MD5=${MD5:=install-pack-2.md5}
 CURL=$(which curl)
 SED=$(which sed)
 MD5SUM=$(which md5sum)
