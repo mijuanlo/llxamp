@@ -14,7 +14,7 @@ if [ -e "$DECOMPRESSED_DIR/mariadb/bin/mariadb" ];then
 else
     suffix=mysql
 fi
-sock=$TAG/$suffix/var/$suffix/mysql.sock
+sock=$TAG/$suffix/var/$suffix/$suffix.sock
 cd $DECOMPRESSED_DIR/php
 ./configure --prefix=$PREFIX --with-apxs2=$TAG/httpd/bin/apxs --with-mysqli --with-mysql-sock=$sock --enable-mbstring --with-bz2 --enable-filter --enable-bcmath --enable-fpm --with-curl --enable-filter --enable-gd --with-freetype --with-jpeg --enable-intl --with-openssl --enable-simplexml --enable-xmlreader --enable-xmlwriter --enable-pcntl --enable-shmop --with-xsl --enable-opcache --enable-calendar --enable-sockets --with-readline --with-zip --with-mhash --with-gettext --with-zlib > /dev/null 2>&1
 make clean > /dev/null 2>&1
