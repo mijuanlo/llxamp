@@ -190,7 +190,7 @@ configure_mysql2(){
         user=root
     fi
     echo Installing initial database
-    execute_silent $rptarget/mysql/scripts/$installdb --basedir=$rptarget/$suffix --datadir=$rptarget/$suffix/data --no-defaults --user=$(whoami)
+    execute_silent $rptarget/$suffix/scripts/$installdb --basedir=$rptarget/$suffix --datadir=$rptarget/$suffix/data --no-defaults --user=$(whoami)
     echo Starting database
     execute_silent bash $startup_scripts/llxamp-start-mysql
     while ! $rptarget/$suffix/bin/$suffix --defaults-file=$rptarget/$suffix/conf/my.cnf --user=$user -e 'status' > /dev/null 2>&1; do
