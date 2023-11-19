@@ -18,9 +18,11 @@
 # along with LLXAMP.  If not, see <http://www.gnu.org/licenses/>.
 
 if [ -d "@@LLXAMP_BASEPATH@@/mariadb" ]; then
-    suffix=mariadbd
+    suffix=mariadb
+    daemon=mariadbd
 else
-    suffix=mysqld
+    suffix=mysql
+    daemon=mysqld
 fi
 find @@LLXAMP_BASEPATH@@/$suffix/ -type f -name '*.pid' -exec rm {} \;
-pkill -9 -f $suffixd >/dev/null 2>&1
+pkill -9 -f $daemon >/dev/null 2>&1
