@@ -81,7 +81,7 @@ get_versions(){
         HAVE_MYSQL='yes'
         MYSQL_VERSION=$($DECOMPRESSED_PACK_DIR/mysql/bin/mysqld --version|awk '{print $3}'|cut -d- -f1)
     fi
-    PHP_VERSION=$($DECOMPRESED_PACK_DIR/php/bin/php -v|head -1|awk '{print $2}')
+    PHP_VERSION=$($DECOMPRESSED_PACK_DIR/php/bin/php -v|head -1|awk '{print $2}')
     PHPMYADMIN_VERSION=$(head -10 $DECOMPRESSED_PACK_DIR/httpd/htdocs/phpMyAdmin/README|grep -i version|awk '{print $2}')
     echo "APACHE version $APACHE_VERSION"
     echo "MARIADB version $MYSQL_VERSION"
@@ -162,7 +162,7 @@ configure_mysql(){
     echo "Configuring MariaDB"
     mkdir -p $rptarget/mysql/{conf,temp,var/{mysql,log}}
     if [ -n "$HAVE_MARIADB" ];then
-        cp -R "$TEMPLATES_DIR/mariadb-conf/*" "$rptarget/mariadb/conf/"
+        cp -R $TEMPLATES_DIR/mariadb-conf/* $rptarget/mariadb/conf/
         for fileconf in $(find "$rptarget/mariadb/conf" -type f); do
             sed -i'.pre-change' -r "s|@@LLXAMP_BASEPATH@@|$rptarget/mariadb|g" $fileconf
         done
