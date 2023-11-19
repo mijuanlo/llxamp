@@ -18,7 +18,7 @@ set -e
 # the debian-policy package
 
 PACKDIR="/tmp/llxamp-install-pack"
-PACKNAME=install-pack-2.tar.zst
+PACKNAME=$(grep -iv 'md5' /usr/lib/llxamp/files)
 PACK="$PACKDIR/$PACKNAME"
 
 TARGETDIR=/usr/lib/llxamp/pack
@@ -31,7 +31,7 @@ if [ "x$ext" = "xtgz" ]; then
 else
     command_test="tar --zstd -tf"
     command_decompress="tar --zstd -xf"
-    need="./build-tag ./httpd ./php ./mariadb ./httpd/htdocs/phpMyAdmin"
+    need="build-tag httpd php mariadb httpd/htdocs/phpMyAdmin"
 fi
 case "$1" in
     configure)
