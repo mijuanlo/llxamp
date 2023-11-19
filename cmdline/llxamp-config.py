@@ -37,7 +37,11 @@ INCLUDE_MYSQL_REGEXP = r'^\s*!include(dir)?'
 LOG_MYSQL_REGEXP = r'^\s*(log[_-]error|general[_-]log[_-]file|log[_-]slow[_-]queries)\s*='
 INCLUDE_APACHE_REGEXP = r'^\s*include'
 LOG_APACHE_REGEXP = r'^\s*(error|transfer|custom)log'
-CONFIG_MYSQL = f'{BASEPATH}/mysql/conf/my.cnf'
+if os.path.exists(f'{BASEPATH}/mariadb'):
+    suffix='mariadb'
+else:
+    suffix='mysql'
+CONFIG_MYSQL = f'{BASEPATH}/{suffix}/conf/my.cnf'
 COMMENT = None
 CONFIG = None
 INCLUDE_REGEXP = None
