@@ -26,8 +26,10 @@ TARGETDIR=/usr/lib/llxamp/pack
 ext=$(echo $PACKNAME|rev|cut -d. -f1|rev)
 if [ "x$ext" = "xtgz" ]; then
     command="tar -ztf"
+    need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
 else
     command="tar --zstd -tf"
+    need="./build-tag ./httpd ./php ./mariadb ./httpd/htdocs/phpMyAdmin"
 fi
 case "$1" in
     configure)
@@ -37,7 +39,6 @@ case "$1" in
             echo Testing archive "$PACK"
             tmpfile=$(mktemp)
             $command "$PACK" > $tmpfile
-            need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
             for n in $need; do
                 if grep -s $n $tmpfile > /dev/null 2>&1; then
                     echo "$(basename $n) found!"
