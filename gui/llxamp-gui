@@ -1034,10 +1034,12 @@ class MainApp(QtWidgets.QMainWindow):
                     tree,includes,content,logs = llxconfig.process()
                     txt = llxconfig.print_content(content,False,False)
                     llxconfig.set_mode_php()
-                    tree2,includes2,content2,logs = llxconfig.process()
+                    tree2,includes2,content2,logs2 = llxconfig.process()
                     txt = f'{txt}{llxconfig.print_content(content2,False,False)}'
+                    llxconfig.set_mode_mysql()
+                    tree3,includes3,content3,logs3 = llxconfig.process()
+                    txt = f'{txt}{llxconfig.print_content(content3,False,False)}'
                     self.msg(txt,prepend)
-                    self
             if cmd == 'show-available-ports':
                 # print_output_to = lambda x: (self.infodialog(title=_("Available ports"),txt=x),self.msg(x))
                 print_output_to = lambda x: self.infodialog(title=button.text(),txt=x)

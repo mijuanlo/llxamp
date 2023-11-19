@@ -28,9 +28,12 @@ if not os.path.exists(BASEPATH):
 
 COMMENT_PHP = ';'
 CONFIG_PHP = f'{BASEPATH}/php/lib/php.ini'
+CONF_EXT_PHP = 'ini'
 COMMENT_APACHE = '#'
 CONFIG_APACHE = f'{BASEPATH}/httpd/conf/httpd.conf'
+CONF_EXT_APACHE = 'conf'
 COMMENT_MYSQL = '#'
+CONF_EXT_MYSQL = 'cnf'
 LOG_PHP_REGEXP = r'^\s*error_log\s*='
 INCLUDE_PHP_REGEXP = None
 INCLUDE_MYSQL_REGEXP = r'^\s*!include(dir)?'
@@ -44,6 +47,7 @@ else:
 CONFIG_MYSQL = f'{BASEPATH}/{suffix}/conf/my.cnf'
 COMMENT = None
 CONFIG = None
+CONF_EXT = None
 INCLUDE_REGEXP = None
 LOG_REGEXP = None
 TAB=' '*4
@@ -114,19 +118,28 @@ def expand_includes(txtlist):
     includes=[]
     for line in txtlist:
         if '*' in line:
-            item = glob.glob(line)
+            item = glob.glob(line.replace('*',f'*.{CONF_EXT}'))
             if item:
                 includes.extend(item)
             else:
-                item = glob.glob(os.path.realpath(f'{config_dir}/{line}'))
+                item = glob.glob(os.path.realpath(f'{config_dir}/{line.replace("*",f"*.{CONF_EXT}")}'))
                 if item:
                     includes.extend(item)
         else:
-            # files without glob ALWAYS be included even if they do not exist yet
-            if line[:1] == '/' or line[:2] == './':
-                includes.append(line)
+            if os.path.isdir(line):
+                item = glob.glob(line+f'/*.{CONF_EXT}')
+                if item:
+                    includes.extend(item)
+                else:
+                    item = glob.glob(os.path.realpath(f'{config_dir}/{line}'+f'/*.{CONF_EXT}'))
+                    if item:
+                        includes.extend(item)
             else:
-                includes.append(os.path.realpath(f'{config_dir}/{line}'))
+                # files without glob ALWAYS be included even if they do not exist yet
+                if line[:1] == '/' or line[:2] == './':
+                    includes.append(line)
+                else:
+                    includes.append(os.path.realpath(f'{config_dir}/{line}'))
 
     return includes
 
@@ -275,25 +288,28 @@ def process(params=[]):
     return hierarchy,includes,content,logs
 
 def set_mode_apache():
-    global COMMENT, CONFIG, LOG_REGEXP, INCLUDE_REGEXP
-    COMMENT=COMMENT_APACHE
-    CONFIG=CONFIG_APACHE
-    LOG_REGEXP=LOG_APACHE_REGEXP
-    INCLUDE_REGEXP=INCLUDE_APACHE_REGEXP
+    global COMMENT, CONFIG, LOG_REGEXP, INCLUDE_REGEXP, CONF_EXT
+    COMMENT = COMMENT_APACHE
+    CONFIG = CONFIG_APACHE
+    LOG_REGEXP = LOG_APACHE_REGEXP
+    INCLUDE_REGEXP = INCLUDE_APACHE_REGEXP
+    CONF_EXT = CONF_EXT_APACHE
 
 def set_mode_php():
-    global COMMENT, CONFIG, LOG_REGEXP, INCLUDE_REGEXP
-    COMMENT=COMMENT_PHP
-    CONFIG=CONFIG_PHP
-    LOG_REGEXP=LOG_PHP_REGEXP
-    INCLUDE_REGEXP=INCLUDE_PHP_REGEXP
+    global COMMENT, CONFIG, LOG_REGEXP, INCLUDE_REGEXP, CONF_EXT
+    COMMENT = COMMENT_PHP
+    CONFIG = CONFIG_PHP
+    LOG_REGEXP = LOG_PHP_REGEXP
+    INCLUDE_REGEXP = INCLUDE_PHP_REGEXP
+    CONF_EXT = CONF_EXT_PHP
 
 def set_mode_mysql():
-    global COMMENT, CONFIG, LOG_REGEXP, INCLUDE_REGEXP
-    COMMENT=COMMENT_MYSQL
-    CONFIG=CONFIG_MYSQL
-    LOG_REGEXP=LOG_MYSQL_REGEXP
-    INCLUDE_REGEXP=INCLUDE_MYSQL_REGEXP
+    global COMMENT, CONFIG, LOG_REGEXP, INCLUDE_REGEXP, CONF_EXT
+    COMMENT = COMMENT_MYSQL
+    CONFIG = CONFIG_MYSQL
+    LOG_REGEXP = LOG_MYSQL_REGEXP
+    INCLUDE_REGEXP = INCLUDE_MYSQL_REGEXP
+    CONF_EXT = CONF_EXT_MYSQL
 
 if __name__ == '__main__':
     params = sys.argv
