@@ -19,9 +19,9 @@ for archive in $SOURCE_FILES; do
     fi
     $command_decompress $SOURCE_DIR/$archive -C $DECOMPRESSED_DIR
     linkname=$(echo $archive|sed -nr 's|([a-zA-Z-]+)-.*|\1|p')
-    dirname=$(basename $archive $ext)
+    dirname=$(basename $archive .$ext)
     if [ "x$ext2" = "xtar" ];then
-        dirname=$(basename $dirname $ext2)
+        dirname=$(basename $dirname .$ext2)
     fi
     ln -s $dirname $DECOMPRESSED_DIR/$linkname
 done
