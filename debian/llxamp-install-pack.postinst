@@ -18,7 +18,7 @@ set -e
 # the debian-policy package
 
 PACKDIR="/tmp/llxamp-install-pack"
-PACKNAME=install-pack-2.tar.zsd
+PACKNAME=install-pack-2.tar.zst
 PACK="$PACKDIR/$PACKNAME"
 
 TARGETDIR=/usr/lib/llxamp/pack
