@@ -16,7 +16,7 @@
 basedir         = @@LLXAMP_BASEPATH@@/mariadb
 port            = 13306
 socket          = @@LLXAMP_BASEPATH@@/mariadb/var/mariadb/mariadb.sock
-pid-file        = @@LLXAMP_BASEPATH@@/mariadb/temp/mysql.pid
+pid-file        = @@LLXAMP_BASEPATH@@/mariadb/temp/mariadb.pid
 log-error       = @@LLXAMP_BASEPATH@@/mariadb/var/log/mysql-error.log
 general-log     = ON
 general-log-file = @@LLXAMP_BASEPATH@@/mariadb/var/log/mysql.log
