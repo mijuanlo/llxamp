@@ -9,7 +9,7 @@ echo "Checking files integrity"
 source $1
 
 SOURCES_DIR=${SOURCES_DIR:=/tmp/llxamp-sources}
-SOURCESMD5FILE=${SOURCESMD5FILE:=sources.md5}
+SOURCESMD5FILE=$(grep -v '#' /usr/lib/llxamp/sources/files|grep -i 'md5')
 
 pushd "$SOURCES_DIR" > /dev/null 2>&1
 md5sum -c "$SOURCES_DIR/$SOURCESMD5FILE" > /dev/null

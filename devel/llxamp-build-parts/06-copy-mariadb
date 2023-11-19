@@ -4,7 +4,13 @@ source $1
 
 BUILDDIR=${BUILDDIR:=/LLXXAMP}
 TAG=${TAG:=$BUILDDIR/123456789123456789123456789123456789123456789}
-PREFIX=$TAG/mysql
+
+if [ -e "$DECOMPRESSED_DIR/mariadb/bin/mariadb" ];then
+    suffix=mariadb
+else
+    suffix=mysql
+fi
+PREFIX=$TAG/$suffix
 
 echo Copying MariaDB files
 
