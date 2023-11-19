@@ -11,6 +11,14 @@ echo Compressing base install pack
 mkdir -p "$INSTALL_PACK_DIR"
 
 pushd "$INSTALL_PACK_DIR" >/dev/null 2>&1
+ext=$(echo $PACKNAME|rev|cut -d'.' -f1|rev)
+name=$(echo $PACKNAME|cut -d'.' -f1)
+if [ "x$ext" = "xtgz" ]; then
+    tar cfz $PACKNAME -C $TAG .
+else
+    tar cf $name.tar -C $TAG .
+    zstd --format=xz --rsyncable --ultra -22 $name.tar -o $PACKNAME
+fi
 tar cfz $PACKNAME -C $TAG .
 popd >/dev/null 2>&1
 
