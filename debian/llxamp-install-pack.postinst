@@ -24,7 +24,7 @@ PACK="$PACKDIR/$PACKNAME"
 TARGETDIR=/usr/lib/llxamp/pack
 
 ext=$(echo $PACKNAME|rev|cut -d. -f1|rev)
-if [ "x$ext" == "tgz" ]; then
+if [ "x$ext" == "xtgz" ]; then
     command="tar -ztf"
 else
     command="tar --zstd -tf"
