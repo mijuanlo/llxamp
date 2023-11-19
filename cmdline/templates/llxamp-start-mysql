@@ -17,4 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with LLXAMP.  If not, see <http://www.gnu.org/licenses/>.
 
-@@LLXAMP_BASEPATH@@/mysql/bin/mysqld_safe --defaults-file=@@LLXAMP_BASEPATH@@/mysql/conf/my.cnf > /dev/null 2>&1 &
+if [ -d "@@LLXAMP_BASEPATH@@/mariadb" ]; then
+    mysqld_safe=mariadbd-safe
+    suffix=mariadb
+else
+    mysqld_safe=mysqld_safe
+    suffix=mysql
+fi
+@@LLXAMP_BASEPATH@@/mysql/bin/$mysqld_safe --defaults-file=@@LLXAMP_BASEPATH@@/$suffix/conf/my.cnf > /dev/null 2>&1 &

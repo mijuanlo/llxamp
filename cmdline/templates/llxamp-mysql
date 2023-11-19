@@ -17,4 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with LLXAMP.  If not, see <http://www.gnu.org/licenses/>.
 
-@@LLXAMP_BASEPATH@@/mysql/bin/mysql --defaults-file=@@LLXAMP_BASEPATH@@/mysql/conf/my.cnf $@
+if [ -d "@@LLXAMP_BASEPATH@@/mariadb" ]; then
+    suffix=mariadb
+else
+    suffix=mysql
+fi
+
+@@LLXAMP_BASEPATH@@/$suffix/bin/$suffix --defaults-file=@@LLXAMP_BASEPATH@@/$suffix/conf/my.cnf $@

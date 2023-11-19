@@ -18,20 +18,20 @@ set -e
 # the debian-policy package
 
 PACKDIR="/tmp/llxamp-install-pack"
-PACKNAME=$(grep -iv 'md5' /usr/lib/llxamp/files)
+PACKNAME=$(grep -v '#' /usr/lib/llxamp/files | grep -iv 'md5')
 PACK="$PACKDIR/$PACKNAME"
 
 TARGETDIR=/usr/lib/llxamp/pack
 
 ext=$(echo $PACKNAME|rev|cut -d. -f1|rev)
-if [ "x$ext" = "xtgz" ]; then
-    command_test="tar -ztf"
-    command_decompress="tar xfz"
-    need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
-else
+if [ "x$ext" = "xzst" ]; then
     command_test="tar --zstd -tf"
     command_decompress="tar --zstd -xf"
     need="build-tag httpd php mariadb httpd/htdocs/phpMyAdmin"
+else
+    command_test="tar -ztf"
+    command_decompress="tar xfz"
+    need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
 fi
 case "$1" in
     configure)

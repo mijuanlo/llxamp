@@ -65,10 +65,34 @@ execute_silent(){
     fi
 }
 
+get_versions(){
+    APACHE_VERSION=
+    MYSQL_VERSION=
+    PHP_VERSION=
+    PHPMYADMIN_VERSION=
+    HAVE_MARIADB=
+    HAVE_MYSQL=
+    APACHE_VERSION=$(LD_LIBRARY_PATH="$DECOMPRESSED_PACK_DIR/httpd/lib/:$LD_LIBRARY_PATH" $DECOMPRESSED_PACK_DIR/httpd/bin/httpd -v|grep -i version|cut -d/ -f2|cut -d' ' -f1)
+    if [ -d "$DECOMPRESSED_PACK_DIR/mariadb" ]; then
+        HAVE_MARIADB='yes'
+        MYSQL_VERSION=$($DECOMPRESSED_PACK_DIR/mariadb/bin/mariadbd --version|awk '{print $3}'|cut -d- -f1)
+    fi
+    if [ -d "$DECOMPRESSED_PACK_DIR/mysql" ]; then
+        HAVE_MYSQL='yes'
+        MYSQL_VERSION=$($DECOMPRESSED_PACK_DIR/mysql/bin/mysqld --version|awk '{print $3}'|cut -d- -f1)
+    fi
+    PHP_VERSION=$($DECOMPRESED_PACK_DIR/php/bin/php -v|head -1|awk '{print $2}')
+    PHPMYADMIN_VERSION=$(head -10 $DECOMPRESSED_PACK_DIR/httpd/htdocs/phpMyAdmin/README|grep -i version|awk '{print $2}')
+    echo "APACHE version $APACHE_VERSION"
+    echo "MARIADB version $MYSQL_VERSION"
+    echo "PHP version $PHP_VERSION"
+    echo "PHPMYADMIN version $PHPMYADMIN_VERSION"
+}
+
 make_change_text(){
     echo Patching text files
     export LC_ALL=C
-    components="httpd php mysql"
+    components="httpd php"
     [ ! -e "$rptarget" ] && error_menu "invalid target"
     pushd $rptarget >/dev/null
 
@@ -135,27 +159,41 @@ include_php_samples(){
 
 configure_mysql(){
     [ ! -e "$rptarget" ] && error_menu "invalid target"
-    echo "Configuring MariaDB 5.5"
-    mkdir -p $rptarget/mysql/conf
-    mkdir -p $rptarget/mysql/temp
-    mkdir -p $rptarget/mysql/var/mysql
-    mkdir -p $rptarget/mysql/var/log
-    sed -r "s|@@LLXAMP_BASEPATH@@|$rptarget/mysql|g" "$TEMPLATES_DIR"/my.cnf > $rptarget/mysql/conf/my.cnf
+    echo "Configuring MariaDB"
+    mkdir -p $rptarget/mysql/{conf,temp,var/{mysql,log}}
+    if [ -n "$HAVE_MARIADB" ];then
+        cp -R "$TEMPLATES_DIR/mariadb-conf/*" "$rptarget/mariadb/conf/"
+        for fileconf in $(find "$rptarget/mariadb/conf" -type f); then
+            sed -i'.pre-change' -r "s|@@LLXAMP_BASEPATH@@|$rptarget/mariadb|g" $fileconf
+        fi
+        find "$rptarget/mariadb/conf" -type f -name '*.pre-change' -exec rm {} \;
+    else
+        sed -r "s|@@LLXAMP_BASEPATH@@|$rptarget/mysql|g" "$TEMPLATES_DIR"/my.cnf > $rptarget/mysql/conf/my.cnf
+    fi
 }
 
 configure_mysql2(){
     [ ! -e "$rptarget" ] && error_menu "invalid target"
+    if [ -n "$HAVE_MARIADB" ];then
+        suffix=mariadb
+        installdb=mariadb-install-db
+        user=$(whoami)
+    else
+        suffix=mysql
+        installdb=mysql_install_db
+        user=root
+    fi
     echo Installing initial database
-    execute_silent $rptarget/mysql/scripts/mysql_install_db --basedir=$rptarget/mysql --datadir=$rptarget/mysql/data --no-defaults --user=$(whoami)
+    execute_silent $rptarget/mysql/scripts/$installdb --basedir=$rptarget/$suffix --datadir=$rptarget/$suffix/data --no-defaults --user=$(whoami)
     echo Starting database
     execute_silent bash $startup_scripts/llxamp-start-mysql
-    while ! $rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root -e 'status' > /dev/null 2>&1; do
+    while ! $rptarget/$suffix/bin/$suffix --defaults-file=$rptarget/$suffix/conf/my.cnf --user=$user -e 'status' > /dev/null 2>&1; do
         sleep 1
     done
     echo Creating test table
-    execute_silent $rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root < "$TEMPLATES_DIR"/create_table.sql
+    execute_silent $rptarget/$suffix/bin/$suffix --defaults-file=$rptarget/$suffix/conf/my.cnf --user=$user < "$TEMPLATES_DIR"/create_table.sql
     echo Securing Mysql installation
-    execute_silent $rptarget/mysql/bin/mysql --defaults-file=$rptarget/mysql/conf/my.cnf --user=root < "$TEMPLATES_DIR"/secure_installation.sql
+    execute_silent $rptarget/$suffix/bin/$suffix --defaults-file=$rptarget/$suffix/conf/my.cnf --user=$user < "$TEMPLATES_DIR"/$suffix-secure_installation.sql
     echo Stopping database
     execute bash $startup_scripts/llxamp-stop-mysql
 }
@@ -173,8 +211,13 @@ write_start_scripts(){
 }
 
 create_target_dir(){
+    if [ -n "$HAVE_MARIADB" ];then
+        suffix=mariadb
+    else
+        suffix=mysql
+    fi
     pkill -9 -f httpd > /dev/null 2>&1
-    pkill -9 -f mysqld > /dev/null 2>&1
+    pkill -9 -f $suffix > /dev/null 2>&1
     if [ ! -e "$rptarget" ]; then
         mkdir -p "$rptarget" ||  error_menu "Invalid parameter '$target'"
     fi
@@ -185,10 +228,16 @@ create_target_dir(){
 }
 
 test_install_pack(){
+    if [ -n "$HAVE_MARIADB" ];then
+        suffix=mariadb
+        need="build-tag httpd php mariadb httpd/htdocs/phpMyAdmin"
+    else
+        suffix=mysql
+        need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
+    fi
     [ ! -e "$rpfile_pack" ] && error_menu "invalid install-pack"
     echo Testing archive "$rpfile_pack"
     tmpfile=$(execute_to_tempfile tar -ztf "$rpfile_pack")
-    need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
     for n in $need; do
         if grep -s $n $tmpfile > /dev/null 2>&1; then
             echo "$(basename $n) found!"
@@ -356,6 +405,7 @@ if [ ! -e "/usr/lib/llxamp/pack" ]; then
     fi
 fi
 
+get_versions
 #test_install_pack
 create_target_dir
 decompress_pack

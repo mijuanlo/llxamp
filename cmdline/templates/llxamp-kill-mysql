@@ -17,5 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with LLXAMP.  If not, see <http://www.gnu.org/licenses/>.
 
-find @@LLXAMP_BASEPATH@@/mysql/ -type f -name '*.pid' -exec rm {} \;
-pkill -9 -f mysqld >/dev/null 2>&1
+if [ -d "@@LLXAMP_BASEPATH@@/mariadb" ]; then
+    suffix=mariadb
+else
+    suffix=mysql
+fi
+find @@LLXAMP_BASEPATH@@/$suffix/ -type f -name '*.pid' -exec rm {} \;
+pkill -9 -f $suffixd >/dev/null 2>&1
