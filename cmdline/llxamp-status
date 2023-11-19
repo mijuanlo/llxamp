@@ -19,6 +19,13 @@
 
 program=$(basename "${BASH_SOURCE[0]}")
 
+if [ -e "$HOME/llxamp/mysql" ]; then
+    daemon=mysqld
+fi
+if [ -e "$HOME/llxamp/mariadb" ]; then
+    daemon=mariadbd
+fi
+
 show_help(){
     echo
     echo "Usage:"
@@ -87,13 +94,13 @@ fi
 # Mysql
 mysql_running=
 if [ -z "$has_opts" -o -n "$mysql" ];then
-    if [ -n "$(check_running mysqld)" ]; then
+    if [ -n "$(check_running $daemon)" ]; then
         mysql_running='yes'
         if [ -z "$has_opts" -o -n "$show_ports" ]; then
-            mysql_ports=$(check_ports mysqld)
+            mysql_ports=$(check_ports $daemon)
         fi
         if [ -z "$has_opts" -o -n "$show_procs" ]; then
-            mysql_procs=$(check_procs mysqld)
+            mysql_procs=$(check_procs $daemon)
         fi
     fi
 fi
