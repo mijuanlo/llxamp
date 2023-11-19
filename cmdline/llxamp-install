@@ -163,9 +163,9 @@ configure_mysql(){
     mkdir -p $rptarget/mysql/{conf,temp,var/{mysql,log}}
     if [ -n "$HAVE_MARIADB" ];then
         cp -R "$TEMPLATES_DIR/mariadb-conf/*" "$rptarget/mariadb/conf/"
-        for fileconf in $(find "$rptarget/mariadb/conf" -type f); then
+        for fileconf in $(find "$rptarget/mariadb/conf" -type f); do
             sed -i'.pre-change' -r "s|@@LLXAMP_BASEPATH@@|$rptarget/mariadb|g" $fileconf
-        fi
+        done
         find "$rptarget/mariadb/conf" -type f -name '*.pre-change' -exec rm {} \;
     else
         sed -r "s|@@LLXAMP_BASEPATH@@|$rptarget/mysql|g" "$TEMPLATES_DIR"/my.cnf > $rptarget/mysql/conf/my.cnf
