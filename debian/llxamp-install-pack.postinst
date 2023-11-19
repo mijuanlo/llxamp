@@ -25,10 +25,12 @@ TARGETDIR=/usr/lib/llxamp/pack
 
 ext=$(echo $PACKNAME|rev|cut -d. -f1|rev)
 if [ "x$ext" = "xtgz" ]; then
-    command="tar -ztf"
+    command_test="tar -ztf"
+    command_decompress="tar xfz"
     need="./build-tag ./httpd ./php ./mysql ./httpd/htdocs/phpMyAdmin"
 else
-    command="tar --zstd -tf"
+    command_test="tar --zstd -tf"
+    command_decompress="tar --zstd -xf"
     need="./build-tag ./httpd ./php ./mariadb ./httpd/htdocs/phpMyAdmin"
 fi
 case "$1" in
@@ -38,7 +40,7 @@ case "$1" in
             /usr/lib/llxamp/llxamp-download-install-pack
             echo Testing archive "$PACK"
             tmpfile=$(mktemp)
-            $command "$PACK" > $tmpfile
+            $command_test "$PACK" > $tmpfile
             for n in $need; do
                 if grep -s $n $tmpfile > /dev/null 2>&1; then
                     echo "$(basename $n) found!"
@@ -49,7 +51,7 @@ case "$1" in
             echo Installing pack into "$TARGETDIR"
             mkdir -p "$TARGETDIR"
             cd "$TARGETDIR"
-            tar xfz "$PACK"
+            $command_decompress "$PACK"
             # rm -rf "$PACKDIR"
         fi
     ;;
