@@ -24,4 +24,4 @@ else
     mysqld_safe=mysqld_safe
     suffix=mysql
 fi
-@@LLXAMP_BASEPATH@@/mysql/bin/$mysqld_safe --defaults-file=@@LLXAMP_BASEPATH@@/$suffix/conf/my.cnf > /dev/null 2>&1 &
+@@LLXAMP_BASEPATH@@/$suffix/bin/$mysqld_safe --defaults-file=@@LLXAMP_BASEPATH@@/$suffix/conf/my.cnf > /dev/null 2>&1 &
