@@ -170,7 +170,7 @@ configure_mysql(){
         cp -R $TEMPLATES_DIR/mariadb-conf/* $rptarget/mariadb/conf/
         for fileconf in $(find "$rptarget/mariadb/conf" -type f); do
             cp $fileconf $fileconf.pre-change
-            sed -r "s|@@LLXAMP_BASEPATH@@|$rptarget/mariadb|g" $fileconf
+            sed -r "s|@@LLXAMP_BASEPATH@@|$rptarget/mariadb|g" $fileconf > $fileconf
         done
         find "$rptarget/mariadb/conf" -type f -name '*.pre-change' -exec rm {} \;
     else
