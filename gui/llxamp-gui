@@ -41,6 +41,7 @@ fontpointsize = 12
 
 gettext.bindtextdomain('llxamp-gui','/usr/share/locale')
 gettext.textdomain('llxamp-gui')
+locale = gettext.locale.getlocale()
 from PySide2 import QtWidgets, QtGui, QtCore
 
 sys.path.insert(1,'/usr/lib/llxamp')
@@ -972,6 +973,13 @@ class MainApp(QtWidgets.QMainWindow):
                 self.file_mappings = x.get_mappings()
                 for f in x.get_logfiles():
                     self.logviewer.follow(f)
+            # menu help
+            help = MyQtStaticUtils.create_menu(
+                items=[_('Help'),_('About')],
+                receiver=self.show_menu_about,
+                parent=self.menuBar()
+            )
+            self.menuBar().addMenu(help)
 
         if llxconfig:
             cfg = MyAppConfigFiles()
@@ -1011,7 +1019,6 @@ class MainApp(QtWidgets.QMainWindow):
                             return
         self.logviewer.terminate()
 
-        print(_('Exit'))
         if not self._no_quit_app:
             super().closeEvent(ev)
             self.app.quit()
@@ -1296,6 +1303,22 @@ class MainApp(QtWidgets.QMainWindow):
         dialog.setIcon(QtWidgets.QMessageBox.Information)
 
         dialog.exec_()
+
+    def show_menu_about(self):
+        dialog = QtWidgets.QDialog(self)
+        dialog.setBaseSize(800,600)
+        dialog.setLayout(QtWidgets.QHBoxLayout(dialog))
+        #label = QtWidgets.QLabel(txt,dialog)
+
+        text = QtWidgets.QTextEdit(self)
+        text.setReadOnly(True)
+        filename = f'/usr/share/doc/llxamp-gui/llxamp-gui.{locale}.md'
+        if not os.path.exists(filename):
+            filename = f'/usr/share/doc/llxamp-gui/llxamp-gui.en.md'
+        with open(filename,'r') as fp:
+            txt = fp.read()
+        text.setMarkdown(txt)
+        dialog.show()
 
     def debugmsg(self, txt='', prepend=''):
         time = MyPyStaticUtils.getTime()
