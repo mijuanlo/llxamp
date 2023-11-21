@@ -41,7 +41,7 @@ fontpointsize = 12
 
 gettext.bindtextdomain('llxamp-gui','/usr/share/locale')
 gettext.textdomain('llxamp-gui')
-locale = gettext.locale.getlocale()
+locale = gettext.locale.getlocale()[0]
 from PySide2 import QtWidgets, QtGui, QtCore
 
 sys.path.insert(1,'/usr/lib/llxamp')
@@ -1306,18 +1306,21 @@ class MainApp(QtWidgets.QMainWindow):
 
     def show_menu_about(self):
         dialog = QtWidgets.QDialog(self)
-        dialog.setBaseSize(800,600)
+        dialog.setMinimumSize(800,600)
         dialog.setLayout(QtWidgets.QHBoxLayout(dialog))
-        #label = QtWidgets.QLabel(txt,dialog)
 
         text = QtWidgets.QTextEdit(self)
+        text.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding)
         text.setReadOnly(True)
-        filename = f'/usr/share/doc/llxamp-gui/llxamp-gui.{locale}.md'
+        text.setStyleSheet('background: transparent; border: None;')
+
+        filename = f'/usr/share/doc/llxamp-gui/llxamp-gui-about-{locale}.md'
         if not os.path.exists(filename):
-            filename = f'/usr/share/doc/llxamp-gui/llxamp-gui.en.md'
+            filename = f'/usr/share/doc/llxamp-gui/llxamp-gui-about-en.md'
         with open(filename,'r') as fp:
             txt = fp.read()
         text.setMarkdown(txt)
+        dialog.layout().addWidget(text)
         dialog.show()
 
     def debugmsg(self, txt='', prepend=''):
