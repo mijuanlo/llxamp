@@ -956,7 +956,7 @@ class MainApp(QtWidgets.QMainWindow):
         font = QtGui.QFont()
         font.setFamilies(fontfamily)
         font.setPointSize(fontpointsize)
-        menu_context_items = ['Llxamp', _('Exit') ]
+        menu_context_items = ['Llxamp', _('Preferences'), _('Exit') ]
         menu_context = MyQtStaticUtils.create_menu(
             items=menu_context_items,
             receiver=self.action_triggered,
@@ -1233,6 +1233,8 @@ class MainApp(QtWidgets.QMainWindow):
         if action.parent().objectName().lower() == 'menu_llxamp':
             if action.text() == _('Exit'):
                 self.closeEvent()
+            elif action.text() == _('Preferences'):
+                self.dialog_preferences()
         else:
             filename = action.data()
             self.new_tab(filename)
@@ -1322,6 +1324,57 @@ class MainApp(QtWidgets.QMainWindow):
         text.setMarkdown(txt)
         dialog.layout().addWidget(text)
         dialog.show()
+
+    def dialog_preferences(self):
+        global fontpointsize, fontfamily
+
+        dialog = QtWidgets.QDialog(self)
+        #dialog.setMinimumSize(800,600)
+        layout = QtWidgets.QGridLayout(dialog)
+        dialog.setLayout(layout)
+        label_font = QtWidgets.QLabel(_('Font:'),dialog)
+        font = QtGui.QFont()
+        font.setFamilies(fontfamily)
+        font.setPointSize(fontpointsize)
+        label_font.setFont(font)
+        lineedit_font = QtWidgets.QLineEdit(dialog)
+        lineedit_font.setReadOnly(True)
+        lineedit_font.setText(f'{fontfamily[0]} [{fontpointsize}]')
+        lineedit_font.setFont(font)
+        lineedit_font.setStyleSheet('background-color: transparent;')
+        font_button = QtWidgets.QPushButton(_('Change font'),dialog)
+        font_button.setFont(font)
+        def dialog_font_open():
+            global fontpointsize, fontfamily
+            font_selected = QtWidgets.QFontDialog.getFont(font,dialog,_('Select font'))
+            changed = font_selected[0]
+            newfont = font_selected[1]
+            if changed:
+                fontfamily = newfont.families()
+                fontpointsize = newfont.pointSize()
+                self.font_reload(self)
+                lineedit_font.setText(f'{fontfamily[0]} [{fontpointsize}]')
+        font_button.pressed.connect(dialog_font_open)
+        close_button = QtWidgets.QPushButton(_('Close'),dialog)
+        close_button.pressed.connect(lambda: (dialog.close(),dialog.deleteLater()))
+        layout.addWidget(label_font,1,1)
+        layout.addWidget(lineedit_font,1,2)
+        layout.addWidget(font_button,1,3)
+        layout.addWidget(close_button,3,3,QtCore.Qt.AlignBottom|QtCore.Qt.AlignRight)
+
+
+        dialog.show()
+
+    def font_reload(self,obj):
+        font = QtGui.QFont()
+        font.setFamilies(fontfamily)
+        font.setPointSize(fontpointsize)
+        for child in obj.children():
+            if hasattr(child,'setFont'):
+                child.setFont(font)
+                # print(f'Set font on : {child.objectName() or type(child).__name__}')
+            if hasattr(child,'children'):
+                self.font_reload(child)
 
     def debugmsg(self, txt='', prepend=''):
         time = MyPyStaticUtils.getTime()
