@@ -24,5 +24,5 @@ else
 fi
 
 pid=$(cat @@LLXAMP_BASEPATH@@/$suffix/temp/$suffix.pid 2>/dev/null)
-[ -n "$pid" ] && kill $pid
+[ -n "$pid" ] && kill $pid 2>/dev/null
 

@@ -203,6 +203,7 @@ configure_mysql2(){
     execute_silent $rptarget/$suffix/bin/$suffix --defaults-file=$rptarget/$suffix/conf/my.cnf --user=$user < "$TEMPLATES_DIR"/$suffix-secure_installation.sql
     echo Stopping database
     execute bash $startup_scripts/llxamp-stop-mysql
+    truncate -s 0 $rptarget/$suffix/var/log/*log
 }
 
 write_start_scripts(){

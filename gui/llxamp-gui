@@ -155,8 +155,6 @@ class Editor(QtWidgets.QWidget):
     def _iconPressed(self):
         action = self.sender()
         data = action.data()
-        if DEBUG:
-            print(_("Editor button pressed")+f' {data}')
         if data == 'restore':
             self.restoreFile()
         if data == 'undo':
@@ -380,8 +378,7 @@ class LogViewer(QtWidgets.QWidget):
             timer.timeout.connect(lambda: self._read_logfile(filename))
             timer.start(READLOG_TIMER)
             self._files_followed[filename].setdefault('timer',timer)
-            if DEBUG:
-                self.msg(_("Following logfile") + f' {filename}')
+            self.debugmsg(_("Following logfile") + f' {filename}')
             return
         fp=file['fp']
         while self._follow_files:
@@ -398,6 +395,12 @@ class LogViewer(QtWidgets.QWidget):
         printname = f'[{filename.split("/")[-1]}]'
         self.msg(lines,f'{printname:<25}')
 
+    def debugmsg(self,txt='',prepend=''):
+        prepend += MyPyStaticUtils.getTime()
+        prepend += 'DEBUG:'
+        if DEBUG:
+            self.msg(txt,prepend)
+
     def msg(self,txt='',prepend=''):
         if txt:
             txtlines=[]
@@ -408,7 +411,7 @@ class LogViewer(QtWidgets.QWidget):
                 txtlines=txt
             for line in txtlines:
                 if line:
-                    self._textedit.appendPlainText(f'{prepend}{line.capitalize()}')
+                    self._textedit.appendPlainText(f'{prepend}{line}')
 
 class MyPyStaticUtils():
     def getTime():
@@ -581,8 +584,8 @@ class QtProc():
         if not debug_fn:
             debug_fn = print
 
-        debug_start_fn = lambda: debug_fn(f'{MyPyStaticUtils.getTime()} Started {scriptname}')
-        debug_finish_fn = lambda x,y: debug_fn(f'{MyPyStaticUtils.getTime()} Finished {scriptname}\n{x}\n')
+        debug_start_fn = lambda: debug_fn(f'Started {scriptname}')
+        debug_finish_fn = lambda x,y: debug_fn(f'Finished {scriptname}\n{x}\n')
 
         if not started_fn:
             started_fn = debug_start_fn
@@ -698,6 +701,127 @@ class Monitor(QtWidgets.QWidget):
                 label.setPalette(green_palette)
             self.tickData.emit(result)
 
+class ToolbarHideButtons(QtWidgets.QToolBar):
+    actionTriggered = QtCore.Signal(QtWidgets.QPushButton)
+
+    def __init__(self,*args):
+        super().__init__(*args)
+        self.setFloatable(False)
+        self.setMovable(False)
+        self.setOrientation(QtCore.Qt.Vertical)
+        self.setStyleSheet('border:none;')
+        self._iconSize = 32
+        #self.setContentsMargins(10,10,10,10)
+        self._buttons_order = []
+        self._buttons = {}
+        self._buttons_text = {}
+        self._iconBack = self.style().standardIcon(getattr(QtWidgets.QStyle,'SP_ArrowBack'))
+        self._iconForward = self.style().standardIcon(getattr(QtWidgets.QStyle,'SP_ArrowForward'))
+        self._togglebutton = QtWidgets.QPushButton(self._iconBack,'',self)
+        self._togglebutton.setIconSize(QtCore.QSize(self._iconSize,self._iconSize))
+        self._togglebutton.setObjectName('toggle_button')
+        self._togglebutton.pressed.connect(self.toggle)
+        self._togglebutton.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed,QtWidgets.QSizePolicy.Policy.Minimum)
+        self._togglebutton.setFixedSize(32,32)
+        self.addWidget(self._togglebutton)
+        i=QtWidgets.QSpacerItem(32,32)
+        self.addWidget(i.widget())
+
+    def toggle(self):
+        button = self.sender()
+        if button.icon().name() == self._iconForward.name():
+            for name,btn in self._buttons.items():
+                txt = self._buttons_text.get(btn.objectName(),'')
+                btn.setText('')
+                btn.setToolTip(txt)
+                btn.adjustSize()
+            self._togglebutton.setIcon(self._iconBack)
+        else:
+            for name,btn in self._buttons.items():
+                txt = self._buttons_text.get(btn.objectName(),'')
+                btn.setText(txt+self._button_spacing.get(name))
+                btn.setToolTip('')
+                btn.adjustSize()
+            self._togglebutton.setIcon(self._iconForward)
+
+    def _buttonPressed(self,*args):
+        button = self.sender()
+        self.actionTriggered.emit(button)
+
+    def setButtons(self, buttonList=[]):
+        if not buttonList:
+            return
+
+        for pack in buttonList:
+            if isinstance(pack,tuple):
+                if len(pack) == 3:
+                    cmd, txt, icons = pack
+                    if cmd[0] == '#':
+                        continue
+
+                    if isinstance(icons,str):
+                        theme = 'help-about'
+                        fallback = 'SP_TitleBarContextHelpButton'
+                        custom = icons
+                    else:
+                        if isinstance(icons,tuple):
+                            if len(icons) == 2:
+                                custom = None
+                                theme, fallback = icons
+                            if len(icons) == 3:
+                                custom , theme , fallback = icons
+
+                    icon = QtGui.QIcon()
+                    if custom:
+                        icon = QtGui.QIcon(custom)
+                    if icon.isNull():
+                        icon = QtGui.QIcon.fromTheme(theme,self.style().standardIcon(getattr(QtWidgets.QStyle,fallback)))
+                    if icon.isNull():
+                        icon = self.style().standardIcon(getattr(QtWidgets.QStyle,fallback))
+
+                    btn = QtWidgets.QPushButton('',self)
+                    if icon:
+                        btn.setIcon(icon)
+                        btn.setIconSize(QtCore.QSize(self._iconSize,self._iconSize))
+                    if cmd:
+                        btn.setObjectName('button_'+cmd)
+                    if txt:
+                        btn.setToolTip(txt.capitalize())
+                        btn.setText(txt.capitalize())
+                        self._buttons_text.setdefault(btn.objectName(),txt.capitalize())
+                    # font = QtGui.QFont()
+                    # font.setFamilies(['Hack','Courier New','monospace'])
+                    # font.setPointSize(10)
+                    # btn.setFont(font)
+                    btn.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Fixed)
+                    self._buttons_order.append(btn.objectName())
+                    self._buttons.setdefault(btn.objectName(),btn)
+                    btn.pressed.connect(self._buttonPressed)
+
+                    self.addWidget(btn)
+
+        # Hack to allow buttons with full width aligned to the left
+        fm = QtGui.QFontMetrics(btn.font())
+        self._max_text_size = max([fm.boundingRect(txt).width() for name,txt in self._buttons_text.items()])
+        self._button_spacing = {}
+        for name,btn in self._buttons.items():
+            i=0
+            while fm.boundingRect(btn.text()+' '*i).width() <= self._max_text_size:
+                i+=1
+            self._button_spacing.setdefault(name,' '*i)
+            btn.setText('')
+
+        # Needed for align items on old pyside versions
+        # Breaks full size button until qtoolbar width
+        # test with btn.setStyleSheet('background-color: green')
+        layout = self.layout()
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+            if item.widget().objectName() == 'toggle_button':
+                item.setAlignment(QtCore.Qt.AlignCenter)
+            else:
+                item.setAlignment(QtCore.Qt.AlignLeft)
+
 class MainApp(QtWidgets.QMainWindow):
     reRun = QtCore.Signal(QtCore.QObject)
 
@@ -707,7 +831,9 @@ class MainApp(QtWidgets.QMainWindow):
         self._no_quit_app = False
         self.qtproc = QtProc()
         self.logviewer = LogViewer(self)
-        self.monitor = Monitor(self,timeout=STATUS_TIMER,debug_fn=self.msg)
+        self.monitor = Monitor(self,timeout=STATUS_TIMER,debug_fn=self.debugmsg)
+        self.buttonToolbar = ToolbarHideButtons(self)
+        self.buttonToolbar.actionTriggered.connect(self.action_triggered)
         self.statusBar().addWidget(self.monitor)
         self.monitor.start()
         self.timers = {}
@@ -733,15 +859,40 @@ class MainApp(QtWidgets.QMainWindow):
         self.split.setStretchFactor(self.split.count()-1,1)
 
         self.create_systray()
-        if DEBUG:
-            msg = []
-            for k in os.environ.keys():
-                msg.append(f'{k} = {os.environ.get(k)}')
-            self.msg('\n'.join(msg))
+
+        msg = []
+        for k in os.environ.keys():
+            msg.append(f'{k} = {os.environ.get(k)}')
+        self.debugmsg('\n'.join(msg))
+
+    def create_buttons(self):
+        is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp/scripts")
+        title = _('Install')
+        if is_installed:
+            title = _('Reinstall')
+        buttons = [
+            #(action_name,text,(absolute_icon,theme_icon,fallbak_icon))
+            ("start","Start",("media-playback-start","SP_MediaPlay")),
+            ("stop","Stop",("media-player-stop","SP_MediaStop")),
+            ("open-browser",_("Browser"),("internet-web-browser","SP_DriveNetIcon")),
+            ("open-browser-ssl",_("Secure browser"),("preferences-web-browser-ssl","SP_DriveNetIcon")),
+            ("open-phpmyadmin",_("PhpMyAdmin"),("server-database","SP_FileDialogInfoView")),
+            ("show-used-ports",_("Used ports"),("network-wired","SP_TitleBarNormalButton")),
+            ("show-available-ports",_("Available ports"),("network-wired-disconnected","SP_TitleBarNormalButton")),
+            ("make-backup",_("Make backup"),("utilities-file-archiver","SP_DriveFDIcon")),
+            ("show-apache-config",_("Show config")+' Apache',("/usr/share/applications/llxamp-apache.svg","description","SP_FileIcon")),
+            ("show-php-config",_("Show config")+' PHP',("/usr/share/applications/llxamp-php.svg","description","SP_FileIcon")),
+            ("install",title,("llxamp","SP_TitleBarMenuButton"))
+        ]
+        self.buttonToolbar.setButtons(buttons)
+        if not is_installed:
+            for btn in self.buttonToolbar._buttons:
+                if btn.objectName() != 'button_install':
+                    btn.setDisabled(True)
+        self.centralWidget().parent().addToolBar(QtCore.Qt.RightToolBarArea,self.buttonToolbar)
 
     def changed_tab(self,idx):
-        if DEBUG:
-            self.msg(f'TAB CHANGE {idx}')
+        self.debugmsg(f'TAB CHANGE {idx}')
 
     def close_tab(self,idx,exit_forced=False):
         tabs = MyQtStaticUtils.findObject(self,'tabs')
@@ -758,8 +909,7 @@ class MainApp(QtWidgets.QMainWindow):
             )
             if dialog == QtWidgets.QMessageBox.No:
                 return False
-        if DEBUG:
-            self.msg(_("TAB CLOSE") + f' {idx}')
+        self.debugmsg(_("TAB CLOSE") + f' {idx}')
 
         if hasattr(widget,'askSave'):
             ret = widget.askSave()
@@ -824,7 +974,7 @@ class MainApp(QtWidgets.QMainWindow):
             self.qtproc.executeSingletonScript(
                 'llxamp-config',['-a','-p','-m','-t','-i','-l'],
                 finished_fn=post_actions,
-                debug_fn=self.msg
+                debug_fn=self.debugmsg
             )
 
     def closeEvent(self,ev=None,*args):
@@ -910,23 +1060,6 @@ class MainApp(QtWidgets.QMainWindow):
                     )
                 )
 
-    def modification_slot(self,*args):
-        # self.msg(f'Document changed {args}')
-        sender = self.sender()
-        tab = sender.parent().parent()
-        idx = tab.indexOf(sender)
-        icon = self.style().standardIcon(getattr(QtWidgets.QStyle,'SP_DialogSaveButton'))
-
-        if sender.isChanged():
-            tab.setTabIcon(idx,icon)
-        else:
-            tab.setTabIcon(idx,QtGui.QIcon())
-
-    def editor_save_slot(self):
-        self.menuBar().clear()
-        self.begin_build_menubar()
-
-
     def new_tab(self, filename):
         name = filename.split('/')[-1]
         tabs = MyQtStaticUtils.findObject(self,'tabs')
@@ -942,137 +1075,135 @@ class MainApp(QtWidgets.QMainWindow):
             text.setObjectName(f'tab_{name}')
             text.setFont(font)
             text.setData(filename)
-            text.editorModified.connect(self.modification_slot)
-            text.editorSaved.connect(self.editor_save_slot)
+            text.editorModified.connect(self.action_triggered)
+            text.editorSaved.connect(self.action_triggered)
             text.editorExternal.connect(self.action_triggered)
             tabs.addTab(text,name)
             tabs.setCurrentIndex(tabs.count()-1)
-            if DEBUG:
-                self.msg(_("Tab created") + f' {tabs.count()}')
+            self.debugmsg(_("Tab created") + f' {tabs.count()}')
         else:
             idx = tabs.indexOf(tab[0])
             tabs.setCurrentIndex(idx)
         tabs.setVisible(True)
 
-    def action_triggered(self, name=None):
-        action_sender = self.sender()
-        parent_name = ''
-        if hasattr(action_sender,'parent'):
-            parent_name = action_sender.parent().objectName()
-        text = None
-        data = None
-        if action_sender:
-            if hasattr(action_sender,'text'):
-                text = action_sender.text()
-            if hasattr(action_sender,'data'):
-                data = action_sender.data()
-            if not name:
-                name = action_sender.objectName()
-        if DEBUG:
-            self.msg(f'{MyPyStaticUtils.getTime()} Action trigger {name}')
-        txt=[]
-        if name:
-            txt.append(f'objectName={name}')
-        if data:
-            txt.append(f'data={data}')
-        if text:
-            txt.append(f'text={text}')
-        if txt:
-            txt = ','.join(txt)
+    def action_triggered(self,*args):
+        sender = self.sender()
+        if isinstance(sender,QtWidgets.QAction):
+            self.action_from_menu(sender)
+        elif isinstance(sender,ToolbarHideButtons):
+            button = args[0]
+            self.action_from_button(button)
+        elif isinstance(sender,Editor):
+            self.action_from_editor(sender)
+        else:
+            self.debugmsg(_('Unknown type action triggered')+f' {type(sender)}')
 
-        if name == 'external-edit':
-            self.qtproc.executeSingletonScript(
-                'xdg-open', [action_sender._filename],
-                debug_fn=self.msg,
-                detached=True
-            )
-        if name[:6] == 'action':
-            if parent_name.lower() == 'menu_llxamp':
-                if text.lower() == 'exit':
-                    self.closeEvent()
-            else:
-                file = data
-                if DEBUG:
-                    self.msg(_("Editing") + f' {file}')
-                self.new_tab(file)
-                pass
+    def action_from_button(self,button):
+        name = button.objectName()
+        cmd = name.split('_')[1]
+        scriptname = f'llxamp-{cmd}'
+        args = []
+        prepend = ''
+        print_output_to=self.msg
 
-        if name[:6] == 'button':
-            button = MyQtStaticUtils.findObject(self,name)
-            if button:
-                button = button[0]
-            cmd = name.split('_')[1]
-            scriptname = f'llxamp-{cmd}'
-            args = []
-            prepend=''
-            print_output_to=self.msg
-            if cmd in ['show-apache-config','show-php-config']:
-                print_output_to=lambda x : self.textdialog(cmd=cmd,txt=x)
-            if cmd == 'make-backup':
-                filter = _('Archive files')+' (*.tar.gz)'
-                path,filter_selected = QtWidgets.QFileDialog.getSaveFileName(self,_('File to save'),os.path.expanduser('~'),filter)
-                if not path:
-                    return
-                args = ['-o',path]
-            if cmd == 'install':
-                is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp/scripts")
-                if is_installed:
-                    answer_yes = self.askReinstall(True)
-                else:
-                    answer_yes = self.askReinstall()
-                if answer_yes:
-                    self._no_quit_app = True
-                    self.reRun.emit(self)
+        if cmd in ['show-apache-config','show-php-config']:
+            print_output_to=lambda x : self.textdialog(cmd=cmd,txt=x)
+        if cmd == 'make-backup':
+            filter = _('Archive files')+' (*.tar.gz)'
+            path,filter_selected = QtWidgets.QFileDialog.getSaveFileName(self,_('File to save'),os.path.expanduser('~'),filter)
+            if not path:
                 return
-            if cmd == 'status':
-                args = ['-a','-m','-p','-n']
-            if cmd == 'config':
-                if not llxconfig:
-                    args = ['-a','-p','-c','-r']
-                else:
-                    llxconfig.set_mode_apache()
-                    tree,includes,content,logs = llxconfig.process()
-                    txt = llxconfig.print_content(content,False,False)
-                    llxconfig.set_mode_php()
-                    tree2,includes2,content2,logs2 = llxconfig.process()
-                    txt = f'{txt}{llxconfig.print_content(content2,False,False)}'
-                    llxconfig.set_mode_mysql()
-                    tree3,includes3,content3,logs3 = llxconfig.process()
-                    txt = f'{txt}{llxconfig.print_content(content3,False,False)}'
-                    self.msg(txt,prepend)
-            if cmd == 'show-available-ports':
-                # print_output_to = lambda x: (self.infodialog(title=_("Available ports"),txt=x),self.msg(x))
-                print_output_to = lambda x: self.infodialog(title=button.text(),txt=x)
-            if cmd == 'show-used-ports':
-                scriptname = 'llxamp-ports'
-                args = ['-u']
-                print_output_to = lambda x: self.infodialog(title=button.text(),txt=x)
-            # Common "output" parameter for button actions
-            def output(x,err):
-                if DEBUG:
-                    self.msg(
-                        _('Output from command')+
-                             f' {scriptname}:\nSTDOUT\n{x}\nSTDERR{err}\n',
-                        prepend
-                    )
-                if err:
-                    print_output_to(
-                        _('Error Output')+
-                            f'---> "{err}"'
-                    )
-                print_output_to(x)
-                button.setEnabled(True)
-                if cmd == 'status':
-                    self.update_status_bar(data=x)
-                else:
-                    QtCore.QTimer.singleShot(3000,self.monitor.makeTick)
+            args = ['-o',path]
+        if cmd == 'install':
+            is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp/scripts")
+            if is_installed:
+                answer_yes = self.askReinstall(True)
+            else:
+                answer_yes = self.askReinstall()
+            if answer_yes:
+                self._no_quit_app = True
+                self.reRun.emit(self)
+            return
+        if cmd == 'status':
+            args = ['-a','-m','-p','-n']
+        if cmd == 'config':
+            if not llxconfig:
+                args = ['-a','-p','-c','-r']
+            else:
+                llxconfig.set_mode_apache()
+                tree,includes,content,logs = llxconfig.process()
+                txt = llxconfig.print_content(content,False,False)
+                llxconfig.set_mode_php()
+                tree2,includes2,content2,logs2 = llxconfig.process()
+                txt = f'{txt}{llxconfig.print_content(content2,False,False)}'
+                llxconfig.set_mode_mysql()
+                tree3,includes3,content3,logs3 = llxconfig.process()
+                txt = f'{txt}{llxconfig.print_content(content3,False,False)}'
+                self.msg(txt,prepend)
+        if cmd == 'show-available-ports':
+            # print_output_to = lambda x: (self.infodialog(title=_("Available ports"),txt=x),self.msg(x))
+            print_output_to = lambda x: self.infodialog(title=button.text(),txt=x)
+        if cmd == 'show-used-ports':
+            scriptname = 'llxamp-ports'
+            args = ['-u']
+            print_output_to = lambda x: self.infodialog(title=button.text(),txt=x)
 
-            self.qtproc.executeSingletonScript(
-                scriptname, args,
-                started_fn=lambda: button.setDisabled(True),
-                finished_fn=lambda x,y: output(x,y),
-                debug_fn=self.msg
+        # Common "output" parameter for button actions
+        def output(x,err):
+            self.debugmsg(
+                _('Output from command')+
+                f' {scriptname}:\nSTDOUT\n{x}\nSTDERR{err}\n',
+                prepend
             )
+            if err:
+                print_output_to(
+                    _('Error Output')+
+                        f'---> "{err}"'
+                )
+            print_output_to(x)
+            button.setEnabled(True)
+            if cmd == 'status':
+                self.update_status_bar(data=x)
+            else:
+                QtCore.QTimer.singleShot(3000,self.monitor.makeTick)
+
+        self.qtproc.executeSingletonScript(
+            scriptname, args,
+            started_fn=lambda: button.setDisabled(True),
+            finished_fn=lambda x,y: output(x,y),
+            debug_fn=self.debugmsg
+        )
+
+    def action_from_editor(self,editor):
+        namesignal = editor.metaObject().method(self.senderSignalIndex()).name()
+        namesignal = namesignal.data().decode()
+        if namesignal == 'editorExternal':
+            self.qtproc.executeSingletonScript(
+                    'xdg-open', [editor._filename],
+                    debug_fn=self.debugmsg,
+                    detached=True
+                )
+        elif namesignal == 'editorSaved':
+            self.menuBar().clear()
+            self.begin_build_menubar()
+        elif namesignal == 'editorModified':
+            tab = editor.parent().parent()
+            idx = tab.indexOf(editor)
+            icon = self.style().standardIcon(getattr(QtWidgets.QStyle,'SP_DialogSaveButton'))
+            if editor.isChanged():
+                tab.setTabIcon(idx,icon)
+            else:
+                tab.setTabIcon(idx,QtGui.QIcon())
+
+    def action_from_menu(self,action):
+        if action.parent().objectName().lower() == 'menu_llxamp':
+            if action.text().lower() == 'exit':
+                self.closeEvent()
+        else:
+            filename = action.data()
+            self.new_tab(filename)
+            self.debugmsg('{} {}'.format(_('Editing'),filename))
+
     def askReinstall(self,reinstall=False):
         title=_('Install')
         if reinstall:
@@ -1107,7 +1238,7 @@ class MainApp(QtWidgets.QMainWindow):
         txt = kwargs.get('txt')
         w = QtWidgets.QWizard(self)
         tw = QtWidgets.QWizardPage(w)
-        tw.setTitle(f'{title} '+_('configuration'))
+        tw.setTitle('{} {}'.format(_('All configuration from'),title))
         te = QtWidgets.QPlainTextEdit(txt,tw)
         font = QtGui.QFont()
         font.setFamilies(['Hack','Courier New','monospace'])
@@ -1117,7 +1248,7 @@ class MainApp(QtWidgets.QMainWindow):
         lay.addWidget(te)
         tw.setLayout(lay)
         w.addPage(tw)
-        w.setWindowTitle(f'{title} '+_('configuration'))
+        w.setWindowTitle('{} {}'.format(_('All configuration from'),title))
         w.setButtonLayout([QtWidgets.QWizard.CustomButton1])
         w.setButtonText(QtWidgets.QWizard.CustomButton1,_('Close'))
         w.setOption(QtWidgets.QWizard.HaveCustomButton1,True)
@@ -1139,112 +1270,12 @@ class MainApp(QtWidgets.QMainWindow):
 
         dialog.exec_()
 
-    def toggle(self):
-        button = self.sender()
-        print(f'Checked={button.isChecked()}')
-        buttons = [ child for child in button.parent().children() if isinstance(child,QtWidgets.QToolButton) and child.objectName()[:7] == 'button_' ]
-        if button.isChecked():
-            for btn in buttons:
-                btn.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
-            button.setIcon(self._iconBack)
-            button.setChecked(False)
-        else:
-            for btn in buttons:
-                btn.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-            button.setIcon(self._iconForward)
-            button.setChecked(True)
-
-    def create_buttons(self):
-        if not hasattr(self,'_iconBack'):
-            self._iconBack = self.style().standardIcon(getattr(QtWidgets.QStyle,'SP_ArrowBack'))
-        if not hasattr(self,'_iconForward'):
-            self._iconForward = self.style().standardIcon(getattr(QtWidgets.QStyle,'SP_ArrowForward'))
-
-        toolbar = QtWidgets.QToolBar(self.centralWidget().parent())
-        toolbar.setFloatable(False)
-        toolbar.setMovable(False)
-        toolbar.setOrientation(QtCore.Qt.Vertical)
-        toolbar.setStyleSheet('border:none;')
-        toolbar.setIconSize(QtCore.QSize(32,32))
-
-        button = QtWidgets.QToolButton(toolbar)
-        button.setObjectName('toggle_button')
-        button.setIcon(self._iconBack)
-        button.setCheckable(True)
-        button.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
-        button.pressed.connect(self.toggle)
-        toolbar.addWidget(button)
-        #toolbar.setContentsMargins(10,10,10,10)
-
-        is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp/scripts")
-        title = _('Install')
-        if is_installed:
-            title = _('Reinstall')
-        buttons = [
-            ("start","Start",("media-playback-start","SP_MediaPlay")),
-            ("stop","Stop",("media-player-stop","SP_MediaStop")),
-            ("open-browser",_("Browser"),("internet-web-browser","SP_DriveNetIcon")),
-            ("open-browser-ssl",_("Secure browser"),("preferences-web-browser-ssl","SP_DriveNetIcon")),
-            ("open-phpmyadmin",_("PhpMyAdmin"),("server-database","SP_FileDialogInfoView")),
-            ("show-used-ports",_("Used ports"),("network-wired","SP_TitleBarNormalButton")),
-            ("show-available-ports",_("Available ports"),("network-wired-disconnected","SP_TitleBarNormalButton")),
-            ("make-backup",_("Make backup"),("utilities-file-archiver","SP_DriveFDIcon")),
-            ("show-apache-config",_("Show Apache config"),("/usr/share/applications/llxamp-apache.svg","description","SP_FileIcon")),
-            ("show-php-config",_("Show PHP config"),("/usr/share/applications/llxamp-php.svg","description","SP_FileIcon")),
-            ("install",title,("llxamp","SP_TitleBarMenuButton"))
-        ]
-
-        maxsize=max([ len(button[2]) for button in buttons])
-        for pack in buttons:
-            if isinstance(pack,tuple):
-                if len(pack) == 3:
-                    cmd, txt, icons = pack
-                    if cmd[0] == '#':
-                        continue
-
-                    if isinstance(icons,str):
-                        theme = 'help-about'
-                        fallback = 'SP_TitleBarContextHelpButton'
-                        custom = icons
-                    else:
-                        if isinstance(icons,tuple):
-                            if len(icons) == 2:
-                                custom = None
-                                theme, fallback = icons
-                            if len(icons) == 3:
-                                custom , theme , fallback = icons
-
-                    icon = QtGui.QIcon()
-                    if custom:
-                        icon = QtGui.QIcon(custom)
-                    if icon.isNull():
-                        icon = QtGui.QIcon.fromTheme(theme,self.style().standardIcon(getattr(QtWidgets.QStyle,fallback)))
-                    if icon.isNull():
-                        icon = self.style().standardIcon(getattr(QtWidgets.QStyle,fallback))
-
-                    btn = QtWidgets.QToolButton(toolbar)
-                    if icon:
-                        btn.setIcon(icon)
-                    btn.setText(txt.capitalize())
-                    btn.setCheckable(True)
-                    btn.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
-                    btn.setObjectName('button_'+cmd)
-                    btn.setToolTip(txt.capitalize())
-                    btn.pressed.connect(self.action_triggered)
-                    btn.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Fixed)
-                    if not is_installed and cmd != 'install':
-                        btn.setDisabled(True)
-                    toolbar.addWidget(btn)
-
-        # Needed for align items on old pyside versions
-        # Breaks full size button until qtoolbar width
-        # test with btn.setStyleSheet('background-color: green')
-        layout = toolbar.layout()
-        for i in range(layout.count()):
-            item = layout.itemAt(i)
-            item.setAlignment(QtCore.Qt.AlignLeft)
-
-        self.centralWidget().parent().addToolBar(QtCore.Qt.RightToolBarArea,toolbar)
+    def debugmsg(self, txt='', prepend=''):
+        time = MyPyStaticUtils.getTime()
+        if DEBUG:
+            prepend += time
+            prepend += 'DEBUG:'
+            self.msg(txt,prepend)
 
     def msg(self, txt='', prepend=''):
         self.logviewer.msg(txt,prepend)
