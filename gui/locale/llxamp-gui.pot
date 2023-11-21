@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-18 12:44+0100\n"
+"POT-Creation-Date: 2023-11-21 18:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,218 +17,214 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: gui/llxamp-gui:49
+#: gui/llxamp-gui:53
 msgid "Can't import"
 msgstr ""
 
-#: gui/llxamp-gui:57
+#: gui/llxamp-gui:61
 msgid "Ending QApplication"
 msgstr ""
 
-#: gui/llxamp-gui:106
+#: gui/llxamp-gui:110
 msgid "Empty filename"
 msgstr ""
 
-#: gui/llxamp-gui:116
+#: gui/llxamp-gui:120
 msgid "Restore initial file"
 msgstr ""
 
-#: gui/llxamp-gui:116
+#: gui/llxamp-gui:120
 msgid "Undo"
 msgstr ""
 
-#: gui/llxamp-gui:116
+#: gui/llxamp-gui:120
 msgid "Redo"
 msgstr ""
 
-#: gui/llxamp-gui:116
+#: gui/llxamp-gui:120
 msgid "Save"
 msgstr ""
 
-#: gui/llxamp-gui:116
+#: gui/llxamp-gui:120
 msgid "Open with system editor"
 msgstr ""
 
-#: gui/llxamp-gui:159
-msgid "Editor button pressed"
-msgstr ""
-
-#: gui/llxamp-gui:175
+#: gui/llxamp-gui:177
 msgid "Save file"
 msgstr ""
 
-#: gui/llxamp-gui:176
+#: gui/llxamp-gui:178
 msgid "Do you want to save?"
 msgstr ""
 
-#: gui/llxamp-gui:189
+#: gui/llxamp-gui:191
 msgid "Restore file"
 msgstr ""
 
-#: gui/llxamp-gui:190
+#: gui/llxamp-gui:192
 msgid "Do you want restore original file?"
 msgstr ""
 
-#: gui/llxamp-gui:225
+#: gui/llxamp-gui:227
 msgid "File"
 msgstr ""
 
-#: gui/llxamp-gui:225
+#: gui/llxamp-gui:227
 msgid "saved"
 msgstr ""
 
-#: gui/llxamp-gui:303
+#: gui/llxamp-gui:305
 msgid "Log viewer"
 msgstr ""
 
-#: gui/llxamp-gui:309
+#: gui/llxamp-gui:315
 msgid "Clear"
 msgstr ""
 
-#: gui/llxamp-gui:314 gui/llxamp-gui:347
+#: gui/llxamp-gui:321 gui/llxamp-gui:355
 msgid "Hide"
 msgstr ""
 
-#: gui/llxamp-gui:345
+#: gui/llxamp-gui:353
 msgid "Show"
 msgstr ""
 
-#: gui/llxamp-gui:384
+#: gui/llxamp-gui:392
 msgid "Following logfile"
 msgstr ""
 
-#: gui/llxamp-gui:435
+#: gui/llxamp-gui:449
 msgid "Config files"
 msgstr ""
 
-#: gui/llxamp-gui:436
+#: gui/llxamp-gui:450
 msgid "Log files"
 msgstr ""
 
-#: gui/llxamp-gui:594 gui/llxamp-gui:1331
+#: gui/llxamp-gui:613 gui/llxamp-gui:1409
 msgid "Already running"
 msgstr ""
 
-#: gui/llxamp-gui:609
+#: gui/llxamp-gui:628
 msgid "Error executing script"
 msgstr ""
 
-#: gui/llxamp-gui:682
+#: gui/llxamp-gui:701
 msgid "Not running"
 msgstr ""
 
-#: gui/llxamp-gui:755
-msgid "Close tab"
-msgstr ""
-
-#: gui/llxamp-gui:756
-msgid "Do you want close the tab?"
-msgstr ""
-
-#: gui/llxamp-gui:762
-msgid "TAB CLOSE"
-msgstr ""
-
-#: gui/llxamp-gui:788 gui/llxamp-gui:842
-msgid "Exit"
-msgstr ""
-
-#: gui/llxamp-gui:951
-msgid "Tab created"
-msgstr ""
-
-#: gui/llxamp-gui:996
-msgid "Editing"
-msgstr ""
-
-#: gui/llxamp-gui:1012
-msgid "Archive files"
-msgstr ""
-
-#: gui/llxamp-gui:1013
-msgid "File to save"
-msgstr ""
-
-#: gui/llxamp-gui:1052
-msgid "Output from command"
-msgstr ""
-
-#: gui/llxamp-gui:1058
-msgid "Error Output"
-msgstr ""
-
-#: gui/llxamp-gui:1075 gui/llxamp-gui:1188
+#: gui/llxamp-gui:887 gui/llxamp-gui:1235
 msgid "Install"
 msgstr ""
 
-#: gui/llxamp-gui:1077
+#: gui/llxamp-gui:889 gui/llxamp-gui:1237
 msgid "Reinstall"
 msgstr ""
 
-#: gui/llxamp-gui:1083
-msgid "Do you want"
-msgstr ""
-
-#: gui/llxamp-gui:1085
-msgid "All content from:"
-msgstr ""
-
-#: gui/llxamp-gui:1089
-msgid "Will be removed!"
-msgstr ""
-
-#: gui/llxamp-gui:1108 gui/llxamp-gui:1118
-msgid "configuration"
-msgstr ""
-
-#: gui/llxamp-gui:1120 gui/llxamp-gui:1279
-msgid "Close"
-msgstr ""
-
-#: gui/llxamp-gui:1180
+#: gui/llxamp-gui:894
 msgid "Browser"
 msgstr ""
 
-#: gui/llxamp-gui:1181
+#: gui/llxamp-gui:895
 msgid "Secure browser"
 msgstr ""
 
-#: gui/llxamp-gui:1182
+#: gui/llxamp-gui:896
 msgid "PhpMyAdmin"
 msgstr ""
 
-#: gui/llxamp-gui:1183
+#: gui/llxamp-gui:897
 msgid "Used ports"
 msgstr ""
 
-#: gui/llxamp-gui:1184
+#: gui/llxamp-gui:898
 msgid "Available ports"
 msgstr ""
 
-#: gui/llxamp-gui:1185
+#: gui/llxamp-gui:899
 msgid "Make backup"
 msgstr ""
 
-#: gui/llxamp-gui:1186
-msgid "Show Apache config"
+#: gui/llxamp-gui:900 gui/llxamp-gui:901
+msgid "Show config"
+msgstr ""
+
+#: gui/llxamp-gui:923
+msgid "Close tab"
+msgstr ""
+
+#: gui/llxamp-gui:924
+msgid "Do you want close the tab?"
+msgstr ""
+
+#: gui/llxamp-gui:929
+msgid "Close tab:"
+msgstr ""
+
+#: gui/llxamp-gui:958 gui/llxamp-gui:1014 gui/llxamp-gui:1227
+msgid "Exit"
+msgstr ""
+
+#: gui/llxamp-gui:1110
+msgid "Tab created"
+msgstr ""
+
+#: gui/llxamp-gui:1126
+msgid "Unknown type action triggered"
+msgstr ""
+
+#: gui/llxamp-gui:1139
+msgid "Archive files"
+msgstr ""
+
+#: gui/llxamp-gui:1140
+msgid "File to save"
+msgstr ""
+
+#: gui/llxamp-gui:1181
+msgid "Output from command"
 msgstr ""
 
 #: gui/llxamp-gui:1187
-msgid "Show PHP config"
+msgid "Error Output"
 msgstr ""
 
-#: gui/llxamp-gui:1253
+#: gui/llxamp-gui:1232
+msgid "Editing"
+msgstr ""
+
+#: gui/llxamp-gui:1243
+msgid "Do you want"
+msgstr ""
+
+#: gui/llxamp-gui:1245
+msgid "All content from:"
+msgstr ""
+
+#: gui/llxamp-gui:1249
+msgid "Will be removed!"
+msgstr ""
+
+#: gui/llxamp-gui:1268 gui/llxamp-gui:1278
+msgid "All configuration from"
+msgstr ""
+
+#: gui/llxamp-gui:1280 gui/llxamp-gui:1344
+msgid "Close"
+msgstr ""
+
+#: gui/llxamp-gui:1317
 msgid "Installing"
 msgstr ""
 
-#: gui/llxamp-gui:1256
+#: gui/llxamp-gui:1320
 msgid "Reinstalling"
 msgstr ""
 
-#: gui/llxamp-gui:1259
+#: gui/llxamp-gui:1323
 msgid "Please wait"
 msgstr ""
 
-#: gui/llxamp-gui:1286
+#: gui/llxamp-gui:1351
 msgid "Output:"
 msgstr ""
