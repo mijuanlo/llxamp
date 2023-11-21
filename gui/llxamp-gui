@@ -35,6 +35,10 @@ import socket
 import gettext
 from gettext import gettext as _
 
+fontfamily = ['Hack','Courier New','monospace']
+fontfamily = ['Ubuntu Mono','Hack','Courier New','monospace']
+fontpointsize = 12
+
 gettext.bindtextdomain('llxamp-gui','/usr/share/locale')
 gettext.textdomain('llxamp-gui')
 from PySide2 import QtWidgets, QtGui, QtCore
@@ -300,16 +304,22 @@ class LogViewer(QtWidgets.QWidget):
         self._textedit = self._create_text_edit(self)
         self._label = QtWidgets.QLabel(_('Log viewer'),self)
         self._label.setIndent(8)
+        font = QtGui.QFont()
+        font.setFamilies(fontfamily)
+        font.setPointSize(fontpointsize)
+        self._label.setFont(font)
 
         self._head_container = QtWidgets.QWidget(self)
         self._clear_button = QtWidgets.QPushButton(self._head_container)
         self._clear_button.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Fixed)
         self._clear_button.setText(_('Clear'))
+        self._clear_button.setFont(font)
         self._clear_button.setObjectName('button_clear')
         self._clear_button.pressed.connect(self.clear)
         self._showhide_button = QtWidgets.QPushButton(self._head_container)
         self._showhide_button.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Fixed)
         self._showhide_button.setText(_('Hide'))
+        self._showhide_button.setFont(font)
         self._showhide_button.setObjectName('button_showhide')
         self._showhide_button.pressed.connect(self.show_hide)
 
@@ -357,7 +367,8 @@ class LogViewer(QtWidgets.QWidget):
         doc = text.document()
         doc.setMaximumBlockCount(MAX_LINES)
         font = QtGui.QFont()
-        font.setFamilies(['Hack','Courier New','monospace'])
+        font.setFamilies(fontfamily)
+        font.setPointSize(fontpointsize)
         text.setFont(font)
         Highlighter(doc)
         text.setReadOnly(True)
@@ -539,8 +550,12 @@ class MyQtStaticUtils():
         return object.findChildren(QtWidgets.QWidget,QtCore.QRegularExpression(name,QtCore.QRegularExpression.CaseInsensitiveOption))
 
     def create_menu(items=[], receiver=None, parent=None):
+        font = QtGui.QFont()
+        font.setFamilies(fontfamily)
+        font.setPointSize(fontpointsize)
         if isinstance(items,list):
             newmenu = QtWidgets.QMenu(items[0].capitalize(),parent=parent)
+            newmenu.setFont(font)
             newmenu.setObjectName('menu_'+items[0])
             for subitem in items[1:]:
                 if isinstance(subitem,list):
@@ -550,6 +565,7 @@ class MyQtStaticUtils():
             return newmenu
         if isinstance(items,str):
             action = QtWidgets.QAction(items.capitalize(),parent=parent)
+            action.setFont(font)
             action.setData(items)
             action.setObjectName('action_'+items)
             #action.setStatusTip(items)
@@ -655,8 +671,8 @@ class Monitor(QtWidgets.QWidget):
             labelobj.setIndent(8)
             labelobj.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Fixed)
             font = QtGui.QFont()
-            font.setFamilies(['Hack','Courier New','monospace'])
-            font.setPointSize(10)
+            font.setFamilies(fontfamily)
+            font.setPointSize(fontpointsize)
             labelobj.setFont(font)
             self._contents.setdefault(f'label_{label}',labelobj)
 
@@ -786,13 +802,14 @@ class ToolbarHideButtons(QtWidgets.QToolBar):
                     if cmd:
                         btn.setObjectName('button_'+cmd)
                     if txt:
-                        btn.setToolTip(txt.capitalize())
-                        btn.setText(txt.capitalize())
-                        self._buttons_text.setdefault(btn.objectName(),txt.capitalize())
-                    # font = QtGui.QFont()
-                    # font.setFamilies(['Hack','Courier New','monospace'])
-                    # font.setPointSize(10)
-                    # btn.setFont(font)
+                        # ' ' add some spacing between icon and text
+                        btn.setToolTip(' '+txt.capitalize())
+                        btn.setText(' '+txt.capitalize())
+                        self._buttons_text.setdefault(btn.objectName(),' '+txt.capitalize())
+                    font = QtGui.QFont()
+                    font.setFamilies(['Noto Sans Mono'])
+                    font.setPointSize(fontpointsize-2)
+                    btn.setFont(font)
                     btn.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Fixed)
                     self._buttons_order.append(btn.objectName())
                     self._buttons.setdefault(btn.objectName(),btn)
@@ -892,7 +909,7 @@ class MainApp(QtWidgets.QMainWindow):
         self.centralWidget().parent().addToolBar(QtCore.Qt.RightToolBarArea,self.buttonToolbar)
 
     def changed_tab(self,idx):
-        self.debugmsg(f'TAB CHANGE {idx}')
+        self.debugmsg(f'Change tab: {idx}')
 
     def close_tab(self,idx,exit_forced=False):
         tabs = MyQtStaticUtils.findObject(self,'tabs')
@@ -909,7 +926,7 @@ class MainApp(QtWidgets.QMainWindow):
             )
             if dialog == QtWidgets.QMessageBox.No:
                 return False
-        self.debugmsg(_("TAB CLOSE") + f' {idx}')
+        self.debugmsg(_("Close tab:") + f' {idx}')
 
         if hasattr(widget,'askSave'):
             ret = widget.askSave()
@@ -935,13 +952,18 @@ class MainApp(QtWidgets.QMainWindow):
         tabs.setVisible(False)
 
     def begin_build_menubar(self):
+        font = QtGui.QFont()
+        font.setFamilies(fontfamily)
+        font.setPointSize(fontpointsize)
         menu_context_items = ['Llxamp', _('Exit') ]
         menu_context = MyQtStaticUtils.create_menu(
             items=menu_context_items,
             receiver=self.action_triggered,
             parent=self.menuBar()
         )
+        menu_context.setFont(font)
         self.menuBar().addMenu(menu_context)
+        self.menuBar().setFont(font)
 
         def post_actions(x,err):
             x = MyAppConfigFiles(x)
@@ -999,7 +1021,8 @@ class MainApp(QtWidgets.QMainWindow):
         if mode == 'context':
             print(mode)
         elif mode == 'trigger':
-            self.setVisible(not self.isVisible())
+            visible = self.isVisible()
+            self.setVisible(not visible)
         else:
             print(f'TODO: {mode}')
 
@@ -1017,6 +1040,10 @@ class MainApp(QtWidgets.QMainWindow):
         if not menu:
             return False
         menu = menu[0]
+        font = QtGui.QFont()
+        font.setFamilies(fontfamily)
+        font.setPointSize(fontpointsize)
+        menu.setFont(font)
         self.systray.setContextMenu(menu)
 
     def create_layout(self):
@@ -1069,8 +1096,8 @@ class MainApp(QtWidgets.QMainWindow):
         tab = MyQtStaticUtils.findObject(self,f'tab_{name}')
         if not tab:
             font = QtGui.QFont()
-            font.setFamilies(['Hack','Courier New','monospace'])
-            font.setPointSize(10)
+            font.setFamilies(fontfamily)
+            font.setPointSize(fontpointsize)
             text = Editor(self.file_mappings.get(filename))
             text.setObjectName(f'tab_{name}')
             text.setFont(font)
@@ -1197,7 +1224,7 @@ class MainApp(QtWidgets.QMainWindow):
 
     def action_from_menu(self,action):
         if action.parent().objectName().lower() == 'menu_llxamp':
-            if action.text().lower() == 'exit':
+            if action.text() == _('Exit'):
                 self.closeEvent()
         else:
             filename = action.data()
@@ -1241,7 +1268,7 @@ class MainApp(QtWidgets.QMainWindow):
         tw.setTitle('{} {}'.format(_('All configuration from'),title))
         te = QtWidgets.QPlainTextEdit(txt,tw)
         font = QtGui.QFont()
-        font.setFamilies(['Hack','Courier New','monospace'])
+        font.setFamilies(fontfamily)
         te.setFont(font)
         te.setReadOnly(True)
         lay = QtWidgets.QVBoxLayout()
@@ -1302,8 +1329,8 @@ class SpinDialog(QtWidgets.QDialog):
         self.textedit = QtWidgets.QPlainTextEdit()
         self.textedit.setReadOnly(True)
         font = QtGui.QFont()
-        font.setFamilies(['Hack','Courier New','monospace'])
-        font.setPointSize(10)
+        font.setFamilies(fontfamily)
+        font.setPointSize(fontpointsize)
         self.textedit.setFont(font)
         self.layout_page = QtWidgets.QVBoxLayout()
         self.label.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Expanding)
