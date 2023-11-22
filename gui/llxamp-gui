@@ -1389,7 +1389,6 @@ class MainApp(QtWidgets.QMainWindow):
         layout.addWidget(save_button,3,2,QtCore.Qt.AlignBottom|QtCore.Qt.AlignRight)
         layout.addWidget(close_button,3,3,QtCore.Qt.AlignBottom|QtCore.Qt.AlignRight)
 
-
         dialog.show()
 
     def font_reload(self,obj):
