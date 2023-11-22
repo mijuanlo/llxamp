@@ -910,6 +910,7 @@ class MainApp(QtWidgets.QMainWindow):
         for k in os.environ.keys():
             msg.append(f'{k} = {os.environ.get(k)}')
         self.debugmsg('\n'.join(msg))
+        self.debugmsg('{} {} [{}]'.format(_('Default font selected:'),fontfamily,fontpointsize))
 
     def create_buttons(self):
         is_installed = os.path.exists(f"{os.path.expanduser('~')}/llxamp/scripts")
