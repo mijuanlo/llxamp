@@ -31,6 +31,7 @@ import sys,os
 import signal
 import time
 import socket
+import json
 
 import gettext
 from gettext import gettext as _
@@ -83,25 +84,20 @@ preferences_file = '{}/.llxamp/preferences.ini'.format(os.path.expanduser('~'))
 preferences = {}
 
 def load_preferences():
-    if os.path.isfile(preferences_file):
-        with open(preferences_file,'r') as fp:
-            pref = fp.readlines()
-        for line in pref:
-            try:
-                k,v = line.split('=')
-                preferences[k.strip()]=v.strip()
-            except:
-                pass
-
-def save_preferences():
     global preferences
     if os.path.isfile(preferences_file):
-        with open(preferences_file,'w') as fp:
-            lines = []
-            for k in sorted(preferences.keys()):
-                v = preferences.get(k)
-                lines.append(f'{k}={v}')
-            fp.writelines(lines)
+        with open(preferences_file,'r') as fp:
+            try:
+                preferences = json.load(fp)
+            except Exception as e:
+                pass
+        for k,v in preferences.items():
+            if k in globals().keys():
+                exec(f'global {k};{k}={v}')
+
+def save_preferences():
+    with open(preferences_file,'w') as fp:
+        json.dump(preferences,fp,indent=' ',sort_keys=True)
 
 class Highlighter(QtGui.QSyntaxHighlighter):
     def __init__(self,*args, **kwargs):
@@ -832,8 +828,8 @@ class ToolbarHideButtons(QtWidgets.QToolBar):
                         btn.setText(' '+txt.capitalize())
                         self._buttons_text.setdefault(btn.objectName(),' '+txt.capitalize())
                     font = QtGui.QFont()
-                    font.setFamilies(['Noto Sans Mono'])
-                    font.setPointSize(fontpointsize-2)
+                    font.setFamilies(fontfamily)
+                    font.setPointSize(fontpointsize-1)
                     btn.setFont(font)
                     btn.setSizePolicy(QtWidgets.QSizePolicy.Expanding,QtWidgets.QSizePolicy.Fixed)
                     self._buttons_order.append(btn.objectName())
@@ -1368,12 +1364,18 @@ class MainApp(QtWidgets.QMainWindow):
         lineedit_font.setStyleSheet('background-color: transparent;')
         font_button = QtWidgets.QPushButton(_('Change font'),dialog)
         font_button.setFont(font)
+        close_button = QtWidgets.QPushButton(_('Close'),dialog)
+        close_button.pressed.connect(lambda: (dialog.close(),dialog.deleteLater()))
+        save_button = QtWidgets.QPushButton(_('Save'),dialog)
+        save_button.setEnabled(False)
+        save_button.pressed.connect(lambda: (save_preferences(),save_button.setEnabled(False)))
         def dialog_font_open():
             global fontpointsize, fontfamily
             font_selected = QtWidgets.QFontDialog.getFont(font,dialog,_('Select font'))
             changed = font_selected[0]
             newfont = font_selected[1]
             if changed:
+                save_button.setEnabled(True)
                 fontfamily = newfont.families()
                 fontpointsize = newfont.pointSize()
                 self.font_reload(self)
@@ -1381,10 +1383,6 @@ class MainApp(QtWidgets.QMainWindow):
                 preferences['fontfamily']=fontfamily
                 preferences['fontpointsize']=fontpointsize
         font_button.pressed.connect(dialog_font_open)
-        close_button = QtWidgets.QPushButton(_('Close'),dialog)
-        close_button.pressed.connect(lambda: (dialog.close(),dialog.deleteLater()))
-        save_button = QtWidgets.QPushButton(_('Save'),dialog)
-        save_button.pressed.connect(lambda: save_preferences())
         layout.addWidget(label_font,1,1)
         layout.addWidget(lineedit_font,1,2)
         layout.addWidget(font_button,1,3)
