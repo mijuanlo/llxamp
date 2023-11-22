@@ -91,9 +91,16 @@ def load_preferences():
                 preferences = json.load(fp)
             except Exception as e:
                 pass
+        keys = globals().keys()
+        key_mapping = {}
+        for key in keys:
+            key_mapping.setdefault(key.lower(),key)
         for k,v in preferences.items():
-            if k in globals().keys():
-                exec(f'global {k};{k}={v}')
+            if k.lower() in [ k.lower() for k in keys]:
+                if key_mapping.get(k.lower()):
+                    exec(f'global {key_mapping.get(k.lower())};{key_mapping.get(k.lower())}={v}')
+                    if DEBUG:
+                        print(_('Setting global variable from preferences file:') + f' {key_mapping.get(k.lower())}={v}')
 
 def save_preferences():
     with open(preferences_file,'w') as fp:
@@ -363,6 +370,7 @@ class LogViewer(QtWidgets.QWidget):
         # self._textedit.setSizePolicy(sizep)
         self.layout().addWidget(self._textedit)
         self.setMinimumSize(0,0)
+        self.debugmsg('{} {} {}'.format(_('Logviewer configured with:'),MAX_LINES,_('lines')))
 
     def clear(self):
         self._textedit.clear()
@@ -897,7 +905,7 @@ class MainApp(QtWidgets.QMainWindow):
         self.split.setStretchFactor(self.split.count()-1,1)
 
         self.create_systray()
-
+        self.preferences_dialog = self.create_dialog_preferences()
         msg = []
         for k in os.environ.keys():
             msg.append(f'{k} = {os.environ.get(k)}')
@@ -1254,7 +1262,7 @@ class MainApp(QtWidgets.QMainWindow):
             if action.text() == _('Exit'):
                 self.closeEvent()
             elif action.text() == _('Preferences'):
-                self.dialog_preferences()
+                self.preferences_dialog.show()
         else:
             filename = action.data()
             self.new_tab(filename)
@@ -1345,51 +1353,110 @@ class MainApp(QtWidgets.QMainWindow):
         dialog.layout().addWidget(text)
         dialog.show()
 
-    def dialog_preferences(self):
+    def create_dialog_preferences(self):
         global fontpointsize, fontfamily, preferences
 
         dialog = QtWidgets.QDialog(self)
         #dialog.setMinimumSize(800,600)
         layout = QtWidgets.QGridLayout(dialog)
         dialog.setLayout(layout)
-        label_font = QtWidgets.QLabel(_('Font:'),dialog)
+
         font = QtGui.QFont()
         font.setFamilies(fontfamily)
         font.setPointSize(fontpointsize)
+
+        label_font = QtWidgets.QLabel(_('Font:'),dialog)
         label_font.setFont(font)
         lineedit_font = QtWidgets.QLineEdit(dialog)
         lineedit_font.setReadOnly(True)
+        lineedit_font.setObjectName('lineedit_font')
         lineedit_font.setText(f'{fontfamily[0]} [{fontpointsize}]')
         lineedit_font.setFont(font)
         lineedit_font.setStyleSheet('background-color: transparent;')
+        lineedit_font.setAlignment(QtCore.Qt.AlignRight)
         font_button = QtWidgets.QPushButton(_('Change font'),dialog)
+        font_button.setObjectName('font_button')
         font_button.setFont(font)
+
         close_button = QtWidgets.QPushButton(_('Close'),dialog)
-        close_button.pressed.connect(lambda: (dialog.close(),dialog.deleteLater()))
+        close_button.setObjectName('close_button')
+        close_button.pressed.connect(self.preferences_actions)
+        close_button.setFont(font)
         save_button = QtWidgets.QPushButton(_('Save'),dialog)
+        save_button.setObjectName('save_button')
         save_button.setEnabled(False)
-        save_button.pressed.connect(lambda: (save_preferences(),save_button.setEnabled(False)))
-        def dialog_font_open():
+        save_button.pressed.connect(self.preferences_actions)
+        save_button.setFont(font)
+
+        font_button.pressed.connect(self.preferences_actions)
+        label_hist = QtWidgets.QLabel(_('Maximum log history:'),dialog)
+        label_hist.setFont(font)
+        lineedit_hist = QtWidgets.QLineEdit(dialog)
+        lineedit_hist.setText(str(MAX_LINES))
+        lineedit_hist.setStyleSheet('background-color: transparent;')
+        lineedit_hist.setFont(font)
+        lineedit_hist.setAlignment(QtCore.Qt.AlignRight)
+        lineedit_hist.setObjectName('lineedit_hist')
+        lineedit_hist.editingFinished.connect(self.preferences_actions)
+
+        layout.addWidget(label_font,1,1)
+        layout.addWidget(lineedit_font,1,2)
+        layout.addWidget(font_button,1,3)
+        layout.addWidget(label_hist,2,1)
+        layout.addWidget(lineedit_hist,2,2)
+        layout.addWidget(save_button,layout.rowCount(),2,QtCore.Qt.AlignBottom|QtCore.Qt.AlignRight)
+        layout.addWidget(close_button,layout.rowCount()-1,3,QtCore.Qt.AlignBottom|QtCore.Qt.AlignRight)
+
+        for element in dialog.findChildren(QtWidgets.QPushButton,QtCore.QRegExp()):
+            element.setDefault(False)
+            element.setAutoDefault(False)
+        return dialog
+
+    def preferences_actions(self,*args):
+        # Hack preventing slot activation twice
+        i=0
+        while sys._getframe(i).f_code.co_name != 'preferences_actions':
+            print(sys._getframe(i).f_code.co_name)
+            i+=1
+        if sys._getframe(i+1).f_code.co_name == 'preferences_actions':
+            return
+        # End hack
+        sender = self.sender()
+        dialog = sender.parent()
+        name = sender.objectName()
+        if name == 'lineedit_hist':
+            try:
+                hist_size = int(sender.text())
+                if hist_size != MAX_LINES:
+                    preferences['MAX_LINES'] = hist_size
+                    dialog.findChild(QtCore.QObject,'save_button').setEnabled(True)
+                    self.logviewer._textedit.document().setsetMaximumBlockCount(hist_size)
+            except:
+                pass
+        elif name == 'close_button':
+            dialog.close()
+        elif name == 'save_button':
+            save_preferences()
+            sender.setEnabled(False)
+        elif name == 'font_button':
             global fontpointsize, fontfamily
+            font = QtGui.QFont()
+            font.setFamilies(fontfamily)
+            font.setPointSize(fontpointsize)
             font_selected = QtWidgets.QFontDialog.getFont(font,dialog,_('Select font'))
             changed = font_selected[0]
             newfont = font_selected[1]
             if changed:
-                save_button.setEnabled(True)
+                dialog.findChild(QtCore.QObject,'save_button').setEnabled(True)
                 fontfamily = newfont.families()
                 fontpointsize = newfont.pointSize()
                 self.font_reload(self)
-                lineedit_font.setText(f'{fontfamily[0]} [{fontpointsize}]')
+                dialog.findChild('save_button').setText(f'{fontfamily[0]} [{fontpointsize}]')
                 preferences['fontfamily']=fontfamily
                 preferences['fontpointsize']=fontpointsize
-        font_button.pressed.connect(dialog_font_open)
-        layout.addWidget(label_font,1,1)
-        layout.addWidget(lineedit_font,1,2)
-        layout.addWidget(font_button,1,3)
-        layout.addWidget(save_button,3,2,QtCore.Qt.AlignBottom|QtCore.Qt.AlignRight)
-        layout.addWidget(close_button,3,3,QtCore.Qt.AlignBottom|QtCore.Qt.AlignRight)
-
-        dialog.show()
+        else:
+            pass
+        return
 
     def font_reload(self,obj):
         font = QtGui.QFont()
