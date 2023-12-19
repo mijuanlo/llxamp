@@ -1,8 +1,0 @@
-gui/llxamp-gui usr/lib/llxamp/
-gui/*.desktop usr/share/applications/
-gui/llxamp.svg usr/share/icons/hicolor/scalable/apps/
-gui/locale/es_ES/LC_MESSAGES/*.mo usr/share/locale/es_ES/LC_MESSAGES/
-gui/locale/ca_ES/LC_MESSAGES/*.mo usr/share/locale/ca_ES/LC_MESSAGES/
-gui/locale/en/LC_MESSAGES/*.mo usr/share/locale/en/LC_MESSAGES/
-resources/*.svg usr/share/applications/
-docs/*.md usr/share/doc/llxamp-gui/
